@@ -1,0 +1,56 @@
+Package: CytoMDS
+Title: Low Dimensions projection of cytometry samples
+Version: 0.99.0
+Authors@R:
+    c(person(given = "Philippe",
+             family = "Hauchamps",
+             role = c("aut", "cre"),
+             email = "philippe.hauchamps@uclouvain.be",
+             comment = c(ORCID = "0000-0003-2865-1852")),
+      person(given = "Laurent", family = "Gatto",
+             email = "laurent.gatto@uclouvain.be",
+             role = "aut",
+             comment = c(ORCID = "0000-0002-1520-2268")),
+      person(given = "Dan",
+             family = "Lin",
+             role = "ctb",
+             email = "dan.8.lin@gsk.com"))
+Description: This package implements a low dimensional visualization of a set
+ of cytometry samples, in order to visually assess the 'distances' between them.
+ This, in turn, can greatly help the user to identify quality issues 
+ like batch effects or outlier samples, and/or check the presence of potential 
+ sample clusters that might align with the exeprimental design.  
+ The CytoMDS algorithm combines, on the one hand, the concept of Earth Mover's 
+ Distance (EMD), a.k.a. Wasserstein metric and, on the other hand, 
+ the Multi Dimensional Scaling (MDS) algorithm for the low dimensional
+ projection.  
+ Also, the package provides some diagnostic tools for both checking the quality 
+ of the MDS projection, as well as tools to help with the interpretation of 
+ the axes of the projection.
+License: GPL-3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+BugReports: https://github.com/UCLouvain-CBIO/CytoMDS/issues
+URL: https://uclouvain-cbio.github.io/CytoMDS
+biocViews: FlowCytometry, QualityControl, DimensionReduction, 
+ multidimensionalScaling, Software, Visualization
+Collate:
+    'CytoMDS.R'
+Depends:
+    R (>= 4.3)
+Imports:
+    methods,
+    stats,
+    utils,
+    ggplot2 (>= 3.4.1),
+    flowCore
+Suggests:
+    testthat (>= 3.0.0),
+    vdiffr,
+    diffviewer,
+    knitr,
+    rmarkdown,
+    BiocStyle
+VignetteBuilder: knitr
+Config/testthat/edition: 3
