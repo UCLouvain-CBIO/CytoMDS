@@ -34,17 +34,25 @@ RoxygenNote: 7.2.3
 BugReports: https://github.com/UCLouvain-CBIO/CytoMDS/issues
 URL: https://uclouvain-cbio.github.io/CytoMDS
 biocViews: FlowCytometry, QualityControl, DimensionReduction, 
- multidimensionalScaling, Software, Visualization
+ MultidimensionalScaling, Software, Visualization
 Collate:
     'CytoMDS.R'
+    'stats.R'
+    'ggplots.R'
 Depends:
     R (>= 4.3)
 Imports:
-    methods,
     stats,
-    utils,
-    ggplot2 (>= 3.4.1),
-    flowCore
+    rlang,
+    pracma,
+    withr,
+    flowCore,
+    ggplot2,
+    ggrepel,
+    ggforce,
+    transport,
+    smacof,
+    CytoPipeline
 Suggests:
     testthat (>= 3.0.0),
     vdiffr,

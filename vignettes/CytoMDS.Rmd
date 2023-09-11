@@ -1,0 +1,49 @@
+---
+title: "Low Dimensional Projection of Cytometry Samples"
+author:
+    - name: Philippe Hauchamps
+    - name: Laurent Gatto
+package: CytoPipeline
+abstract: >
+ This vignette describes the functionality implemented in the `CytoMDS`
+ package. `CytoMDS` provides support for low dimensional projection of a set  
+ of cytometry samples, using concepts such as Earth Mover's (EMD) distance,   
+ and Multi Dimensional Scaling (MDS).  
+ This vignette is distributed under a CC BY-SA 4.0 license.
+output:
+  BiocStyle::html_document:
+    toc_float: true
+bibliography: CytoMDS.bib
+vignette: >
+  %\VignetteIndexEntry{Low Dimensional Projection of Cytometry Samples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %%\VignetteKeywords{FlowCytometry, QualityControl, DimensionReduction, multidimensionalScaling, Software, Visualization}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+# Installation
+
+To install this package, start R and enter (uncommented):
+
+```{r}
+# if (!require("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# 
+# BiocManager::install("CytoMDS")
+```
+
+# Introduction
+
+TO DO
+
+# Session information {-}
+
+```{r sessioninfo, echo=FALSE}
+sessionInfo()
+```
+
+
+# References {-}
