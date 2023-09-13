@@ -62,7 +62,7 @@ all flowFrames of a flowSet</p>
 <span>  <span class="va">fs</span>,</span>
 <span>  channels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  transList <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  statFUN <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span>,</span>
+<span>  statFUNs <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -91,8 +91,9 @@ transformed using the transList
 before evaluating the distance</p></dd>
 
 
-<dt>statFUN</dt>
-<dd><p>function to call to calculate the statistic</p></dd>
+<dt>statFUNs</dt>
+<dd><p>a list (possibly of length one) of
+functions to call to calculate the statistics, or a simple function</p></dd>
 
 
 <dt>verbose</dt>
@@ -147,25 +148,17 @@ for all flowFrames of the flowSet.</p>
 <span class="r-in"><span>    <span class="va">OMIP021Samples</span>,</span></span>
 <span class="r-in"><span>    channels <span class="op">=</span> <span class="va">channelsOrMarkers</span>,</span></span>
 <span class="r-in"><span>    transList <span class="op">=</span> <span class="va">transList</span>,</span></span>
-<span class="r-in"><span>    statFUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    statFUNs <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span></span>
 <span class="r-in"><span>    </span></span>
-<span class="r-in"><span><span class="co"># calculate median for each 4 selected channels, for each 2 samples</span></span></span>
-<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># calculate median AND std deviation</span></span></span>
+<span class="r-in"><span><span class="co"># for each 4 selected channels, for each 2 samples</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">channelMedians</span> <span class="op">&lt;-</span> <span class="fu">getChannelsSummaryStat</span><span class="op">(</span></span></span>
 <span class="r-in"><span>    <span class="va">OMIP021Samples</span>,</span></span>
 <span class="r-in"><span>    channels <span class="op">=</span> <span class="va">channelsOrMarkers</span>,</span></span>
 <span class="r-in"><span>    transList <span class="op">=</span> <span class="va">transList</span>,</span></span>
-<span class="r-in"><span>    statFUN <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span>    statFUNs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span>, <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span>   </span></span>
-<span class="r-in"><span><span class="co"># calculate std deviation for each 4 selected channels, for each 2 samples</span></span></span>
-<span class="r-in"><span>   </span></span>
-<span class="r-in"><span><span class="va">channelStdDevs</span> <span class="op">&lt;-</span> <span class="fu">getChannelsSummaryStat</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="va">OMIP021Samples</span>,</span></span>
-<span class="r-in"><span>    channels <span class="op">=</span> <span class="va">channelsOrMarkers</span>,</span></span>
-<span class="r-in"><span>    transList <span class="op">=</span> <span class="va">transList</span>,</span></span>
-<span class="r-in"><span>    statFUN <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
