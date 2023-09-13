@@ -169,7 +169,7 @@ test_that("getChannelsSummaryStat works", {
         fsAll,
         channels = channelsOrMarkers,
         transList = transList,
-        statFUN = stats::median,
+        statFUNs = stats::median,
         verbose = FALSE)
     
     expect_equal(unname(colnames(ret)), channelsOrMarkers)
@@ -182,27 +182,21 @@ test_that("getChannelsSummaryStat works", {
         fsAll,
         channels = channelsOrMarkers,
         transList = transList,
-        statFUN = mean,
+        statFUNs = list(mean, stats::sd),
         verbose = FALSE)
     
-    expect_equal(unname(colnames(ret)), channelsOrMarkers)
+    expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
     
-    expect_equal(unname(ret[2,1]), 1.961771149533659)
-    expect_equal(unname(ret[3,2]), 1.393034241892733)
-    expect_equal(unname(ret[4,3]), 1.907561024702794)
+    expect_equal(unname(ret[[1]][2,1]), 1.961771149533659)
+    expect_equal(unname(ret[[1]][3,2]), 1.393034241892733)
+    expect_equal(unname(ret[[1]][4,3]), 1.907561024702794)
     
-    ret <- getChannelsSummaryStat(
-        fsAll,
-        channels = channelsOrMarkers,
-        transList = transList,
-        statFUN = stats::sd,
-        verbose = FALSE)
     
-    expect_equal(unname(colnames(ret)), channelsOrMarkers)
+    expect_equal(unname(colnames(ret[[2]])), channelsOrMarkers)
     
-    expect_equal(unname(ret[2,1]), 0.5942291770870205)
-    expect_equal(unname(ret[3,2]), 0.7352746696905406)
-    expect_equal(unname(ret[4,3]), 0.8420740225208073)
+    expect_equal(unname(ret[[2]][2,1]), 0.5942291770870205)
+    expect_equal(unname(ret[[2]][3,2]), 0.7352746696905406)
+    expect_equal(unname(ret[[2]][4,3]), 0.8420740225208073)
     
 })
 

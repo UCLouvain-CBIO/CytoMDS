@@ -9,7 +9,7 @@ getChannelsSummaryStat(
   fs,
   channels = NULL,
   transList = NULL,
-  statFUN = stats::median,
+  statFUNs = stats::median,
   verbose = FALSE,
   ...
 )
@@ -32,7 +32,8 @@ transformed using the transList
 (which should be a \code{flowCore::transformList}),
 before evaluating the distance}
 
-\item{statFUN}{function to call to calculate the statistic}
+\item{statFUNs}{a list (possibly of length one) of
+functions to call to calculate the statistics, or a simple function}
 
 \item{verbose}{if \code{TRUE}, output a message
 after each single distance calculation}
@@ -69,23 +70,15 @@ channelMeans <- getChannelsSummaryStat(
     OMIP021Samples,
     channels = channelsOrMarkers,
     transList = transList,
-    statFUN = mean)
+    statFUNs = mean)
     
-# calculate median for each 4 selected channels, for each 2 samples
-
+# calculate median AND std deviation
+# for each 4 selected channels, for each 2 samples
 
 channelMedians <- getChannelsSummaryStat(
     OMIP021Samples,
     channels = channelsOrMarkers,
     transList = transList,
-    statFUN = stats::median)
+    statFUNs = list(stats::median, stats::sd))
    
-# calculate std deviation for each 4 selected channels, for each 2 samples
-   
-channelStdDevs <- getChannelsSummaryStat(
-    OMIP021Samples,
-    channels = channelsOrMarkers,
-    transList = transList,
-    statFUN = stats::sd)
-
 }

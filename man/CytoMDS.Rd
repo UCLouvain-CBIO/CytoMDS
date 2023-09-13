@@ -199,7 +199,7 @@ extVars <- getChannelsSummaryStat(
     fsAll,
     channels = c("FSC-A", "SSC-A"),
     transList = transList,
-    statFUN = stats::median)
+    statsFUN = stats::median)
 
 
 bp_12 <- ggplotSamplesMDS(
@@ -235,7 +235,7 @@ p3D <- ggplotSamplesMDSShepard(
     mdsObj,
     nDim = 3,
     title = "Shepard with 3 dimensions") 
-
+    #' 
 pDefD <- ggplotSamplesMDSShepard(
     mdsObj,
     title = "Shepard with default nb of dimensions") 

@@ -445,7 +445,8 @@ getPairWiseEMDDist <- function(
 #' before evaluating the distance
 #' @param verbose if `TRUE`, output a message 
 #' after each single distance calculation
-#' @param statFUN function to call to calculate the statistic
+#' @param statFUNs a list (possibly of length one) of
+#' functions to call to calculate the statistics, or a simple function
 #' @param ... additional parameters passed to `getEMDDist()`
 #' @return a matrix of which the columns are the channel statistics 
 #' for all flowFrames of the flowSet. 
@@ -474,30 +475,22 @@ getPairWiseEMDDist <- function(
 #'     OMIP021Samples,
 #'     channels = channelsOrMarkers,
 #'     transList = transList,
-#'     statFUN = mean)
+#'     statFUNs = mean)
 #'     
-#' # calculate median for each 4 selected channels, for each 2 samples
-#' 
+#' # calculate median AND std deviation
+#' # for each 4 selected channels, for each 2 samples
 #' 
 #' channelMedians <- getChannelsSummaryStat(
 #'     OMIP021Samples,
 #'     channels = channelsOrMarkers,
 #'     transList = transList,
-#'     statFUN = stats::median)
+#'     statFUNs = list(stats::median, stats::sd))
 #'    
-#' # calculate std deviation for each 4 selected channels, for each 2 samples
-#'    
-#' channelStdDevs <- getChannelsSummaryStat(
-#'     OMIP021Samples,
-#'     channels = channelsOrMarkers,
-#'     transList = transList,
-#'     statFUN = stats::sd)
-#' 
 getChannelsSummaryStat <- function(
         fs,
         channels = NULL,
         transList = NULL,
-        statFUN = stats::median,
+        statFUNs = stats::median,
         verbose = FALSE,
         ...){
                                    
@@ -505,7 +498,18 @@ getChannelsSummaryStat <- function(
         stop("fs object should inherit from flowCore::flowSet")
     }
     
-    statFUN <- match.fun(statFUN)
+    nStats <- length(statFUNs)
+    if (nStats < 1) {
+        stop("At least one stat function should be provided for calculation")
+    }
+    
+    if (nStats > 1) {
+        statFUNs <- lapply(statFUNs, FUN = match.fun)
+    } else {
+        # also create a list to have it uniform single vs more functions cases
+        statFUNs <- list(match.fun(statFUNs))
+    }
+    
     
     # check channels
     if (is.null(channels)) {
@@ -568,27 +572,39 @@ getChannelsSummaryStat <- function(
     if (nFF < 1) stop("empty flowSet passed")
     
     nChannels <- length(channels)
-    if (verbose) {
-        message("computing statistical function per channel...")
+    
+    statList <- list()
+    for (fu in seq_along(statFUNs)) {
+        if (verbose) {
+            message(
+                "computing statistical function ", fu,
+                " per channel...")
+        }
+        statList[[fu]] <- vapply(
+            channels,
+            FUN = function(ch){
+                chRes <- flowCore::fsApply(
+                    fs,
+                    FUN = function(ff){
+                        statFUNs[[fu]](flowCore::exprs(ff)[, ch], 
+                                na.rm = TRUE)
+                    })
+            },
+            FUN.VALUE = numeric(length = nFF))
+        
+        colnames(statList[[fu]]) <- channelNames
+        rowNames <- flowCore::pData(fs)$name
+        if (!is.null(rowNames)) {
+            rownames(statList[[fu]]) <- rowNames
+        }
     }
-    ret <- vapply(
-        channels,
-        FUN = function(ch){
-            chRes <- flowCore::fsApply(
-                fs,
-                FUN = function(ff){
-                    statFUN(flowCore::exprs(ff)[, ch], 
-                            na.rm = TRUE)
-                })
-        },
-        FUN.VALUE = numeric(length = nFF))
-                  
-    colnames(ret) <- channelNames
-    rowNames <- flowCore::pData(fs)$name
-    if (!is.null(rowNames)) {
-        rownames(ret) <- rowNames
+    
+    # if only one stat function => unlist to return one single matrix
+    if (nStats == 1){
+        statList <- statList[[1]]
     }
-    ret
+    
+    statList
 }
 
 #' @title metric MDS projection of sample
