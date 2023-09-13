@@ -53,6 +53,12 @@ test_that("ggplotSamplesMDS works", {
     
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
     
+    expect_equal(mdsObj$stress, 4.322212e-16)
+    tgtspp <- c(
+        13.5257732, 47.5051546, 12.6391753, 13.0309278, 13.2989691)
+    names(tgtspp) <- 1:5
+    expect_equal(mdsObj$spp, tgtspp)
+    
     
     p <- ggplotSamplesMDS(mdsObj = mdsObj,
                           pData = flowCore::pData(fsAll),
