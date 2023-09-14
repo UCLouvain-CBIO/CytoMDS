@@ -118,12 +118,14 @@ the R square when taking all dims from 1 to d.</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">OMIP021Samples</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># estimate scale transformations</span></span></span>
-<span class="r-in"><span>    <span class="va">transList</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/estimateScaleTransforms.html" class="external-link">estimateScaleTransforms</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>        ff <span class="op">=</span> <span class="va">OMIP021Samples</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span></span>
-<span class="r-in"><span>        fluoMethod <span class="op">=</span> <span class="st">"estimateLogicle"</span>,</span></span>
-<span class="r-in"><span>        scatterMethod <span class="op">=</span> <span class="st">"linearQuantile"</span>,</span></span>
-<span class="r-in"><span>        scatterRefMarker <span class="op">=</span> <span class="st">"BV785 - CD3"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># estimate scale transformations </span></span></span>
+<span class="r-in"><span><span class="co"># and transform the whole OMIP021Samples</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">transList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/estimateScaleTransforms.html" class="external-link">estimateScaleTransforms</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    ff <span class="op">=</span> <span class="va">OMIP021Samples</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>    fluoMethod <span class="op">=</span> <span class="st">"estimateLogicle"</span>,</span></span>
+<span class="r-in"><span>    scatterMethod <span class="op">=</span> <span class="st">"linearQuantile"</span>,</span></span>
+<span class="r-in"><span>    scatterRefMarker <span class="op">=</span> <span class="st">"BV785 - CD3"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> estimating logicle transformations for fluorochrome channels...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimating linear transformation for scatter channels : reference marker = BV785 - CD3...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> applying specific linear transformation for FSC-A channel...</span>
@@ -136,8 +138,12 @@ the R square when taking all dims from 1 to d.</p></li>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> target quantiles : q5 = 0.3849 ; q95 = 2.9395</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> a = 1.11e-05 ; b = 2.03e-01</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> applying SSC-A linear transformation for SSC-H channel...</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">OMIP021Trans</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/applyScaleTransforms.html" class="external-link">applyScaleTransforms</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="va">OMIP021Samples</span>, </span></span>
+<span class="r-in"><span>    <span class="va">transList</span><span class="op">)</span></span></span>
 <span class="r-in"><span>    </span></span>
-<span class="r-in"><span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu">flowCore</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/flowCore/man/flowSet_to_list.html" class="external-link">flowSet_to_list</a></span><span class="op">(</span><span class="va">OMIP021Samples</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu">flowCore</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/flowCore/man/flowSet_to_list.html" class="external-link">flowSet_to_list</a></span><span class="op">(</span><span class="va">OMIP021Trans</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># As there are only 2 samples in OMIP021Samples dataset,</span></span></span>
 <span class="r-in"><span><span class="co"># we create artificial samples that are random combinations of both samples</span></span></span>
@@ -145,7 +151,7 @@ the R square when taking all dims from 1 to d.</p></li>
 <span class="r-in"><span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">3</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">{</span></span></span>
 <span class="r-in"><span>    <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> </span></span>
 <span class="r-in"><span>        <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/aggregateAndSample.html" class="external-link">aggregateAndSample</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>            <span class="va">OMIP021Samples</span>,</span></span>
+<span class="r-in"><span>            <span class="va">OMIP021Trans</span>,</span></span>
 <span class="r-in"><span>            seed <span class="op">=</span> <span class="fl">10</span><span class="op">*</span><span class="va">i</span>,</span></span>
 <span class="r-in"><span>            nTotalEvents <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">22</span><span class="op">]</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
@@ -159,7 +165,6 @@ the R square when taking all dims from 1 to d.</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">pwDist</span> <span class="op">&lt;-</span> <span class="fu"><a href="getPairWiseEMDDist.html">getPairWiseEMDDist</a></span><span class="op">(</span><span class="va">fsAll</span>, </span></span>
 <span class="r-in"><span>                             channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FSC-A"</span>, <span class="st">"SSC-A"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                             transList <span class="op">=</span> <span class="va">transList</span>,</span></span>
 <span class="r-in"><span>                             verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># compute Metric MDS object</span></span></span>

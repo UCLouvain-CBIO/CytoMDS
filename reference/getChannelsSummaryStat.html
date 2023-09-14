@@ -61,7 +61,6 @@ all flowFrames of a flowSet</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">getChannelsSummaryStat</span><span class="op">(</span></span>
 <span>  <span class="va">fs</span>,</span>
 <span>  channels <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  transList <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  statFUNs <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -82,13 +81,6 @@ it refers to the indexes of channels in <code>fs</code></p></li>
 <li><p>if NULL all scatter and fluorescent channels of <code>fs</code>
 will be selected</p></li>
 </ul></dd>
-
-
-<dt>transList</dt>
-<dd><p>if not <code>NULL</code>, the flowSet will be first
-transformed using the transList
-(which should be a <code><a href="https://rdrr.io/pkg/flowCore/man/transformList-class.html" class="external-link">flowCore::transformList</a></code>),
-before evaluating the distance</p></dd>
 
 
 <dt>statFUNs</dt>
@@ -120,12 +112,14 @@ for all flowFrames of the flowSet.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">OMIP021Samples</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># estimate scale transformations</span></span></span>
-<span class="r-in"><span>    <span class="va">transList</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/estimateScaleTransforms.html" class="external-link">estimateScaleTransforms</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>        ff <span class="op">=</span> <span class="va">OMIP021Samples</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span></span>
-<span class="r-in"><span>        fluoMethod <span class="op">=</span> <span class="st">"estimateLogicle"</span>,</span></span>
-<span class="r-in"><span>        scatterMethod <span class="op">=</span> <span class="st">"linearQuantile"</span>,</span></span>
-<span class="r-in"><span>        scatterRefMarker <span class="op">=</span> <span class="st">"BV785 - CD3"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># estimate scale transformations </span></span></span>
+<span class="r-in"><span><span class="co"># and transform the whole OMIP021Samples</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">transList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/estimateScaleTransforms.html" class="external-link">estimateScaleTransforms</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    ff <span class="op">=</span> <span class="va">OMIP021Samples</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>    fluoMethod <span class="op">=</span> <span class="st">"estimateLogicle"</span>,</span></span>
+<span class="r-in"><span>    scatterMethod <span class="op">=</span> <span class="st">"linearQuantile"</span>,</span></span>
+<span class="r-in"><span>    scatterRefMarker <span class="op">=</span> <span class="st">"BV785 - CD3"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> estimating logicle transformations for fluorochrome channels...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Estimating linear transformation for scatter channels : reference marker = BV785 - CD3...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> applying specific linear transformation for FSC-A channel...</span>
@@ -138,25 +132,26 @@ for all flowFrames of the flowSet.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> target quantiles : q5 = 0.3849 ; q95 = 2.9395</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> a = 1.11e-05 ; b = 2.03e-01</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> applying SSC-A linear transformation for SSC-H channel...</span>
-<span class="r-in"><span>    </span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">OMIP021Trans</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/applyScaleTransforms.html" class="external-link">applyScaleTransforms</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="va">OMIP021Samples</span>, </span></span>
+<span class="r-in"><span>    <span class="va">transList</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">channelsOrMarkers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FSC-A"</span>, <span class="st">"SSC-A"</span>, <span class="st">"BV785 - CD3"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># calculate mean for each 4 selected channels, for each 2 samples</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">channelMeans</span> <span class="op">&lt;-</span> <span class="fu">getChannelsSummaryStat</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="va">OMIP021Samples</span>,</span></span>
+<span class="r-in"><span>    <span class="va">OMIP021Trans</span>,</span></span>
 <span class="r-in"><span>    channels <span class="op">=</span> <span class="va">channelsOrMarkers</span>,</span></span>
-<span class="r-in"><span>    transList <span class="op">=</span> <span class="va">transList</span>,</span></span>
 <span class="r-in"><span>    statFUNs <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span></span>
 <span class="r-in"><span>    </span></span>
 <span class="r-in"><span><span class="co"># calculate median AND std deviation</span></span></span>
 <span class="r-in"><span><span class="co"># for each 4 selected channels, for each 2 samples</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">channelMedians</span> <span class="op">&lt;-</span> <span class="fu">getChannelsSummaryStat</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="va">OMIP021Samples</span>,</span></span>
+<span class="r-in"><span>    <span class="va">OMIP021Trans</span>,</span></span>
 <span class="r-in"><span>    channels <span class="op">=</span> <span class="va">channelsOrMarkers</span>,</span></span>
-<span class="r-in"><span>    transList <span class="op">=</span> <span class="va">transList</span>,</span></span>
 <span class="r-in"><span>    statFUNs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span>, <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span>   </span></span>
 </code></pre></div>
