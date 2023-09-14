@@ -8,7 +8,6 @@ all flowFrames of a flowSet}
 getChannelsSummaryStat(
   fs,
   channels = NULL,
-  transList = NULL,
   statFUNs = stats::median,
   verbose = FALSE,
   ...
@@ -26,11 +25,6 @@ it refers to the indexes of channels in \code{fs}
 \item if NULL all scatter and fluorescent channels of \code{fs}
 will be selected
 }}
-
-\item{transList}{if not \code{NULL}, the flowSet will be first
-transformed using the transList
-(which should be a \code{flowCore::transformList}),
-before evaluating the distance}
 
 \item{statFUNs}{a list (possibly of length one) of
 functions to call to calculate the statistics, or a simple function}
@@ -54,31 +48,34 @@ library(CytoPipeline)
 
 data(OMIP021Samples)
 
-# estimate scale transformations
-    transList <- CytoPipeline::estimateScaleTransforms(
-        ff = OMIP021Samples[[1]],
-        fluoMethod = "estimateLogicle",
-        scatterMethod = "linearQuantile",
-        scatterRefMarker = "BV785 - CD3")
-    
+# estimate scale transformations 
+# and transform the whole OMIP021Samples
+
+transList <- estimateScaleTransforms(
+    ff = OMIP021Samples[[1]],
+    fluoMethod = "estimateLogicle",
+    scatterMethod = "linearQuantile",
+    scatterRefMarker = "BV785 - CD3")
+
+OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+    OMIP021Samples, 
+    transList)
 
 channelsOrMarkers <- c("FSC-A", "SSC-A", "BV785 - CD3")
 
 # calculate mean for each 4 selected channels, for each 2 samples
 
 channelMeans <- getChannelsSummaryStat(
-    OMIP021Samples,
+    OMIP021Trans,
     channels = channelsOrMarkers,
-    transList = transList,
     statFUNs = mean)
     
 # calculate median AND std deviation
 # for each 4 selected channels, for each 2 samples
 
 channelMedians <- getChannelsSummaryStat(
-    OMIP021Samples,
+    OMIP021Trans,
     channels = channelsOrMarkers,
-    transList = transList,
     statFUNs = list(stats::median, stats::sd))
    
 }

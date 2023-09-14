@@ -17,28 +17,30 @@
 library(CytoPipeline)
 data(OMIP021Samples)
 
+transList <- estimateScaleTransforms(
+    ff = OMIP021Samples[[1]],
+    fluoMethod = "estimateLogicle",
+    scatterMethod = "linearQuantile",
+    scatterRefMarker = "BV785 - CD3")
+
+OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+    OMIP021Samples, 
+    transList)
+
 test_that("getEMDDist works", {
-    transList <- estimateScaleTransforms(
-        ff = OMIP021Samples[[1]],
-        fluoMethod = "estimateLogicle",
-        scatterMethod = "linearQuantile",
-        scatterRefMarker = "BV785 - CD3")
-    
     # distance with itself, all channels
-    distDum <- getEMDDist(ff1 = OMIP021Samples[[1]],
-                          ff2 = OMIP021Samples[[1]],
-                          transList = transList,
+    distDum <- getEMDDist(ff1 = OMIP021Trans[[1]],
+                          ff2 = OMIP021Trans[[1]],
                           binSize = 0.05,
                           minRange = -10,
                           maxRange = 10,
                           returnAll = FALSE)
     expect_equal(distDum, 0.)
     
-    # returning only distance, 2 channels, with transList
-    dist1 <- getEMDDist(ff1 = OMIP021Samples[[1]], 
-                        ff2 = OMIP021Samples[[2]], 
+    # returning only distance, 2 channels
+    dist1 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+                        ff2 = OMIP021Trans[[2]], 
                         channels = c("FSC-A", "SSC-A"),
-                        transList = transList,
                         binSize = 0.05,
                         minRange = -10,
                         maxRange = 10,
@@ -46,25 +48,10 @@ test_that("getEMDDist works", {
     
     expect_equal(dist1, 0.1551)
     
-    
-    # returning only distance, 2 channels, no transList
-    ffTrans1 <- flowCore::transform(OMIP021Samples[[1]], transList)
-    ffTrans2 <- flowCore::transform(OMIP021Samples[[2]], transList)
-    dist2 <- getEMDDist(ff1 = ffTrans1, 
-                        ff2 = ffTrans2, 
-                        channels = c("FSC-A", "SSC-A"),
-                        binSize = 0.05,
-                        minRange = -10,
-                        maxRange = 10,
-                        returnAll = FALSE)
-    
-    expect_equal(dist2, dist1)
-    
     # using only one channel, passed by marker name
-    dist3 <- getEMDDist(ff1 = OMIP021Samples[[1]], 
-                        ff2 = OMIP021Samples[[2]], 
+    dist3 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+                        ff2 = OMIP021Trans[[2]], 
                         channels = c("BV785 - CD3"),
-                        transList = transList,
                         binSize = 0.05,
                         minRange = -10,
                         maxRange = 10,
@@ -73,10 +60,9 @@ test_that("getEMDDist works", {
     expect_equal(dist3, 0.1393)
     
     # using only one channel, passed by index
-    dist4 <- getEMDDist(ff1 = OMIP021Samples[[1]], 
-                        ff2 = OMIP021Samples[[2]], 
+    dist4 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+                        ff2 = OMIP021Trans[[2]], 
                         channels = 10,
-                        transList = transList,
                         binSize = 0.05,
                         minRange = -10,
                         maxRange = 10,
@@ -87,10 +73,9 @@ test_that("getEMDDist works", {
     # check that a warning is issued, when [minRange, maxRange] does not span
     # all events
     w <- capture_warnings({
-        distWarn <- getEMDDist(ff1 = OMIP021Samples[[1]],
-                               ff2 = OMIP021Samples[[1]],
+        distWarn <- getEMDDist(ff1 = OMIP021Trans[[1]],
+                               ff2 = OMIP021Trans[[1]],
                                channels = c("FSC-A", "SSC-A"),
-                               transList = transList,
                                binSize = 0.05,
                                minRange = -3,
                                maxRange = 3,
@@ -103,10 +88,9 @@ test_that("getEMDDist works", {
     expect_equal(distWarn, 0.)
     
     #returning all
-    allDist <- getEMDDist(ff1 = OMIP021Samples[[1]], 
-                          ff2 = OMIP021Samples[[2]], 
+    allDist <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+                          ff2 = OMIP021Trans[[2]], 
                           channels = c("FSC-A", "SSC-A"),
-                          transList = transList,
                           binSize = 0.05,
                           minRange = -10,
                           maxRange = 10,
@@ -119,15 +103,8 @@ test_that("getEMDDist works", {
 })
 
 test_that("getPairWiseEMDDist works", {
-    transList <- CytoPipeline::estimateScaleTransforms(
-        ff = OMIP021Samples[[1]],
-        fluoMethod = "estimateLogicle",
-        scatterMethod = "linearQuantile",
-        scatterRefMarker = "BV785 - CD3")
-    
-    pwDist <- getPairWiseEMDDist(fs = OMIP021Samples,
+    pwDist <- getPairWiseEMDDist(fs = OMIP021Trans,
                                  channels = c("FSC-A", "SSC-A"),
-                                 transList = transList,
                                  binSize = 0.05,
                                  minRange = -10,
                                  maxRange = 10
@@ -141,19 +118,13 @@ test_that("getPairWiseEMDDist works", {
 })
 
 test_that("getChannelsSummaryStat works", {
-    
-    transList <- estimateScaleTransforms(
-        ff = OMIP021Samples[[1]],
-        fluoMethod = "estimateLogicle",
-        scatterMethod = "linearQuantile",
-        scatterRefMarker = "BV785 - CD3")
-    
-    ffList <- flowCore::flowSet_to_list(OMIP021Samples)
+   
+    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
     
     for(i in 3:5){
         ffList[[i]] <- 
             aggregateAndSample(
-                OMIP021Samples,
+                OMIP021Trans,
                 seed = 10*i,
                 nTotalEvents = 5000)[,1:22]
     }
@@ -168,7 +139,6 @@ test_that("getChannelsSummaryStat works", {
     ret <- getChannelsSummaryStat(
         fsAll,
         channels = channelsOrMarkers,
-        transList = transList,
         statFUNs = stats::median,
         verbose = FALSE)
     
@@ -181,7 +151,6 @@ test_that("getChannelsSummaryStat works", {
     ret <- getChannelsSummaryStat(
         fsAll,
         channels = channelsOrMarkers,
-        transList = transList,
         statFUNs = list(mean, stats::sd),
         verbose = FALSE)
     
@@ -201,18 +170,12 @@ test_that("getChannelsSummaryStat works", {
 })
 
 test_that("computeMetricMDS works", {
-    transList <- estimateScaleTransforms(
-        ff = OMIP021Samples[[1]],
-        fluoMethod = "estimateLogicle",
-        scatterMethod = "linearQuantile",
-        scatterRefMarker = "BV785 - CD3")
-    
-    ffList <- flowCore::flowSet_to_list(OMIP021Samples)
+    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
     
     for(i in 3:5){
         ffList[[i]] <- 
             aggregateAndSample(
-                OMIP021Samples,
+                OMIP021Trans,
                 seed = 10*i,
                 nTotalEvents = 5000)[,1:22]
     }
@@ -224,7 +187,6 @@ test_that("computeMetricMDS works", {
     
     pwDist <- getPairWiseEMDDist(fsAll, 
                                  channels = c("FSC-A", "SSC-A"),
-                                 transList = transList,
                                  verbose = FALSE)
     
     mdsObj <- computeMetricMDS(pwDist, seed = 0)

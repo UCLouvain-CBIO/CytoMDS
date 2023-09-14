@@ -18,19 +18,23 @@ library(CytoPipeline)
 
 data(OMIP021Samples)
 
+transList <- estimateScaleTransforms(
+    ff = OMIP021Samples[[1]],
+    fluoMethod = "estimateLogicle",
+    scatterMethod = "linearQuantile",
+    scatterRefMarker = "BV785 - CD3")
+
+OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+    OMIP021Samples, 
+    transList)
+
 test_that("ggplotSamplesMDS works", {
-    transList <- estimateScaleTransforms(
-        ff = OMIP021Samples[[1]],
-        fluoMethod = "estimateLogicle",
-        scatterMethod = "linearQuantile",
-        scatterRefMarker = "BV785 - CD3")
-    
-    ffList <- flowCore::flowSet_to_list(OMIP021Samples)
+    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
     
     for(i in 3:5){
         ffList[[i]] <- 
             aggregateAndSample(
-                OMIP021Samples,
+                OMIP021Trans,
                 seed = 10*i,
                 nTotalEvents = 5000)[,1:22]
     }
@@ -45,11 +49,7 @@ test_that("ggplotSamplesMDS works", {
     
     pwDist <- getPairWiseEMDDist(fsAll, 
                                  channels = c("FSC-A", "SSC-A"),
-                                 transList = transList,
                                  verbose = FALSE)
-    
-    
-    
     
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
     
@@ -77,7 +77,6 @@ test_that("ggplotSamplesMDS works", {
     extVars <- getChannelsSummaryStat(
         fsAll,
         channels = c("FSC-A", "SSC-A"),
-        transList = transList,
         statFUN = stats::median,
         verbose = FALSE)
     
@@ -141,18 +140,12 @@ test_that("ggplotSamplesMDS works", {
 
 
 test_that("ggplotSamplesMDSShepard works", {
-    transList <- estimateScaleTransforms(
-        ff = OMIP021Samples[[1]],
-        fluoMethod = "estimateLogicle",
-        scatterMethod = "linearQuantile",
-        scatterRefMarker = "BV785 - CD3")
-    
-    ffList <- flowCore::flowSet_to_list(OMIP021Samples)
+    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
     
     for(i in 3:5){
         ffList[[i]] <- 
             aggregateAndSample(
-                OMIP021Samples,
+                OMIP021Trans,
                 seed = 10*i,
                 nTotalEvents = 5000)[,1:22]
     }
@@ -167,7 +160,6 @@ test_that("ggplotSamplesMDSShepard works", {
     
     pwDist <- getPairWiseEMDDist(fsAll, 
                                  channels = c("FSC-A", "SSC-A"),
-                                 transList = transList,
                                  verbose = FALSE)
     
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)

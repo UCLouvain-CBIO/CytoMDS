@@ -26,10 +26,6 @@
 #' will be selected
 #' @param checkChannels  if `TRUE`, will explicitly check that
 #' all provided channels are present in both flowFrames
-#' @param transList  if not NULL, both flowFrames will be first 
-#' transformed using the transList 
-#' (which should be a `flowCore::transformList`), 
-#' before evaluating the distance
 #' @param binSize  size of equal bins to approximate 
 #' the marginal distributions.
 #' @param minRange minimum value taken 
@@ -56,39 +52,40 @@
 #' 
 #' data(OMIP021Samples)
 #' 
-#' # estimate scale transformations
+#' # estimate scale transformations 
+#' # and transform the whole OMIP021Samples
 #' 
-#' transList <- CytoPipeline::estimateScaleTransforms(
+#' transList <- estimateScaleTransforms(
 #'     ff = OMIP021Samples[[1]],
 #'     fluoMethod = "estimateLogicle",
 #'     scatterMethod = "linearQuantile",
 #'     scatterRefMarker = "BV785 - CD3")
 #' 
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples, 
+#'     transList)
+#' 
 #' # distance with itself (all channels at once)
 #' # => should return 0
 #' dist0 <- getEMDDist(
-#'     ff1 = OMIP021Samples[[1]],
-#'     ff2 = OMIP021Samples[[1]],
-#'     transList = transList)
+#'     ff1 = OMIP021Trans[[1]],
+#'     ff2 = OMIP021Trans[[1]])
 #' 
-#' # returning only distance, 2 channels, with transList
+#' # returning only distance, 2 channels
 #' dist1 <- getEMDDist(
-#'     ff1 = OMIP021Samples[[1]], 
-#'     ff2 = OMIP021Samples[[2]], 
-#'     channels = c("FSC-A", "SSC-A"),
-#'     transList = transList)
+#'     ff1 = OMIP021Trans[[1]], 
+#'     ff2 = OMIP021Trans[[2]], 
+#'     channels = c("FSC-A", "SSC-A"))
 #' 
 #' # using only one channel, passed by marker name
-#' dist2 <- getEMDDist(ff1 = OMIP021Samples[[1]], 
-#'                     ff2 = OMIP021Samples[[2]], 
-#'                     channels = c("BV785 - CD3"),
-#'                     transList = transList)
+#' dist2 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+#'                     ff2 = OMIP021Trans[[2]], 
+#'                     channels = c("BV785 - CD3"))
 #' 
 #' # using only one channel, passed by index
-#' dist3 <- getEMDDist(ff1 = OMIP021Samples[[1]], 
-#'                     ff2 = OMIP021Samples[[2]], 
-#'                     channels = 10,
-#'                     transList = transList)
+#' dist3 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+#'                     ff2 = OMIP021Trans[[2]], 
+#'                     channels = 10)
 #' 
 #' dist2 == dist3
 #' 
@@ -97,7 +94,6 @@ getEMDDist <- function(
         ff2, 
         channels = NULL,
         checkChannels = TRUE,
-        transList = NULL,
         binSize = 0.05,
         minRange = -10,
         maxRange = 10,
@@ -138,21 +134,6 @@ getEMDDist <- function(
     
     # for performance
     ffList <- lapply(ffList, FUN = function(ff) ff[, channels])
-    
-    if (!is.null(transList)) {
-        if (!inherits(transList, "transformList")) {
-            stop("transList should inherit from transformList class")
-        }
-        
-        # for performance
-        transList@transforms <- transList@transforms[channels]
-        
-        ffList <- lapply(
-            
-            ffList,
-            FUN = function(ff) 
-                flowCore::transform(ff, transList))
-    }
     
     breaks <- seq(
         minRange, 
@@ -277,10 +258,6 @@ getEMDDist <- function(
 #' it refers to the indexes of channels in `fs`
 #' - if NULL all scatter and fluorescent channels of `fs`
 #' will be selected
-#' @param transList if not `NULL`, the flowSet will be first 
-#' transformed using the transList 
-#' (which should be a `flowCore::transformList`), 
-#' before evaluating the distance
 #' @param verbose if `TRUE`, output a message 
 #' after each single distance calculation
 #' @param ... additional parameters passed to `getEMDDist()`
@@ -294,23 +271,27 @@ getEMDDist <- function(
 #' 
 #' data(OMIP021Samples)
 #' 
-#' # estimate scale transformations
-#'     transList <- CytoPipeline::estimateScaleTransforms(
-#'         ff = OMIP021Samples[[1]],
-#'         fluoMethod = "estimateLogicle",
-#'         scatterMethod = "linearQuantile",
-#'         scatterRefMarker = "BV785 - CD3")
+#' # estimate scale transformations 
+#' # and transform the whole OMIP021Samples
+#' 
+#' transList <- estimateScaleTransforms(
+#'     ff = OMIP021Samples[[1]],
+#'     fluoMethod = "estimateLogicle",
+#'     scatterMethod = "linearQuantile",
+#'     scatterRefMarker = "BV785 - CD3")
+#' 
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples, 
+#'     transList)
 #'     
-#'     # calculate pairwise distances using only FSC-A & SSC-A channels
-#'     pwDist <- getPairWiseEMDDist(
-#'         fs = OMIP021Samples,
-#'         channels = c("FSC-A", "SSC-A"),
-#'         transList = transList)
+#' # calculate pairwise distances using only FSC-A & SSC-A channels
+#' pwDist <- getPairWiseEMDDist(
+#'     fs = OMIP021Trans,
+#'     channels = c("FSC-A", "SSC-A"))
 #' 
 getPairWiseEMDDist <- function(
         fs,
         channels = NULL,
-        transList = NULL,
         verbose = FALSE,
         ...){
         
@@ -344,27 +325,6 @@ getPairWiseEMDDist <- function(
     #browser()
     # for performance
     fs <- fs[,channels]
-    
-    # transform flowSet if needed, once and for all
-    if(!is.null(transList)) {
-        if (!inherits(transList, "transformList")) {
-            stop("transList should inherit from transformList class")
-        }
-        # for performance
-        transList@transforms <- transList@transforms[channels]
-        #fs <- flowCore::transform(fs, transList)
-        fs <- flowCore::fsApply(
-            fs,
-            FUN = function(ff){
-                if (verbose) {
-                    message(
-                        "scale transforming ff: ", 
-                        flowCore::identifier(ff))
-                }
-                flowCore::transform(ff, transList)
-            })
-                                
-    }
     
     nFF <- length(fs)
     if (nFF < 1) stop("empty flowSet passed")
@@ -402,13 +362,12 @@ getPairWiseEMDDist <- function(
     for (i in seq_len(nFF)) {
         j <- 1
         while (j < i) {
-            # note channels are already checked, transList already applied :=)
+            # note channels are already checked :-)
             pwDist[i,j] <- getEMDDist(
                 fs[[i]], 
                 fs[[j]], 
                 channels = channels,
                 checkChannels = FALSE,
-                transList = NULL,
                 nEventsLCM = nEventsLCM,
                 ...)
                                       
@@ -439,10 +398,6 @@ getPairWiseEMDDist <- function(
 #' it refers to the indexes of channels in `fs`
 #' - if NULL all scatter and fluorescent channels of `fs`
 #' will be selected
-#' @param transList if not `NULL`, the flowSet will be first 
-#' transformed using the transList 
-#' (which should be a `flowCore::transformList`), 
-#' before evaluating the distance
 #' @param verbose if `TRUE`, output a message 
 #' after each single distance calculation
 #' @param statFUNs a list (possibly of length one) of
@@ -459,37 +414,39 @@ getPairWiseEMDDist <- function(
 #' 
 #' data(OMIP021Samples)
 #' 
-#' # estimate scale transformations
-#'     transList <- CytoPipeline::estimateScaleTransforms(
-#'         ff = OMIP021Samples[[1]],
-#'         fluoMethod = "estimateLogicle",
-#'         scatterMethod = "linearQuantile",
-#'         scatterRefMarker = "BV785 - CD3")
-#'     
+#' # estimate scale transformations 
+#' # and transform the whole OMIP021Samples
 #' 
+#' transList <- estimateScaleTransforms(
+#'     ff = OMIP021Samples[[1]],
+#'     fluoMethod = "estimateLogicle",
+#'     scatterMethod = "linearQuantile",
+#'     scatterRefMarker = "BV785 - CD3")
+#' 
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples, 
+#'     transList)
+#'
 #' channelsOrMarkers <- c("FSC-A", "SSC-A", "BV785 - CD3")
 #' 
 #' # calculate mean for each 4 selected channels, for each 2 samples
 #' 
 #' channelMeans <- getChannelsSummaryStat(
-#'     OMIP021Samples,
+#'     OMIP021Trans,
 #'     channels = channelsOrMarkers,
-#'     transList = transList,
 #'     statFUNs = mean)
 #'     
 #' # calculate median AND std deviation
 #' # for each 4 selected channels, for each 2 samples
 #' 
 #' channelMedians <- getChannelsSummaryStat(
-#'     OMIP021Samples,
+#'     OMIP021Trans,
 #'     channels = channelsOrMarkers,
-#'     transList = transList,
 #'     statFUNs = list(stats::median, stats::sd))
 #'    
 getChannelsSummaryStat <- function(
         fs,
         channels = NULL,
-        transList = NULL,
         statFUNs = stats::median,
         verbose = FALSE,
         ...){
@@ -548,25 +505,6 @@ getChannelsSummaryStat <- function(
     #browser()
     # for performance
     fs <- fs[,channels]
-    
-    # transform flowSet if needed, once and for all
-    if(!is.null(transList)) {
-        if (!inherits(transList, "transformList")) {
-            stop("transList should inherit from transformList class")
-        }
-        # for performance
-        transList@transforms <- transList@transforms[channels]
-        #fs <- flowCore::transform(fs, transList)
-        fs <- flowCore::fsApply(
-            fs,
-            FUN = function(ff){
-                if (verbose) {
-                    message("scale transforming ff: ", 
-                            flowCore::identifier(ff))
-                }
-                flowCore::transform(ff, transList)
-            })
-    }
     
     nFF <- length(fs)
     if (nFF < 1) stop("empty flowSet passed")
@@ -645,14 +583,20 @@ getChannelsSummaryStat <- function(
 #' 
 #' data(OMIP021Samples)
 #' 
-#' # estimate scale transformations
-#'     transList <- CytoPipeline::estimateScaleTransforms(
-#'         ff = OMIP021Samples[[1]],
-#'         fluoMethod = "estimateLogicle",
-#'         scatterMethod = "linearQuantile",
-#'         scatterRefMarker = "BV785 - CD3")
+#' # estimate scale transformations 
+#' # and transform the whole OMIP021Samples
+#' 
+#' transList <- estimateScaleTransforms(
+#'     ff = OMIP021Samples[[1]],
+#'     fluoMethod = "estimateLogicle",
+#'     scatterMethod = "linearQuantile",
+#'     scatterRefMarker = "BV785 - CD3")
+#' 
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples, 
+#'     transList)
 #'     
-#' ffList <- flowCore::flowSet_to_list(OMIP021Samples)
+#' ffList <- flowCore::flowSet_to_list(OMIP021Trans)
 #' 
 #' # As there are only 2 samples in OMIP021Samples dataset,
 #' # we create artificial samples that are random combinations of both samples
@@ -660,7 +604,7 @@ getChannelsSummaryStat <- function(
 #' for(i in 3:5){
 #'     ffList[[i]] <- 
 #'         CytoPipeline::aggregateAndSample(
-#'             OMIP021Samples,
+#'             OMIP021Trans,
 #'             seed = 10*i,
 #'             nTotalEvents = 5000)[,1:22]
 #' }
@@ -674,7 +618,6 @@ getChannelsSummaryStat <- function(
 #' 
 #' pwDist <- getPairWiseEMDDist(fsAll, 
 #'                              channels = c("FSC-A", "SSC-A"),
-#'                              transList = transList,
 #'                              verbose = FALSE)
 #' 
 #' # compute Metric MDS object

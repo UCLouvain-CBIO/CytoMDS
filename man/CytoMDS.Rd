@@ -121,14 +121,20 @@ library(CytoPipeline)
 
 data(OMIP021Samples)
 
-# estimate scale transformations
-    transList <- CytoPipeline::estimateScaleTransforms(
-        ff = OMIP021Samples[[1]],
-        fluoMethod = "estimateLogicle",
-        scatterMethod = "linearQuantile",
-        scatterRefMarker = "BV785 - CD3")
+# estimate scale transformations 
+# and transform the whole OMIP021Samples
+
+transList <- estimateScaleTransforms(
+    ff = OMIP021Samples[[1]],
+    fluoMethod = "estimateLogicle",
+    scatterMethod = "linearQuantile",
+    scatterRefMarker = "BV785 - CD3")
+
+OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+    OMIP021Samples, 
+    transList)
   
-ffList <- flowCore::flowSet_to_list(OMIP021Samples)
+ffList <- flowCore::flowSet_to_list(OMIP021Trans)
 
 # As there are only 2 samples in OMIP021Samples dataset,
 # we create artificial samples that are random combinations of both samples
@@ -136,7 +142,7 @@ ffList <- flowCore::flowSet_to_list(OMIP021Samples)
 for(i in 3:5){
     ffList[[i]] <- 
         CytoPipeline::aggregateAndSample(
-            OMIP021Samples,
+            OMIP021Trans,
             seed = 10*i,
             nTotalEvents = 5000)[,1:22]
 }
@@ -150,7 +156,6 @@ fsAll <- as(ffList,"flowSet")
 
 pwDist <- getPairWiseEMDDist(fsAll, 
                              channels = c("FSC-A", "SSC-A"),
-                             transList = transList,
                              verbose = FALSE)
 
 # compute Metric MDS object
@@ -198,7 +203,6 @@ p12_Stress <- ggplotSamplesMDS(
 extVars <- getChannelsSummaryStat(
     fsAll,
     channels = c("FSC-A", "SSC-A"),
-    transList = transList,
     statsFUN = stats::median)
 
 

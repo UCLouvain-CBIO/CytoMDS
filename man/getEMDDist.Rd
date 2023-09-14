@@ -9,7 +9,6 @@ getEMDDist(
   ff2,
   channels = NULL,
   checkChannels = TRUE,
-  transList = NULL,
   binSize = 0.05,
   minRange = -10,
   maxRange = 10,
@@ -34,11 +33,6 @@ will be selected
 
 \item{checkChannels}{if \code{TRUE}, will explicitly check that
 all provided channels are present in both flowFrames}
-
-\item{transList}{if not NULL, both flowFrames will be first
-transformed using the transList
-(which should be a \code{flowCore::transformList}),
-before evaluating the distance}
 
 \item{binSize}{size of equal bins to approximate
 the marginal distributions.}
@@ -72,39 +66,40 @@ library(CytoPipeline)
 
 data(OMIP021Samples)
 
-# estimate scale transformations
+# estimate scale transformations 
+# and transform the whole OMIP021Samples
 
-transList <- CytoPipeline::estimateScaleTransforms(
+transList <- estimateScaleTransforms(
     ff = OMIP021Samples[[1]],
     fluoMethod = "estimateLogicle",
     scatterMethod = "linearQuantile",
     scatterRefMarker = "BV785 - CD3")
 
+OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+    OMIP021Samples, 
+    transList)
+
 # distance with itself (all channels at once)
 # => should return 0
 dist0 <- getEMDDist(
-    ff1 = OMIP021Samples[[1]],
-    ff2 = OMIP021Samples[[1]],
-    transList = transList)
+    ff1 = OMIP021Trans[[1]],
+    ff2 = OMIP021Trans[[1]])
 
-# returning only distance, 2 channels, with transList
+# returning only distance, 2 channels
 dist1 <- getEMDDist(
-    ff1 = OMIP021Samples[[1]], 
-    ff2 = OMIP021Samples[[2]], 
-    channels = c("FSC-A", "SSC-A"),
-    transList = transList)
+    ff1 = OMIP021Trans[[1]], 
+    ff2 = OMIP021Trans[[2]], 
+    channels = c("FSC-A", "SSC-A"))
 
 # using only one channel, passed by marker name
-dist2 <- getEMDDist(ff1 = OMIP021Samples[[1]], 
-                    ff2 = OMIP021Samples[[2]], 
-                    channels = c("BV785 - CD3"),
-                    transList = transList)
+dist2 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+                    ff2 = OMIP021Trans[[2]], 
+                    channels = c("BV785 - CD3"))
 
 # using only one channel, passed by index
-dist3 <- getEMDDist(ff1 = OMIP021Samples[[1]], 
-                    ff2 = OMIP021Samples[[2]], 
-                    channels = 10,
-                    transList = transList)
+dist3 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+                    ff2 = OMIP021Trans[[2]], 
+                    channels = 10)
 
 dist2 == dist3
 

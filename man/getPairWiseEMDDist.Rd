@@ -5,7 +5,7 @@
 \title{Calculate all pairwise Earth Mover's distances
 between flowFrames of a flowSet}
 \usage{
-getPairWiseEMDDist(fs, channels = NULL, transList = NULL, verbose = FALSE, ...)
+getPairWiseEMDDist(fs, channels = NULL, verbose = FALSE, ...)
 }
 \arguments{
 \item{fs}{a flowCore::flowSet}
@@ -19,11 +19,6 @@ it refers to the indexes of channels in \code{fs}
 \item if NULL all scatter and fluorescent channels of \code{fs}
 will be selected
 }}
-
-\item{transList}{if not \code{NULL}, the flowSet will be first
-transformed using the transList
-(which should be a \code{flowCore::transformList}),
-before evaluating the distance}
 
 \item{verbose}{if \code{TRUE}, output a message
 after each single distance calculation}
@@ -43,17 +38,22 @@ library(CytoPipeline)
 
 data(OMIP021Samples)
 
-# estimate scale transformations
-    transList <- CytoPipeline::estimateScaleTransforms(
-        ff = OMIP021Samples[[1]],
-        fluoMethod = "estimateLogicle",
-        scatterMethod = "linearQuantile",
-        scatterRefMarker = "BV785 - CD3")
+# estimate scale transformations 
+# and transform the whole OMIP021Samples
+
+transList <- estimateScaleTransforms(
+    ff = OMIP021Samples[[1]],
+    fluoMethod = "estimateLogicle",
+    scatterMethod = "linearQuantile",
+    scatterRefMarker = "BV785 - CD3")
+
+OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+    OMIP021Samples, 
+    transList)
     
-    # calculate pairwise distances using only FSC-A & SSC-A channels
-    pwDist <- getPairWiseEMDDist(
-        fs = OMIP021Samples,
-        channels = c("FSC-A", "SSC-A"),
-        transList = transList)
+# calculate pairwise distances using only FSC-A & SSC-A channels
+pwDist <- getPairWiseEMDDist(
+    fs = OMIP021Trans,
+    channels = c("FSC-A", "SSC-A"))
 
 }
