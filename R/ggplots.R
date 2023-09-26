@@ -40,7 +40,9 @@
 #' will be used as point labels in the plot. Should be a character.
 #' @param pDataForAdditionalLabelling if not NULL, which `pData` variable(s)
 #' will be add to the ggplot mapping, as to make them available for 
-#' e.g. plotly tooltip. Should be an array of character of maximum length 3.
+#' *plotly* tooltipping. Should be an array of character of maximum length 3.
+#' Note this works only if biplot=FALSE, as biplots contain circle and arrows 
+#' that are currently not supported under `ggplotly`.
 #' @param sizeReflectingStress if TRUE, size of points will appear 
 #' proportional to stress by point, i.e. the bigger the sample point appears,
 #' the less accurate its representation is 
@@ -174,7 +176,7 @@ ggplotSamplesMDS <- function(
         y = .data[["y"]])
     
     maxAdditionalLabellingMapping <- 3
-    if (!is.null(pDataForAdditionalLabelling)) {
+    if (!is.null(pDataForAdditionalLabelling) && !biplot) {
         if (!is.character(pDataForAdditionalLabelling)) {
             stop("pDataForAdditionalLabelling should be a character")
         }

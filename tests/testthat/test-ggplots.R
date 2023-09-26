@@ -147,6 +147,19 @@ test_that("ggplotSamplesMDS works", {
     
     expect_equal(p$labels$text, "grpId")
     expect_equal(p$labels$text2, "type")
+    
+    # test that pData for additional labelling has been well ignored
+    # with biplot activated
+    p <- ggplotSamplesMDS(mdsObj = mdsObj,
+                          biplot = TRUE,
+                          extVariables = extVars,
+                          pData = flowCore::pData(fsAll),
+                          projectionAxes = c(1,2),
+                          pDataForAdditionalLabelling = c("grpId", "type"),
+                          repelPointsLabels = FALSE)
+    
+    expect_null(p$labels$text)
+    expect_null(p$labels$text2)
 
 })
 
