@@ -15,6 +15,7 @@ ggplotSamplesMDS(
   pDataForColour = NULL,
   pDataForShape = NULL,
   pDataForLabel = "name",
+  pDataForAdditionalLabelling = NULL,
   sizeReflectingStress = FALSE,
   title = "Multi Dimensional Scaling",
   repelPointsLabels = TRUE,
@@ -47,13 +48,19 @@ these are the external variables to regress with obtained configuration
 according to the two projection axes}
 
 \item{pDataForColour}{if not NULL, which \code{pData} variable
-will be used as colour aesthetic}
+will be used as colour aesthetic. Should be a character.}
 
 \item{pDataForShape}{if not NULL, which \code{pData} variable
-will be used as shape aesthetic}
+will be used as shape aesthetic. Should be a character.}
 
 \item{pDataForLabel}{if not NULL, which \code{pData} variable
-will be used as point labels in the plot}
+will be used as point labels in the plot. Should be a character.}
+
+\item{pDataForAdditionalLabelling}{if not NULL, which \code{pData} variable(s)
+will be add to the ggplot mapping, as to make them available for
+\emph{plotly} tooltipping. Should be an array of character of maximum length 3.
+Note this works only if biplot=FALSE, as biplots contain circle and arrows
+that are currently not supported under \code{ggplotly}.}
 
 \item{sizeReflectingStress}{if TRUE, size of points will appear
 proportional to stress by point, i.e. the bigger the sample point appears,
