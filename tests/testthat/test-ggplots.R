@@ -28,35 +28,37 @@ OMIP021Trans <- CytoPipeline::applyScaleTransforms(
     OMIP021Samples, 
     transList)
 
+ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+
+for(i in 3:5){
+    ffList[[i]] <- 
+        aggregateAndSample(
+            OMIP021Trans,
+            seed = 10*i,
+            nTotalEvents = 5000)[,1:22]
+}
+
+fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+names(ffList) <- fsNames
+
+fsAll <- as(ffList,"flowSet")
+
+flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
+flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
+
+pwDist <- getPairWiseEMDDist(fsAll, 
+                             channels = c("FSC-A", "SSC-A"),
+                             verbose = FALSE)
+
 test_that("ggplotSamplesMDS works", {
-    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
-    
-    for(i in 3:5){
-        ffList[[i]] <- 
-            aggregateAndSample(
-                OMIP021Trans,
-                seed = 10*i,
-                nTotalEvents = 5000)[,1:22]
-    }
-    
-    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
-    names(ffList) <- fsNames
-    
-    fsAll <- as(ffList,"flowSet")
-    
-    flowCore::pData(fsAll)$group <- factor(c("D1", "D2", rep("Agg", 3)))
-    flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
-    
-    pwDist <- getPairWiseEMDDist(fsAll, 
-                                 channels = c("FSC-A", "SSC-A"),
-                                 verbose = FALSE)
+
     
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
     
     p <- ggplotSamplesMDS(mdsObj = mdsObj,
                           pData = flowCore::pData(fsAll),
                           projectionAxes = c(1,2),
-                          pDataForColour = "group",
+                          pDataForColour = "grpId",
                           pDataForLabel = NULL,
                           pDataForShape = "type")
     
@@ -66,7 +68,7 @@ test_that("ggplotSamplesMDS works", {
     p <- ggplotSamplesMDS(mdsObj = mdsObj,
                           pData = flowCore::pData(fsAll),
                           projectionAxes = c(3,4),
-                          pDataForColour = "group",
+                          pDataForColour = "grpId",
                           pDataForLabel = "name",
                           seed = 0)
     
@@ -86,7 +88,7 @@ test_that("ggplotSamplesMDS works", {
                           projectionAxes = c(1,2),
                           biplot = TRUE,
                           extVariables = extVars,
-                          pDataForColour = "group",
+                          pDataForColour = "grpId",
                           pDataForLabel = NULL,
                           pDataForShape = "type",
                           seed = 0)
@@ -100,7 +102,7 @@ test_that("ggplotSamplesMDS works", {
                           projectionAxes = c(3,4),
                           biplot = TRUE,
                           extVariables = extVars,
-                          pDataForColour = "group",
+                          pDataForColour = "grpId",
                           pDataForLabel = "name",
                           seed = 0)
     
@@ -113,7 +115,7 @@ test_that("ggplotSamplesMDS works", {
                           projectionAxes = c(3,4),
                           biplot = TRUE,
                           extVariables = extVars,
-                          pDataForColour = "group",
+                          pDataForColour = "grpId",
                           pDataForLabel = NULL,
                           seed = 0)
     
@@ -127,7 +129,7 @@ test_that("ggplotSamplesMDS works", {
     p <- ggplotSamplesMDS(mdsObj = mdsObj,
                           pData = flowCore::pData(fsAll),
                           projectionAxes = c(1,2),
-                          pDataForColour = "group",
+                          pDataForColour = "grpId",
                           pDataForLabel = "name",
                           pDataForShape = "type",
                           sizeReflectingStress = TRUE,
@@ -136,32 +138,21 @@ test_that("ggplotSamplesMDS works", {
     vdiffr::expect_doppelganger("ggplotSamplesMDS with sizeReflectingStress",
                                 fig = p)
     
+    # use pData for additional labelling 
+    p <- ggplotSamplesMDS(mdsObj = mdsObj,
+                          pData = flowCore::pData(fsAll),
+                          projectionAxes = c(1,2),
+                          pDataForAdditionalLabelling = c("grpId", "type"),
+                          repelPointsLabels = FALSE)
+    
+    expect_equal(p$labels$text, "grpId")
+    expect_equal(p$labels$text2, "type")
+
 })
 
 
 test_that("ggplotSamplesMDSShepard works", {
-    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
-    
-    for(i in 3:5){
-        ffList[[i]] <- 
-            aggregateAndSample(
-                OMIP021Trans,
-                seed = 10*i,
-                nTotalEvents = 5000)[,1:22]
-    }
-    
-    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
-    names(ffList) <- fsNames
-    
-    fsAll <- as(ffList,"flowSet")
-    
-    flowCore::pData(fsAll)$group <- factor(c("D1", "D2", rep("Agg", 3)))
-    flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
-    
-    pwDist <- getPairWiseEMDDist(fsAll, 
-                                 channels = c("FSC-A", "SSC-A"),
-                                 verbose = FALSE)
-    
+
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
     
     p <- ggplotSamplesMDSShepard(mdsObj,

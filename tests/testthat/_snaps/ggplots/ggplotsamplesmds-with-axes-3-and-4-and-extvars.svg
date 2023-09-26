@@ -66,7 +66,7 @@
 <text x='354.10' y='568.24' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='132.06px' lengthAdjust='spacingAndGlyphs'>Coord. 3 (marg. R2 : 0.7%)</text>
 <text transform='translate(13.05,283.95) rotate(-90)' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='132.06px' lengthAdjust='spacingAndGlyphs'>Coord. 4 (marg. R2 : 0.2%)</text>
 <rect x='676.10' y='250.36' width='38.42' height='67.17' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<text x='676.10' y='259.07' style='font-size: 11.00px; font-family: sans;' textLength='28.14px' lengthAdjust='spacingAndGlyphs'>group</text>
+<text x='676.10' y='259.07' style='font-size: 11.00px; font-family: sans;' textLength='25.07px' lengthAdjust='spacingAndGlyphs'>grpId</text>
 <rect x='676.10' y='265.69' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
 <circle cx='684.74' cy='274.33' r='1.95' style='stroke-width: 0.71; stroke: #F8766D; fill: #F8766D;' />
 <rect x='676.10' y='282.97' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />

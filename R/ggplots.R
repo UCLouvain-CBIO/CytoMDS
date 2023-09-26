@@ -33,11 +33,14 @@
 #' these are the external variables to regress with obtained configuration
 #' according to the two projection axes
 #' @param pDataForColour if not NULL, which `pData` variable
-#' will be used as colour aesthetic
+#' will be used as colour aesthetic. Should be a character.
 #' @param pDataForShape if not NULL, which `pData` variable
-#' will be used as shape aesthetic
+#' will be used as shape aesthetic. Should be a character.
 #' @param pDataForLabel if not NULL, which `pData` variable 
-#' will be used as point labels in the plot
+#' will be used as point labels in the plot. Should be a character.
+#' @param pDataForAdditionalLabelling if not NULL, which `pData` variable(s)
+#' will be add to the ggplot mapping, as to make them available for 
+#' e.g. plotly tooltip. Should be an array of character of maximum length 3.
 #' @param sizeReflectingStress if TRUE, size of points will appear 
 #' proportional to stress by point, i.e. the bigger the sample point appears,
 #' the less accurate its representation is 
@@ -65,6 +68,7 @@ ggplotSamplesMDS <- function(
         pDataForColour = NULL,
         pDataForShape = NULL,
         pDataForLabel = "name",
+        pDataForAdditionalLabelling = NULL,
         sizeReflectingStress = FALSE,
         title = "Multi Dimensional Scaling",
         repelPointsLabels = TRUE,
@@ -165,11 +169,41 @@ ggplotSamplesMDS <- function(
         subtitle <- paste0("(R2 = ", round(RSq[2], 4),")")
     }
     
+    mainAesMapping <- ggplot2::aes(
+        x = .data[["x"]],
+        y = .data[["y"]])
+    
+    maxAdditionalLabellingMapping <- 3
+    if (!is.null(pDataForAdditionalLabelling)) {
+        if (!is.character(pDataForAdditionalLabelling)) {
+            stop("pDataForAdditionalLabelling should be a character")
+        }
+        if (length(pDataForAdditionalLabelling) > maxAdditionalLabellingMapping) {
+            stop("pDataForAdditionalLabelling length should be maximum 3")
+        }
+        if (length(pDataForAdditionalLabelling) >= 1) {
+            mainAesMapping <- 
+                c(mainAesMapping,
+                  ggplot2::aes(text = .data[[pDataForAdditionalLabelling[1]]]))
+        }
+        if (length(pDataForAdditionalLabelling) >= 2) {
+            mainAesMapping <- 
+                c(mainAesMapping,
+                  ggplot2::aes(text2 = .data[[pDataForAdditionalLabelling[2]]]))
+        }
+        if (length(pDataForAdditionalLabelling) >= 3) {
+            mainAesMapping <- 
+                c(mainAesMapping,
+                  ggplot2::aes(text3 = .data[[pDataForAdditionalLabelling[3]]]))
+        }
+        
+        # avoids error message: mapping should be created with `aes()`
+        attr(mainAesMapping, "class") <- "uneval"
+    }
+    
     p <- ggplot2::ggplot(
         data = DF,
-        mapping = ggplot2::aes(
-            x = .data[["x"]],
-            y = .data[["y"]])) +
+        mapping = mainAesMapping) +
         ggplot2::labs(
             x = xlabel,
             y = ylabel,
@@ -178,17 +212,24 @@ ggplotSamplesMDS <- function(
         ggplot2::scale_x_continuous(limits = axesLimits) + 
         ggplot2::scale_y_continuous(limits = axesLimits)
     
+    
     colourVar <- pDataForColour
     shapeVar <- pDataForShape
     
     geomPointMapping <- NULL
     
     if (!is.null(pDataForColour)) {
+        if (!is.character(pDataForColour)) {
+            stop("pDataForColour should be a character")
+        }
         geomPointMapping <- c(
             geomPointMapping,
             ggplot2::aes(colour = .data[[colourVar]]))
     }
     if (!is.null(pDataForShape)) {
+        if (!is.character(pDataForShape)) {
+            stop("pDataForShape should be a character")
+        }
         geomPointMapping <- c(
             geomPointMapping,
             ggplot2::aes(shape = .data[[shapeVar]]))
@@ -200,11 +241,14 @@ ggplotSamplesMDS <- function(
     }
     
     if (!is.null(geomPointMapping)) {
+        # avoids error message: mapping should be created with `aes()`
         attr(geomPointMapping, "class") <- "uneval"
     }
     
-    
     if (!is.null(pDataForLabel)) {
+        if (!is.character(pDataForLabel)) {
+            stop("pDataForLabel should be a character")
+        }
         labelVar <- pDataForLabel
         if (repelPointsLabels) {
             p <- p + ggrepel::geom_text_repel(
