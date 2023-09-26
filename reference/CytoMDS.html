@@ -43,7 +43,7 @@ low dimensional projection
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.1</span>
       </span>
     </div>
 
@@ -114,6 +114,7 @@ low dimensional projection</p></li>
 <span>  pDataForColour <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pDataForShape <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pDataForLabel <span class="op">=</span> <span class="st">"name"</span>,</span>
+<span>  pDataForAdditionalLabelling <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sizeReflectingStress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  title <span class="op">=</span> <span class="st">"Multi Dimensional Scaling"</span>,</span>
 <span>  repelPointsLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -159,17 +160,25 @@ according to the two projection axes</p></dd>
 
 <dt>pDataForColour</dt>
 <dd><p>if not NULL, which <code>pData</code> variable
-will be used as colour aesthetic</p></dd>
+will be used as colour aesthetic. Should be a character.</p></dd>
 
 
 <dt>pDataForShape</dt>
 <dd><p>if not NULL, which <code>pData</code> variable
-will be used as shape aesthetic</p></dd>
+will be used as shape aesthetic. Should be a character.</p></dd>
 
 
 <dt>pDataForLabel</dt>
 <dd><p>if not NULL, which <code>pData</code> variable
-will be used as point labels in the plot</p></dd>
+will be used as point labels in the plot. Should be a character.</p></dd>
+
+
+<dt>pDataForAdditionalLabelling</dt>
+<dd><p>if not NULL, which <code>pData</code> variable(s)
+will be add to the ggplot mapping, as to make them available for
+<em>plotly</em> tooltipping. Should be an array of character of maximum length 3.
+Note this works only if biplot=FALSE, as biplots contain circle and arrows
+that are currently not supported under <code>ggplotly</code>.</p></dd>
 
 
 <dt>sizeReflectingStress</dt>
