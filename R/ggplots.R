@@ -174,7 +174,7 @@ ggplotSamplesMDS <- function(
             "%)")
     #}
     
-    subtitle <- paste0("(R2 = ", round(RSq, 4),")")
+    subtitle <- paste0("(R2 = ", round(RSq, 4),"; nDim = ", nDim, ")")
     
     mainAesMapping <- ggplot2::aes(
         x = .data[["x"]],
@@ -400,7 +400,7 @@ ggplotSamplesMDSShepard <- function(
     }
     
     RSq <- mdsObj$RSq[nDim]
-    subtitle <- paste0("(R2 = ", round(RSq, 4))
+    subtitle <- paste0("(R2 = ", round(RSq, 4),"; nDim = ", nDim, ")")
     subtitle <- paste0(subtitle,")")
     
     xlabel <- "HD distances"
