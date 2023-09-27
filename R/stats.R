@@ -551,15 +551,16 @@ getChannelsSummaryStat <- function(
 #' The MDS algorithm is not the classical MDS 
 #' (`cmdscale` alike, aka Torgerson's algorithm), 
 #' but is the SMACOF algorithm for metric distances that are not 
-#' necessarily euclidean.
+#' necessarily euclidean.  
+#' Note that after the obtention of the projections on the `nDim` dimensions, 
+#' we always apply svd decomposition to visualize as first axes the ones that 
+#' contain the most variance of the projected dataset in `nDim` dimensions
 #' @param pwDist (`nSamples` rows, `nSamples` columns), 
 #' previously calculated pairwise distances between samples, 
 #' must be provided as a full symmetric square matrix, with 0. diagonal
 #' @param nDim number of dimensions of projection, as input to SMACOF algorithm
 #' @param seed seed to be set when launching SMACOF algorithm 
 #' (e.g. when `init=="random"` but not only)
-#' @param principal is used as input in SMACOF algorithm:
-#' if `TRUE`, principal axis transformation is applied to final configuration
 #' @param ... additional parameters passed to SMACOF algorithm
 #'
 #' @return a list with six elements:
@@ -628,7 +629,6 @@ computeMetricMDS <- function(
         pwDist,
         nDim = 2,
         seed = NULL,
-        principal = TRUE,
         ...){
         
     #browser()
@@ -656,17 +656,28 @@ computeMetricMDS <- function(
             mdsRes <- smacof::smacofSym(
                 delta = pwDist,
                 ndim = nDim,
-                principal = principal,
+                principal = FALSE,
                 ...)
         )
     } else {
         mdsRes <- smacof::smacofSym(
             delta = pwDist,
             ndim = nDim,
-            principal = principal,
+            principal = FALSE,
             ...)
     }
     proj <- mdsRes$conf
+    
+    # apply svd decomposition (principal component analysis) 
+    # on the obtained projections
+    
+    proj_svd <- svd(proj)
+    proj <- proj %*% proj_svd$v
+    
+    # store eigenvalues and pct of variance
+    res$eigen <- proj_svd$d * proj_svd$d
+    res$pctvar <- res$eigen/sum(res$eigen)
+    
     delta <- as.dist(pwDist)
     N <- length(delta)
     scaleFactor <- sqrt(sum(delta^2, na.rm = TRUE)) / sqrt(N)

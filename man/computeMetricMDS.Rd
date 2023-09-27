@@ -4,7 +4,7 @@
 \alias{computeMetricMDS}
 \title{metric MDS projection of sample}
 \usage{
-computeMetricMDS(pwDist, nDim = 2, seed = NULL, principal = TRUE, ...)
+computeMetricMDS(pwDist, nDim = 2, seed = NULL, ...)
 }
 \arguments{
 \item{pwDist}{(\code{nSamples} rows, \code{nSamples} columns),
@@ -15,9 +15,6 @@ must be provided as a full symmetric square matrix, with 0. diagonal}
 
 \item{seed}{seed to be set when launching SMACOF algorithm
 (e.g. when \code{init=="random"} but not only)}
-
-\item{principal}{is used as input in SMACOF algorithm:
-if \code{TRUE}, principal axis transformation is applied to final configuration}
 
 \item{...}{additional parameters passed to SMACOF algorithm}
 }
@@ -43,6 +40,9 @@ The MDS algorithm is not the classical MDS
 (\code{cmdscale} alike, aka Torgerson's algorithm),
 but is the SMACOF algorithm for metric distances that are not
 necessarily euclidean.
+Note that after the obtention of the projections on the \code{nDim} dimensions,
+we always apply svd decomposition to visualize as first axes the ones that
+contain the most variance of the projected dataset in \code{nDim} dimensions
 }
 \examples{
 
