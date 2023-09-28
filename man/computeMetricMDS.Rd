@@ -30,7 +30,14 @@ obtained from the SMACOF algorithm
 \item \code{spp} the stress per point obtained from the SMACOF algorithm, i.e.
 the contribution of each point to the stress loss function
 \item \verb{$RSq} R squares, for each d, from 1 to \code{nDim}:
-the R square when taking all dims from 1 to d.
+the (pseudo) R square when taking all dims from 1 to d.
+\item \verb{$GoF} Goodness of fit, for each d, from 1 to \code{nDim}:
+the goodness of fit indicator (b/w 0 and 1) when taking all dims from 1 to d.
+Note pseudo R square and goodness of fit indicators are essentially the
+same indicator, only the definition of total sum of squares differ:
+\item for pseudo RSq: TSS is calculated using the mean pairwise distance
+as minimum
+\item for goodness of fit: TSS is calculated using 0 as minimum
 }
 }
 \description{

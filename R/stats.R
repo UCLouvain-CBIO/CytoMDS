@@ -573,7 +573,14 @@ getChannelsSummaryStat <- function(
 #' - `spp` the stress per point obtained from the SMACOF algorithm, i.e.
 #' the contribution of each point to the stress loss function
 #' - `$RSq` R squares, for each d, from 1 to `nDim`:
-#' the R square when taking all dims from 1 to d.
+#' the (pseudo) R square when taking all dims from 1 to d.
+#' - `$GoF` Goodness of fit, for each d, from 1 to `nDim`:
+#' the goodness of fit indicator (b/w 0 and 1) when taking all dims from 1 to d.
+#' Note pseudo R square and goodness of fit indicators are essentially the 
+#' same indicator, only the definition of total sum of squares differ:
+#' - for pseudo RSq: TSS is calculated using the mean pairwise distance 
+#' as minimum
+#' - for goodness of fit: TSS is calculated using 0 as minimum
 #' 
 #' @importFrom stats as.dist dist
 #' @export
@@ -683,7 +690,10 @@ computeMetricMDS <- function(
     scaleFactor <- sqrt(sum(delta^2, na.rm = TRUE)) / sqrt(N)
     proj <- proj * scaleFactor
     
-    computeRSquares <- function(distances, projections) {
+    computeRSquares <- function(
+        distances, 
+        projections,
+        asInLinearRegression = TRUE) {
         delta <- as.dist(distances)
         nDim <- ncol(projections)
         
@@ -697,8 +707,13 @@ computeMetricMDS <- function(
             },
             FUN.VALUE = 0.)
         
-        #TSS <- sum((delta - mean(delta, na.rm = TRUE))^2)
-        TSS <- sum(delta^2)
+        if (asInLinearRegression) {
+            TSS <- sum((delta - mean(delta, na.rm = TRUE))^2)    
+        } else {
+            TSS <- sum(delta^2)    
+        }
+        
+        
         
         RSq <- 1-RSS/TSS
         
@@ -707,7 +722,12 @@ computeMetricMDS <- function(
     
     RSq <- computeRSquares(
         distances = pwDist,
-        projections = proj)
+        projections = proj, 
+        asInLinearRegression = TRUE)
+    GoF <- computeRSquares(
+        distances = pwDist,
+        projections = proj, 
+        asInLinearRegression = FALSE)
     
     res$pwDist <- as.dist(pwDist)
     res$proj <- proj
@@ -715,6 +735,7 @@ computeMetricMDS <- function(
     res$stress <- mdsRes$stress
     res$spp <- mdsRes$spp
     res$RSq <- RSq
+    res$GoF <- GoF
     res$mdsObj <- mdsRes
     
     class(res) <- "mdsRes"

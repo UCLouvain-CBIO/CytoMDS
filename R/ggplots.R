@@ -129,6 +129,7 @@ ggplotSamplesMDS <- function(
     #browser()
     
     RSq <- mdsObj$RSq[nDim]
+    GoF <- mdsObj$GoF[nDim]
     
     # margRSq <- rep(0., nDim)
     # 
@@ -153,28 +154,28 @@ ggplotSamplesMDS <- function(
     DF$stress <- mdsObj$spp
     
     xlabel <- paste0("Coord. ", projectionAxes[1])
-    #if (projectionAxes[1] > 2) {
-        xlabel <- paste0(
-            xlabel, 
-            #" (marg. R2 : ", 
-            #round(100*margRSq[projectionAxes[1]], 2), 
-            " (% var. : ",
-            round(100*explVar[projectionAxes[1]], 2),
-            "%)")
-    #}
+    
+    xlabel <- paste0(
+        xlabel, 
+        #" (marg. R2 : ", 
+        #round(100*margRSq[projectionAxes[1]], 2), 
+        " (% var. : ",
+        round(100*explVar[projectionAxes[1]], 2),
+        "%)")
     
     ylabel <- paste0("Coord. ", projectionAxes[2])
-    #if (projectionAxes[2] > 2) {
-        ylabel <- paste0(
-            ylabel, 
-            #" (marg. R2 : ",
-            #round(100*margRSq[projectionAxes[2]], 2), 
-            " (% var. : ",
-            round(100*explVar[projectionAxes[2]], 2),
-            "%)")
-    #}
     
-    subtitle <- paste0("(Goodness of fit = ", round(RSq, 4),"; nDim = ", nDim, ")")
+    ylabel <- paste0(
+        ylabel, 
+        #" (marg. R2 : ",
+        #round(100*margRSq[projectionAxes[2]], 2), 
+        " (% var. : ",
+        round(100*explVar[projectionAxes[2]], 2),
+        "%)")
+
+    subtitle <- paste0("(Pseudo RSq = ", round(RSq, 4),
+                       "; Goodness of Fit = ", round(GoF, 4),
+                       "; nDim = ", nDim, ")")
     
     mainAesMapping <- ggplot2::aes(
         x = .data[["x"]],
@@ -400,8 +401,10 @@ ggplotSamplesMDSShepard <- function(
     }
     
     RSq <- mdsObj$RSq[nDim]
-    subtitle <- paste0("(Goodness of fit = ", round(RSq, 4),"; nDim = ", nDim, ")")
-    subtitle <- paste0(subtitle,")")
+    GoF <- mdsObj$GoF[nDim]
+    subtitle <- paste0("(Pseudo RSq = ", round(RSq, 4),
+                       "; Goodness of Fit = ", round(GoF, 4),
+                       "; nDim = ", nDim, ")")
     
     xlabel <- "HD distances"
     ylabel <- "Proj. distances"
