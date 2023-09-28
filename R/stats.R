@@ -697,7 +697,8 @@ computeMetricMDS <- function(
             },
             FUN.VALUE = 0.)
         
-        TSS <- sum((delta - mean(delta, na.rm = TRUE))^2)
+        #TSS <- sum((delta - mean(delta, na.rm = TRUE))^2)
+        TSS <- sum(delta^2)
         
         RSq <- 1-RSS/TSS
         
@@ -717,9 +718,7 @@ computeMetricMDS <- function(
     res$mdsObj <- mdsRes
     
     class(res) <- "mdsRes"
-    
-    
-    
+
     res
 }
 
