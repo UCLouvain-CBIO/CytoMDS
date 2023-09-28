@@ -173,7 +173,7 @@ ggplotSamplesMDS <- function(
         round(100*explVar[projectionAxes[2]], 2),
         "%)")
 
-    subtitle <- paste0("(Pseudo RSq = ", round(RSq, 4),
+    subtitle <- paste0("(Pseudo R² = ", round(RSq, 4),
                        "; Goodness of Fit = ", round(GoF, 4),
                        "; nDim = ", nDim, ")")
     
@@ -402,7 +402,7 @@ ggplotSamplesMDSShepard <- function(
     
     RSq <- mdsObj$RSq[nDim]
     GoF <- mdsObj$GoF[nDim]
-    subtitle <- paste0("(Pseudo RSq = ", round(RSq, 4),
+    subtitle <- paste0("(Pseudo R² = ", round(RSq, 4),
                        "; Goodness of Fit = ", round(GoF, 4),
                        "; nDim = ", nDim, ")")
     
