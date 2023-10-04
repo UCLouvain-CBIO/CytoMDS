@@ -189,12 +189,30 @@ test_that("computeMetricMDS works", {
                                  channels = c("FSC-A", "SSC-A"),
                                  verbose = FALSE)
     
-    mdsObj <- computeMetricMDS(pwDist, seed = 0)
+    mdsObj <- computeMetricMDS(pwDist, nDim = 2, seed = 0)
     
     expect_equal(mdsObj$stress, 0.0203635387)
     tgtspp <- c(
         11.111867, 13.086625, 4.448069, 37.334795, 34.018645)
     names(tgtspp) <- 1:5
     expect_equal(mdsObj$spp, tgtspp)
+    
+    # with no user provided nDim, but (implicit) target pseudo rsquare = 0.99
+    mdsObj2 <- computeMetricMDS(pwDist, seed = 0)
+    
+    expect_equal(mdsObj$nDim, 2)
+    expect_equal(mdsObj$RSq[2], 0.99843722)
+    
+    # with no user provided nDim, but explicit target pseudo rsquare = 0.98
+    mdsObj3 <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.98)
+    
+    expect_equal(mdsObj3$nDim, 2)
+    expect_equal(mdsObj3$RSq[2], 0.99843722)
+    
+    # with no user provided nDim, but explicit target pseudo rsquare = 0.999
+    mdsObj4 <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
+    
+    expect_equal(mdsObj4$nDim, 3)
+    expect_equal(mdsObj4$RSq[3], 0.99988906)
     
 })

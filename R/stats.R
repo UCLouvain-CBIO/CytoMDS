@@ -552,15 +552,25 @@ getChannelsSummaryStat <- function(
 #' (`cmdscale` alike, aka Torgerson's algorithm), 
 #' but is the SMACOF algorithm for metric distances that are not 
 #' necessarily euclidean.  
-#' Note that after the obtention of the projections on the `nDim` dimensions, 
+#' After having obtained the projections on the `nDim` dimensions, 
 #' we always apply svd decomposition to visualize as first axes the ones that 
-#' contain the most variance of the projected dataset in `nDim` dimensions
+#' contain the most variance of the projected dataset in `nDim` dimensions.   
+#' Instead of being provided directly by the user, the `nDim` parameter can 
+#' otherwise be found iteratively by finding the minimum `nDim` parameter that
+#' allows the projection to reach a target pseudo RSquare.    
+#' If this is the case, the `maxDim` parameter is used to avoid 
+#' looking for too big projection spaces. 
 #' @param pwDist (`nSamples` rows, `nSamples` columns), 
 #' previously calculated pairwise distances between samples, 
 #' must be provided as a full symmetric square matrix, with 0. diagonal
 #' @param nDim number of dimensions of projection, as input to SMACOF algorithm
+#' if not provided, will be found iteratively using `targetPseudoRSq`
 #' @param seed seed to be set when launching SMACOF algorithm 
 #' (e.g. when `init=="random"` but not only)
+#' @param targetPseudoRSq target pseudo RSquare to be reached
+#' (only used when `nDim` is set to NULL)
+#' @param maxDim in case `nDim` is found iteratively, 
+#' maximum number of dimensions the search procedure is allowed to explore
 #' @param ... additional parameters passed to SMACOF algorithm
 #'
 #' @return a list with six elements:
@@ -628,14 +638,20 @@ getChannelsSummaryStat <- function(
 #'                              channels = c("FSC-A", "SSC-A"),
 #'                              verbose = FALSE)
 #' 
-#' # compute Metric MDS object
+#' # compute Metric MDS object with explicit number of dimensions
+#' mdsObj <- computeMetricMDS(pwDist, nDim = 2, seed = 0)
 #' 
-#' mdsObj <- computeMetricMDS(pwDist, seed = 0)
+#' #' # compute Metric MDS object by reaching a target pseudo RSquare
+#' mdsObj <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
+#' mdsObj$nDim # should be 3
 #' 
+
 computeMetricMDS <- function(
         pwDist,
-        nDim = 2,
+        nDim = NULL,
         seed = NULL,
+        targetPseudoRSq = 0.99,
+        maxDim = 128,
         ...){
         
     #browser()
@@ -650,6 +666,57 @@ computeMetricMDS <- function(
     if (!is.numeric(pwDist)) {
         stop("pwDist should be numeric")
     }
+    
+    # handle case when nDim not provided
+    # in that case iteratively find it by aiming at target pseudoRSquare
+    
+    if (is.null(nDim)) {
+        nDimHigh <- 1
+        currentRsq <- 0.
+        while(currentRsq < targetPseudoRSq) {
+            nDimHigh <- nDimHigh * 2
+            if (nDimHigh > maxDim) {
+                warning("maxDim (=", maxDim, ") reached without ",
+                        "reaching target pseudo rsquare")
+            }
+            obj <- computeMetricMDS(pwDist,
+                                    nDim = nDimHigh,
+                                    seed = seed,
+                                    ...)
+            currentRsq <- obj$RSq[obj$nDim]
+        }
+        
+        nDimLow <- 1
+        
+        # now [nDimLow, nDimUp] is such that RSq(nDimLow) < target 
+        # and RSq(nDimHigh) is such that RSq(nDimHigh) >= target
+        
+        nDimMid <- nDimHigh # proper initialization ;-)
+        while ((nDimHigh - nDimLow) > 1) {
+            nDimMid <- floor((nDimLow + nDimHigh) / 2)
+            obj <- computeMetricMDS(pwDist,
+                                    nDim = nDimMid,
+                                    seed = seed,
+                                    ...)
+            currentRsq <- obj$RSq[obj$nDim]
+            if (currentRsq >= targetPseudoRSq) {
+                nDimHigh <- nDimMid
+            } else {
+                nDimLow <- nDimMid
+            }
+        }
+        # final recalculation of the last MDS was not done with the right nDim
+        if (nDimMid != nDimHigh) {
+            obj <- computeMetricMDS(pwDist,
+                                    nDim = nDimHigh,
+                                    seed = seed,
+                                    ...)
+        }
+        
+        return(obj)
+    }
+    
+    # one-off case: nDim is provided by the user
     
     nSamples <- dimensions[1]
     if (nDim > nSamples-1) {
@@ -736,6 +803,7 @@ computeMetricMDS <- function(
     res$spp <- mdsRes$spp
     res$RSq <- RSq
     res$GoF <- GoF
+    res$nDim <- nDim
     res$mdsObj <- mdsRes
     
     class(res) <- "mdsRes"

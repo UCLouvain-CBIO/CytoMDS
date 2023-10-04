@@ -4,17 +4,31 @@
 \alias{computeMetricMDS}
 \title{metric MDS projection of sample}
 \usage{
-computeMetricMDS(pwDist, nDim = 2, seed = NULL, ...)
+computeMetricMDS(
+  pwDist,
+  nDim = NULL,
+  seed = NULL,
+  targetPseudoRSq = 0.99,
+  maxDim = 128,
+  ...
+)
 }
 \arguments{
 \item{pwDist}{(\code{nSamples} rows, \code{nSamples} columns),
 previously calculated pairwise distances between samples,
 must be provided as a full symmetric square matrix, with 0. diagonal}
 
-\item{nDim}{number of dimensions of projection, as input to SMACOF algorithm}
+\item{nDim}{number of dimensions of projection, as input to SMACOF algorithm
+if not provided, will be found iteratively using \code{targetPseudoRSq}}
 
 \item{seed}{seed to be set when launching SMACOF algorithm
 (e.g. when \code{init=="random"} but not only)}
+
+\item{targetPseudoRSq}{target pseudo RSquare to be reached
+(only used when \code{nDim} is set to NULL)}
+
+\item{maxDim}{in case \code{nDim} is found iteratively,
+maximum number of dimensions the search procedure is allowed to explore}
 
 \item{...}{additional parameters passed to SMACOF algorithm}
 }
@@ -47,9 +61,14 @@ The MDS algorithm is not the classical MDS
 (\code{cmdscale} alike, aka Torgerson's algorithm),
 but is the SMACOF algorithm for metric distances that are not
 necessarily euclidean.
-Note that after the obtention of the projections on the \code{nDim} dimensions,
+After having obtained the projections on the \code{nDim} dimensions,
 we always apply svd decomposition to visualize as first axes the ones that
-contain the most variance of the projected dataset in \code{nDim} dimensions
+contain the most variance of the projected dataset in \code{nDim} dimensions.
+Instead of being provided directly by the user, the \code{nDim} parameter can
+otherwise be found iteratively by finding the minimum \code{nDim} parameter that
+allows the projection to reach a target pseudo RSquare.
+If this is the case, the \code{maxDim} parameter is used to avoid
+looking for too big projection spaces.
 }
 \examples{
 
@@ -94,8 +113,11 @@ pwDist <- getPairWiseEMDDist(fsAll,
                              channels = c("FSC-A", "SSC-A"),
                              verbose = FALSE)
 
-# compute Metric MDS object
+# compute Metric MDS object with explicit number of dimensions
+mdsObj <- computeMetricMDS(pwDist, nDim = 2, seed = 0)
 
-mdsObj <- computeMetricMDS(pwDist, seed = 0)
+#' # compute Metric MDS object by reaching a target pseudo RSquare
+mdsObj <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
+mdsObj$nDim # should be 3
 
 }
