@@ -20,6 +20,8 @@ ggplotSamplesMDS(
   title = "Multi Dimensional Scaling",
   repelPointsLabels = TRUE,
   repelArrowsLabels = FALSE,
+  flipXAxis = FALSE,
+  flipYAxis = FALSE,
   ...
 )
 
@@ -75,6 +77,12 @@ instead of \code{ggplot2::geom_text()}
 
 \item{repelArrowsLabels}{if TRUE, uses \code{ggrepel::geom_text_repel()}
 instead of \code{ggplot2::geom_text()} for the arrows}
+
+\item{flipXAxis}{if TRUE, take the opposite of x values
+(provided as it might ease low dimensional projection comparisons)}
+
+\item{flipYAxis}{if TRUE, take the opposite of y values
+(provided as it might ease low dimensional projection comparisons)}
 
 \item{...}{additional parameters passed to \code{ggrepel::geom_text_repel()}
 (if used)}

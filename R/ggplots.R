@@ -53,6 +53,10 @@
 #' (try to split the labels such that they do not overlap) for the points
 #' @param repelArrowsLabels if TRUE, uses `ggrepel::geom_text_repel()` 
 #' instead of `ggplot2::geom_text()` for the arrows
+#' @param flipXAxis if TRUE, take the opposite of x values 
+#' (provided as it might ease low dimensional projection comparisons)
+#' @param flipYAxis if TRUE, take the opposite of y values 
+#' (provided as it might ease low dimensional projection comparisons)
 #' @param ... additional parameters passed to `ggrepel::geom_text_repel()` 
 #' (if used)
 #' @importFrom stats as.dist dist lm 
@@ -75,6 +79,8 @@ ggplotSamplesMDS <- function(
         title = "Multi Dimensional Scaling",
         repelPointsLabels = TRUE,
         repelArrowsLabels = FALSE,
+        flipXAxis = FALSE,
+        flipYAxis = FALSE,
         ...){
         
     #browser()
@@ -140,17 +146,20 @@ ggplotSamplesMDS <- function(
     
     explVar <- mdsObj$pctvar
     
+    proj <- mdsObj$proj
+    if (flipXAxis) {
+        proj[, projectionAxes[1]] <- 
+            - proj[, projectionAxes[1]]
+    }
+    if (flipYAxis) {
+        proj[, projectionAxes[2]] <- 
+            - proj[, projectionAxes[2]]
+    }
+    
     DF <- pData
     
-    rangeMin <- min(mdsObj$proj)
-    rangeMax <- max(mdsObj$proj)
-    axesLimits <- c(rangeMin, rangeMax)
-    #axesLimits <- c(min(-rangeMax, rangeMin), max(-rangeMin, rangeMax))
-    
-    ggplot2::scale_x_continuous(limits = axesLimits)
-    
-    DF$x <- mdsObj$proj[, projectionAxes[1]]
-    DF$y <- mdsObj$proj[, projectionAxes[2]]
+    DF$x <- proj[, projectionAxes[1]]
+    DF$y <- proj[, projectionAxes[2]]
     DF$stress <- mdsObj$spp
     
     xlabel <- paste0("Coord. ", projectionAxes[1])
@@ -208,6 +217,13 @@ ggplotSamplesMDS <- function(
         # avoids error message: mapping should be created with `aes()`
         attr(mainAesMapping, "class") <- "uneval"
     }
+    
+    rangeMin <- min(proj)
+    rangeMax <- max(proj)
+    axesLimits <- c(rangeMin, rangeMax)
+    #axesLimits <- c(min(-rangeMax, rangeMin), max(-rangeMin, rangeMax))
+    
+    ggplot2::scale_x_continuous(limits = axesLimits)
     
     p <- ggplot2::ggplot(
         data = DF,

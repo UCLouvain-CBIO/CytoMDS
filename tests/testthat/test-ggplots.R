@@ -160,6 +160,32 @@ test_that("ggplotSamplesMDS works", {
     
     expect_null(p$labels$text)
     expect_null(p$labels$text2)
+    
+    # test flipXAxis and flipYAxis
+    p <- ggplotSamplesMDS(mdsObj = mdsObj,
+                          pData = flowCore::pData(fsAll),
+                          projectionAxes = c(1,2),
+                          pDataForColour = "grpId",
+                          pDataForLabel = "name",
+                          pDataForShape = "type",
+                          seed = 0,
+                          flipXAxis = TRUE)
+    
+    vdiffr::expect_doppelganger("ggplotSamplesMDS with flipX",
+                                fig = p)
+    
+    p <- ggplotSamplesMDS(mdsObj = mdsObj,
+                          pData = flowCore::pData(fsAll),
+                          projectionAxes = c(1,2),
+                          pDataForColour = "grpId",
+                          pDataForLabel = "name",
+                          pDataForShape = "type",
+                          seed = 0,
+                          flipXAxis = TRUE,
+                          flipYAxis = TRUE)
+    
+    vdiffr::expect_doppelganger("ggplotSamplesMDS with flipX-Y",
+                                fig = p)
 
 })
 
