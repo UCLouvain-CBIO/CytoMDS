@@ -102,8 +102,8 @@ test_that("getEMDDist works", {
     
 })
 
-test_that("getPairWiseEMDDist works", {
-    pwDist <- getPairWiseEMDDist(fs = OMIP021Trans,
+test_that("getPairwiseEMDDist works", {
+    pwDist <- getPairwiseEMDDist(fs = OMIP021Trans,
                                  channels = c("FSC-A", "SSC-A"),
                                  binSize = 0.05,
                                  minRange = -10,
@@ -185,7 +185,7 @@ test_that("computeMetricMDS works", {
     
     fsAll <- as(ffList,"flowSet")
     
-    pwDist <- getPairWiseEMDDist(fsAll, 
+    pwDist <- getPairwiseEMDDist(fsAll, 
                                  channels = c("FSC-A", "SSC-A"),
                                  verbose = FALSE)
     

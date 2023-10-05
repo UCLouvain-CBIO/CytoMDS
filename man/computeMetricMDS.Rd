@@ -22,7 +22,7 @@ must be provided as a full symmetric square matrix, with 0. diagonal}
 if not provided, will be found iteratively using \code{targetPseudoRSq}}
 
 \item{seed}{seed to be set when launching SMACOF algorithm
-(e.g. when \code{init=="random"} but not only)}
+(e.g. when \code{init} is set to \code{"random"} but not only)}
 
 \item{targetPseudoRSq}{target pseudo RSquare to be reached
 (only used when \code{nDim} is set to NULL)}
@@ -109,7 +109,7 @@ fsAll <- as(ffList,"flowSet")
 
 # calculate all pairwise distances
 
-pwDist <- getPairWiseEMDDist(fsAll, 
+pwDist <- getPairwiseEMDDist(fsAll, 
                              channels = c("FSC-A", "SSC-A"),
                              verbose = FALSE)
 

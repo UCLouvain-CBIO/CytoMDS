@@ -3,7 +3,7 @@
 export(computeMetricMDS)
 export(getChannelsSummaryStat)
 export(getEMDDist)
-export(getPairWiseEMDDist)
+export(getPairwiseEMDDist)
 export(ggplotSamplesMDS)
 export(ggplotSamplesMDSShepard)
 importFrom(CytoPipeline,areSignalCols)

@@ -285,11 +285,11 @@ getEMDDist <- function(
 #'     transList)
 #'     
 #' # calculate pairwise distances using only FSC-A & SSC-A channels
-#' pwDist <- getPairWiseEMDDist(
+#' pwDist <- getPairwiseEMDDist(
 #'     fs = OMIP021Trans,
 #'     channels = c("FSC-A", "SSC-A"))
 #' 
-getPairWiseEMDDist <- function(
+getPairwiseEMDDist <- function(
         fs,
         channels = NULL,
         verbose = FALSE,
@@ -566,7 +566,7 @@ getChannelsSummaryStat <- function(
 #' @param nDim number of dimensions of projection, as input to SMACOF algorithm
 #' if not provided, will be found iteratively using `targetPseudoRSq`
 #' @param seed seed to be set when launching SMACOF algorithm 
-#' (e.g. when `init=="random"` but not only)
+#' (e.g. when `init` is set to `"random"` but not only)
 #' @param targetPseudoRSq target pseudo RSquare to be reached
 #' (only used when `nDim` is set to NULL)
 #' @param maxDim in case `nDim` is found iteratively, 
@@ -634,7 +634,7 @@ getChannelsSummaryStat <- function(
 #' 
 #' # calculate all pairwise distances
 #' 
-#' pwDist <- getPairWiseEMDDist(fsAll, 
+#' pwDist <- getPairwiseEMDDist(fsAll, 
 #'                              channels = c("FSC-A", "SSC-A"),
 #'                              verbose = FALSE)
 #' 

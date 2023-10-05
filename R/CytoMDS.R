@@ -81,7 +81,7 @@
 #' 
 #' # calculate all pairwise distances
 #' 
-#' pwDist <- getPairWiseEMDDist(fsAll, 
+#' pwDist <- getPairwiseEMDDist(fsAll, 
 #'                              channels = c("FSC-A", "SSC-A"),
 #'                              verbose = FALSE)
 #' 
