@@ -650,7 +650,7 @@ computeMetricMDS <- function(
         pwDist,
         nDim = NULL,
         seed = NULL,
-        targetPseudoRSq = 0.99,
+        targetPseudoRSq = 0.95,
         maxDim = 128,
         ...){
         

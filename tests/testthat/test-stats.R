@@ -197,7 +197,7 @@ test_that("computeMetricMDS works", {
     names(tgtspp) <- 1:5
     expect_equal(mdsObj$spp, tgtspp)
     
-    # with no user provided nDim, but (implicit) target pseudo rsquare = 0.99
+    # with no user provided nDim, but (implicit) target pseudo rsquare = 0.95
     mdsObj2 <- computeMetricMDS(pwDist, seed = 0)
     
     expect_equal(mdsObj$nDim, 2)
