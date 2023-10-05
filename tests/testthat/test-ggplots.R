@@ -186,6 +186,19 @@ test_that("ggplotSamplesMDS works", {
     
     vdiffr::expect_doppelganger("ggplotSamplesMDS with flipX-Y",
                                 fig = p)
+    
+    p <- ggplotSamplesMDS(mdsObj = mdsObj,
+                          pData = flowCore::pData(fsAll),
+                          biplot = TRUE,
+                          extVariables = extVars,
+                          projectionAxes = c(1,2),
+                          pDataForAdditionalLabelling = c("grpId", "type"),
+                          repelPointsLabels = FALSE,
+                          flipXAxis = TRUE,
+                          flipYAxis = TRUE)
+    
+    vdiffr::expect_doppelganger("ggplotSampMDS with bipl-flpX-Y",
+                                fig = p)
 
 })
 

@@ -318,6 +318,13 @@ ggplotSamplesMDS <- function(
                 segmentNames[j] <- colnames(mdsBiplot$coefficients)[j]
             }
             
+            if (flipXAxis) {
+                segmentXs <- - segmentXs   
+            }
+            if (flipYAxis) {
+                segmentYs <- - segmentYs
+            }
+            
             segmentDF <- data.frame(
                 segmentName = segmentNames,
                 segmentXOrigin = rep(0., nExtVar),
