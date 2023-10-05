@@ -119,6 +119,8 @@ low dimensional projection</p></li>
 <span>  title <span class="op">=</span> <span class="st">"Multi Dimensional Scaling"</span>,</span>
 <span>  repelPointsLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  repelArrowsLabels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  flipXAxis <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  flipYAxis <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -203,6 +205,16 @@ instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html
 instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">ggplot2::geom_text()</a></code> for the arrows</p></dd>
 
 
+<dt>flipXAxis</dt>
+<dd><p>if TRUE, take the opposite of x values
+(provided as it might ease low dimensional projection comparisons)</p></dd>
+
+
+<dt>flipYAxis</dt>
+<dd><p>if TRUE, take the opposite of y values
+(provided as it might ease low dimensional projection comparisons)</p></dd>
+
+
 <dt>...</dt>
 <dd><p>additional parameters passed to <code><a href="https://rdrr.io/pkg/ggrepel/man/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
 (if used)</p></dd>
@@ -282,7 +294,7 @@ as calculated in <code>mdsObj</code></p></dd>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># calculate all pairwise distances</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">pwDist</span> <span class="op">&lt;-</span> <span class="fu"><a href="getPairWiseEMDDist.html">getPairwiseEMDDist</a></span><span class="op">(</span><span class="va">fsAll</span>, </span></span>
+<span class="r-in"><span><span class="va">pwDist</span> <span class="op">&lt;-</span> <span class="fu"><a href="getPairwiseEMDDist.html">getPairwiseEMDDist</a></span><span class="op">(</span><span class="va">fsAll</span>, </span></span>
 <span class="r-in"><span>                             channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FSC-A"</span>, <span class="st">"SSC-A"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                             verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
