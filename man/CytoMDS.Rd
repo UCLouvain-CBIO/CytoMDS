@@ -19,7 +19,8 @@ ggplotSamplesMDS(
   sizeReflectingStress = FALSE,
   title = "Multi Dimensional Scaling",
   repelPointsLabels = TRUE,
-  repelArrowsLabels = FALSE,
+  displayArrowLabels = TRUE,
+  repelArrowLabels = FALSE,
   flipXAxis = FALSE,
   flipYAxis = FALSE,
   ...
@@ -75,8 +76,10 @@ the less accurate its representation is
 instead of \code{ggplot2::geom_text()}
 (try to split the labels such that they do not overlap) for the points}
 
-\item{repelArrowsLabels}{if TRUE, uses \code{ggrepel::geom_text_repel()}
-instead of \code{ggplot2::geom_text()} for the arrows}
+\item{displayArrowLabels}{if TRUE, displays arrows labels (only with biplot)}
+
+\item{repelArrowLabels}{if TRUE, uses \code{ggrepel::geom_text_repel()}
+instead of \code{ggplot2::geom_text()} for the arrows (only with biplot)}
 
 \item{flipXAxis}{if TRUE, take the opposite of x values
 (provided as it might ease low dimensional projection comparisons)}

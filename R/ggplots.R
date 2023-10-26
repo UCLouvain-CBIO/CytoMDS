@@ -51,8 +51,9 @@
 #' @param repelPointsLabels if TRUE, uses `ggrepel::geom_text_repel()` 
 #' instead of `ggplot2::geom_text()`
 #' (try to split the labels such that they do not overlap) for the points
-#' @param repelArrowsLabels if TRUE, uses `ggrepel::geom_text_repel()` 
-#' instead of `ggplot2::geom_text()` for the arrows
+#' @param repelArrowLabels if TRUE, uses `ggrepel::geom_text_repel()` 
+#' instead of `ggplot2::geom_text()` for the arrows (only with biplot)
+#' @param displayArrowLabels if TRUE, displays arrows labels (only with biplot)
 #' @param flipXAxis if TRUE, take the opposite of x values 
 #' (provided as it might ease low dimensional projection comparisons)
 #' @param flipYAxis if TRUE, take the opposite of y values 
@@ -78,7 +79,8 @@ ggplotSamplesMDS <- function(
         sizeReflectingStress = FALSE,
         title = "Multi Dimensional Scaling",
         repelPointsLabels = TRUE,
-        repelArrowsLabels = FALSE,
+        displayArrowLabels = TRUE,
+        repelArrowLabels = FALSE,
         flipXAxis = FALSE,
         flipYAxis = FALSE,
         ...){
@@ -344,28 +346,40 @@ ggplotSamplesMDS <- function(
                     type = "closed"),
                 linetype = 'dotted')
             
+            newMapping <- ggplot2::aes(
+                x = (.data[["segmentXOrigin"]] + 
+                         .data[["segmentX"]]) / 2,
+                y = (.data[["segmentYOrigin"]] + 
+                         .data[["segmentY"]]) / 2)
             
-            if (repelArrowsLabels) {
-                p <- p + ggrepel::geom_text_repel(
-                    mapping = ggplot2::aes(
-                        x = (.data[["segmentXOrigin"]] + 
-                                 .data[["segmentX"]]) / 2,
-                        y = (.data[["segmentYOrigin"]] + 
-                                 .data[["segmentY"]]) / 2, 
-                        label = .data[["segmentName"]]),
-                    data = segmentDF)
-                
+            if (displayArrowLabels) {
+                newMapping <- c(newMapping, 
+                    ggplot2::aes(label = .data[["segmentName"]]))
             } else {
-                p <- p + ggplot2::geom_text(
-                    mapping = ggplot2::aes(
-                        x = (.data[["segmentXOrigin"]] + 
-                                 .data[["segmentX"]]) / 2,
-                        y = (.data[["segmentYOrigin"]] + 
-                                 .data[["segmentY"]]) / 2, 
-                        label = .data[["segmentName"]]),
-                    data = segmentDF)
+                # provide the segmentName for ggplotly
+                newMapping <- c(newMapping, 
+                    ggplot2::aes(label = "",
+                                 text1 = .data[["segmentName"]]))
             }
             
+            # avoids error message: mapping should be created with `aes()`
+            attr(newMapping, "class") <- "uneval"
+            
+             
+            if (repelArrowLabels) {
+                # discarding possible warning message: 
+                # 'Ignoring unknown aesthetics: text1'
+                p <- suppressWarnings(p + ggrepel::geom_text_repel(
+                    mapping = newMapping,
+                    data = segmentDF))
+                
+            } else {
+                # discarding possible warning message: 
+                # 'Ignoring unknown aesthetics: text1'
+                p <- suppressWarnings(p + ggplot2::geom_text(
+                    mapping = newMapping,
+                    data = segmentDF))
+            }
             
             # add a dashed centered circle to obtain the RSq=1 benchmark
             p <- p + ggforce::geom_circle(

@@ -112,6 +112,21 @@ test_that("ggplotSamplesMDS works", {
     
     p <- ggplotSamplesMDS(mdsObj = mdsObj,
                           pData = flowCore::pData(fsAll),
+                          projectionAxes = c(1,2),
+                          biplot = TRUE,
+                          extVariables = extVars,
+                          pDataForColour = "grpId",
+                          pDataForLabel = NULL,
+                          pDataForShape = "type",
+                          displayArrowLabels = FALSE,
+                          seed = 0)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSamplesMDS no arrow label",
+        fig = p)
+    
+    p <- ggplotSamplesMDS(mdsObj = mdsObj,
+                          pData = flowCore::pData(fsAll),
                           projectionAxes = c(3,4),
                           biplot = TRUE,
                           extVariables = extVars,
