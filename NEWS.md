@@ -15,7 +15,8 @@ the number of dimensions to reach a target *pseudo R squared*
 - added ggplotly() functionality for output MDS plots
 - in `ggplotSampleMDS()`, added `flipXAxis`, `flipYAxis` 
 to possibly ease low dimensional projection comparisons
-- in `ggplotSampleMDS()`, added `dispdisplayArrowLabels` to discard
+- in `ggplotSampleMDS()`, added `displayArrowLabels` to discard
 the arrow labels in biplot, while keeping the ability to interactively show
-them when using ggplot object in `ggplotly()`
+them when using ggplot object in `ggplotly()`. Also added `arrowThreshold`.
+Moved arrow labels toward the end of the arrows.
 

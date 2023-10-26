@@ -54,6 +54,8 @@
 #' @param repelArrowLabels if TRUE, uses `ggrepel::geom_text_repel()` 
 #' instead of `ggplot2::geom_text()` for the arrows (only with biplot)
 #' @param displayArrowLabels if TRUE, displays arrows labels (only with biplot)
+#' @param arrowThreshold (only with biplot), arrows will be made barely visible 
+#' if their length is (in absolute value) less than this threshold.  
 #' @param flipXAxis if TRUE, take the opposite of x values 
 #' (provided as it might ease low dimensional projection comparisons)
 #' @param flipYAxis if TRUE, take the opposite of y values 
@@ -80,6 +82,7 @@ ggplotSamplesMDS <- function(
         title = "Multi Dimensional Scaling",
         repelPointsLabels = TRUE,
         displayArrowLabels = TRUE,
+        arrowThreshold = 0.7,
         repelArrowLabels = FALSE,
         flipXAxis = FALSE,
         flipYAxis = FALSE,
@@ -296,17 +299,24 @@ ggplotSamplesMDS <- function(
     if (biplot) {
         #browser()
         
+        if (!is.numeric(arrowThreshold))
+            stop("arrowThreshold should be numeric!")
+        if (arrowThreshold < 0. || arrowThreshold > 1.) {
+            stop("arrowThreshold should be between 0 and 1!")
+        }
+        
         mdsBiplot <- computeMetricMDSBiplot(
             mdsObj,
             projectionAxes = projectionAxes,
             extVariables = extVariables)
             
-        radius <- min(-axesLimits[1], axesLimits[2])
+        radius <- 0.9*min(-axesLimits[1], axesLimits[2])
         nExtVar <- ncol(mdsBiplot$coefficients)
         if (nExtVar > 0) {
             segmentXs <- rep(0., nExtVar)
             segmentYs <- rep(0., nExtVar)
             segmentNames <- rep("", nExtVar)
+            visible <- rep(FALSE, nExtVar)
             for (j in seq_len(nExtVar)) {
                 segmentLength <- radius * mdsBiplot$R2vec[j]
                 segmentAngle <- atan(
@@ -317,7 +327,11 @@ ggplotSamplesMDS <- function(
                 }
                 segmentXs[j] <- segmentLength * cos(segmentAngle)
                 segmentYs[j] <- segmentLength * sin(segmentAngle)
-                segmentNames[j] <- colnames(mdsBiplot$coefficients)[j]
+                
+                if (abs(mdsBiplot$R2vec[j]) >= arrowThreshold){
+                    visible[j] <- TRUE
+                    segmentNames[j] <- colnames(mdsBiplot$coefficients)[j]
+                }
             }
             
             if (flipXAxis) {
@@ -332,7 +346,8 @@ ggplotSamplesMDS <- function(
                 segmentXOrigin = rep(0., nExtVar),
                 segmentYOrigin = rep(0., nExtVar),
                 segmentX = segmentXs, 
-                segmentY = segmentYs)
+                segmentY = segmentYs,
+                visible = visible)
             
             p <- p + ggplot2::geom_segment(
                 mapping = ggplot2::aes(
@@ -340,17 +355,22 @@ ggplotSamplesMDS <- function(
                     y = .data[["segmentYOrigin"]],
                     xend = .data[["segmentX"]],
                     yend = .data[["segmentY"]]),
-                data = segmentDF,
+                data = segmentDF[segmentDF$visible,],
                 arrow = ggplot2::arrow(
                     length = ggplot2::unit(0.1, "inches"),
                     type = "closed"),
                 linetype = 'dotted')
             
             newMapping <- ggplot2::aes(
-                x = (.data[["segmentXOrigin"]] + 
-                         .data[["segmentX"]]) / 2,
-                y = (.data[["segmentYOrigin"]] + 
-                         .data[["segmentY"]]) / 2)
+                # x = (.data[["segmentXOrigin"]] + 
+                #          .data[["segmentX"]]) / 2,
+                # y = (.data[["segmentYOrigin"]] + 
+                #          .data[["segmentY"]]) / 2
+                x = .data[["segmentX"]],
+                y = .data[["segmentY"]],
+                hjust = "outward",
+                vjust = "outward"
+            )
             
             if (displayArrowLabels) {
                 newMapping <- c(newMapping, 

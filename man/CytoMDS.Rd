@@ -20,6 +20,7 @@ ggplotSamplesMDS(
   title = "Multi Dimensional Scaling",
   repelPointsLabels = TRUE,
   displayArrowLabels = TRUE,
+  arrowThreshold = 0.7,
   repelArrowLabels = FALSE,
   flipXAxis = FALSE,
   flipYAxis = FALSE,
@@ -77,6 +78,9 @@ instead of \code{ggplot2::geom_text()}
 (try to split the labels such that they do not overlap) for the points}
 
 \item{displayArrowLabels}{if TRUE, displays arrows labels (only with biplot)}
+
+\item{arrowThreshold}{(only with biplot), arrows will be made barely visible
+if their length is (in absolute value) less than this threshold.}
 
 \item{repelArrowLabels}{if TRUE, uses \code{ggrepel::geom_text_repel()}
 instead of \code{ggplot2::geom_text()} for the arrows (only with biplot)}

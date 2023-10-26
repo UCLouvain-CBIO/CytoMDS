@@ -112,6 +112,20 @@ test_that("ggplotSamplesMDS works", {
     
     p <- ggplotSamplesMDS(mdsObj = mdsObj,
                           pData = flowCore::pData(fsAll),
+                          projectionAxes = c(3,4),
+                          biplot = TRUE,
+                          extVariables = extVars,
+                          pDataForColour = "grpId",
+                          pDataForLabel = "name",
+                          arrowThreshold = 0.,
+                          seed = 0)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSamplesMDS arrowThreshold",
+        fig = p)
+    
+    p <- ggplotSamplesMDS(mdsObj = mdsObj,
+                          pData = flowCore::pData(fsAll),
                           projectionAxes = c(1,2),
                           biplot = TRUE,
                           extVariables = extVars,
