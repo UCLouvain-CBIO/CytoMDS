@@ -37,6 +37,12 @@
     <loc>/reference/getPairwiseEMDDist.html</loc>
   </url>
   <url>
+    <loc>/reference/ggplotSamplesMDS.html</loc>
+  </url>
+  <url>
+    <loc>/reference/ggplotSamplesMDSShepard.html</loc>
+  </url>
+  <url>
     <loc>/reference/index.html</loc>
   </url>
 </urlset>
