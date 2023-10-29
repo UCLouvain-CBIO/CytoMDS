@@ -114,10 +114,12 @@ pwDist <- getPairwiseEMDDist(fsAll,
                              verbose = FALSE)
 
 # compute Metric MDS object with explicit number of dimensions
-mdsObj <- computeMetricMDS(pwDist, nDim = 2, seed = 0)
+mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
+
+# mdsObj$nDim should be 4
 
 #' # compute Metric MDS object by reaching a target pseudo RSquare
-mdsObj <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
-mdsObj$nDim # should be 3
+mdsObj2 <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
+
 
 }

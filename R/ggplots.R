@@ -20,7 +20,6 @@
 #' If both `projectionAxes` are in c(1,2), 
 #' a global RSquare for these 2 axes is provided. For additional dimensions,
 #' a marginal RSquare per dimension is provided.
-#' @rdname CytoMDS
 #' @param mdsObj a MDS object calculated by the SMACOF algorithm using
 #' the computeMetricMDS() function
 #' @param pData a data.frame providing user input sample data. 
@@ -66,6 +65,80 @@
 #' @importFrom rlang .data
 #' 
 #' @export
+#' 
+#' @seealso [ggplotSamplesMDSShepard], [computeMetricMDS]
+#' 
+#' @return a ggplot object
+#' 
+#' @examples
+#' 
+#' # prepare data, build MDS object
+#' example("computeMetricMDS")
+#' 
+#' # plot mds projection on axes 1 and 2,
+#' # use 'group' for colour, 'type' for shape, and no label 
+#' 
+#' p_12 <- ggplotSamplesMDS(
+#'     mdsObj = mdsObj,
+#'     pData = flowCore::pData(fsAll),
+#'     projectionAxes = c(1,2),
+#'     pDataForColour = "group",
+#'     pDataForLabel = NULL,
+#'     pDataForShape = "type")
+#' 
+#' # plot mds projection on axes 3 and 4,
+#' # use 'group' for colour, and 'name' as point label
+#' 
+#' p_34 <- ggplotSamplesMDS(
+#'     mdsObj = mdsObj,
+#'     pData = flowCore::pData(fsAll),
+#'     projectionAxes = c(3,4),
+#'     pDataForColour = "group",
+#'     pDataForLabel = "name")
+#' 
+#' # plot mds projection on axes 1 and 2,
+#' # use 'group' for colour, 'type' for shape, and 'name' as point label
+#' # have sample point size reflecting 'stress'
+#' # i.e. quality of projection w.r.t. distances to other points
+#' 
+#' p12_Stress <- ggplotSamplesMDS(
+#'     mdsObj = mdsObj,
+#'     pData = flowCore::pData(fsAll),
+#'     projectionAxes = c(1,2),
+#'     pDataForColour = "group",
+#'     pDataForLabel = "name",
+#'     pDataForShape = "type",
+#'     sizeReflectingStress = TRUE)
+#' 
+#' # try to associate axes with median of each channel
+#' # => use bi-plot
+#' 
+#' extVars <- getChannelsSummaryStat(
+#'     fsAll,
+#'     channels = c("FSC-A", "SSC-A"),
+#'     statsFUN = stats::median)
+#' 
+#' 
+#' bp_12 <- ggplotSamplesMDS(
+#'     mdsObj = mdsObj,
+#'     pData = flowCore::pData(fsAll),
+#'     projectionAxes = c(1,2),
+#'     biplot = TRUE,
+#'     extVariables = extVars,
+#'     pDataForColour = "group",
+#'     pDataForLabel = NULL,
+#'     pDataForShape = "type",
+#'     seed = 0)
+#' 
+#' bp_34 <- ggplotSamplesMDS(
+#'     mdsObj = mdsObj,
+#'     pData = flowCore::pData(fsAll),
+#'     projectionAxes = c(3,4),
+#'     biplot = TRUE,
+#'     extVariables = extVars,
+#'     pDataForColour = "group",
+#'     pDataForLabel = "name",
+#'     seed = 0)
 #' 
 ggplotSamplesMDS <- function(
         mdsObj,
@@ -377,9 +450,9 @@ ggplotSamplesMDS <- function(
                     ggplot2::aes(label = .data[["segmentName"]]))
             } else {
                 # provide the segmentName for ggplotly
-                newMapping <- c(newMapping, 
-                    ggplot2::aes(label = "",
-                                 text1 = .data[["segmentName"]]))
+                newMapping <- c(newMapping,
+                    ggplot2::aes(label = ""))
+            #                      text1 = .data[["segmentName"]]))
             }
             
             # avoids error message: mapping should be created with `aes()`
@@ -389,16 +462,16 @@ ggplotSamplesMDS <- function(
             if (repelArrowLabels) {
                 # discarding possible warning message: 
                 # 'Ignoring unknown aesthetics: text1'
-                p <- suppressWarnings(p + ggrepel::geom_text_repel(
+                p <- p + ggrepel::geom_text_repel(
                     mapping = newMapping,
-                    data = segmentDF))
+                    data = segmentDF)
                 
             } else {
                 # discarding possible warning message: 
                 # 'Ignoring unknown aesthetics: text1'
-                p <- suppressWarnings(p + ggplot2::geom_text(
+                p <- p + ggplot2::geom_text(
                     mapping = newMapping,
-                    data = segmentDF))
+                    data = segmentDF)
             }
             
             # add a dashed centered circle to obtain the RSq=1 benchmark
@@ -422,7 +495,6 @@ ggplotSamplesMDS <- function(
 #' between each sample pairs  
 #' - on the y axis, the corresponding pairwise distances in the obtained 
 #' low dimensional projection
-#' @rdname CytoMDS
 #' @param mdsObj a MDS object calculated by the SMACOF algorithm using
 #' the computeMetricMDS() function
 #' @param nDim number of dimensions to use when calculating   
@@ -435,6 +507,32 @@ ggplotSamplesMDS <- function(
 #' @importFrom rlang .data
 #' @export
 #' 
+#' @seealso [ggplotSamplesMDS], [computeMetricMDS]
+#'
+#' @return a ggplot object
+#' 
+#' @examples
+#' 
+#' # prepare data, build MDS object
+#' example("computeMetricMDS") 
+#' 
+#' # Shepard diagrams 
+#' 
+#' p2D <- ggplotSamplesMDSShepard(
+#'     mdsObj,
+#'     nDim = 2,
+#'     pointSize = 1,
+#'     title = "Shepard with 2 dimensions")
+#' 
+#' p3D <- ggplotSamplesMDSShepard(
+#'     mdsObj,
+#'     nDim = 3,
+#'     title = "Shepard with 3 dimensions") 
+#'     #' 
+#' pDefD <- ggplotSamplesMDSShepard(
+#'     mdsObj,
+#'     title = "Shepard with default nb of dimensions") 
+#'
 ggplotSamplesMDSShepard <- function(
         mdsObj,
         nDim = NULL,
