@@ -69,6 +69,7 @@ a marginal RSquare per dimension is provided.</p>
 <span>  pData <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sampleId <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">mdsObj</span><span class="op">$</span><span class="va">proj</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  projectionAxes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,</span>
 <span>  biplot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  biplotType <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"correlation"</span>, <span class="st">"regression"</span><span class="op">)</span>,</span>
 <span>  extVariables <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pDataForColour <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pDataForShape <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -78,7 +79,7 @@ a marginal RSquare per dimension is provided.</p>
 <span>  title <span class="op">=</span> <span class="st">"Multi Dimensional Scaling"</span>,</span>
 <span>  repelPointsLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  displayArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  arrowThreshold <span class="op">=</span> <span class="fl">0.7</span>,</span>
+<span>  arrowThreshold <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  repelArrowLabels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  flipXAxis <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  flipYAxis <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -106,6 +107,16 @@ and will be used to highlight sample categories in the plot.</p></dd>
 
 <dt>biplot</dt>
 <dd><p>if TRUE, adds projection of external variables</p></dd>
+
+
+<dt>biplotType</dt>
+<dd><p>type of biplot used:</p><ul><li><p>if "correlation", projection of external variables will be according to
+Pearson correlations w.r.t. projection axes (arrow x &amp; y coordinates)</p></li>
+<li><p>if "regression", a linear regression of external variables using the 2
+projection axes as explanatory variables is performed, and the projection
+of external variables will be according to regression coefficients
+(arrow direction) and R square of regression (arrow size)</p></li>
+</ul></dd>
 
 
 <dt>extVariables</dt>
