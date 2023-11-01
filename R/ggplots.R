@@ -31,6 +31,13 @@
 #' @param extVariables are used to generate a biplot
 #' these are the external variables to regress with obtained configuration
 #' according to the two projection axes
+#' @param biplotType type of biplot used:   
+#' - if "correlation", projection of external variables will be according to 
+#' Pearson correlations w.r.t. projection axes (arrow x & y coordinates)
+#' - if "regression", a linear regression of external variables using the 2
+#' projection axes as explanatory variables is performed, and the projection
+#' of external variables will be according to regression coefficients
+#' (arrow direction) and R square of regression (arrow size)
 #' @param pDataForColour if not NULL, which `pData` variable
 #' will be used as colour aesthetic. Should be a character.
 #' @param pDataForShape if not NULL, which `pData` variable
@@ -146,6 +153,7 @@ ggplotSamplesMDS <- function(
             sampleId = seq_len(nrow(mdsObj$proj))),
         projectionAxes = c(1,2),
         biplot = FALSE,
+        biplotType = c("correlation", "regression"),
         extVariables = NULL,
         pDataForColour = NULL,
         pDataForShape = NULL,
@@ -155,7 +163,7 @@ ggplotSamplesMDS <- function(
         title = "Multi Dimensional Scaling",
         repelPointsLabels = TRUE,
         displayArrowLabels = TRUE,
-        arrowThreshold = 0.7,
+        arrowThreshold = 0.8,
         repelArrowLabels = FALSE,
         flipXAxis = FALSE,
         flipYAxis = FALSE,
@@ -166,6 +174,8 @@ ggplotSamplesMDS <- function(
     if (!inherits(mdsObj, "mdsRes")) {
         stop("mdsObj should be a 'mdsRes' object")
     }
+    
+    biplotType <- match.arg(biplotType)
     
     nSamples <- nrow(pData)
     
@@ -384,6 +394,8 @@ ggplotSamplesMDS <- function(
             extVariables = extVariables)
             
         radius <- 0.9*min(-axesLimits[1], axesLimits[2])
+        lengthThreshold <- radius * arrowThreshold
+        
         nExtVar <- ncol(mdsBiplot$coefficients)
         if (nExtVar > 0) {
             segmentXs <- rep(0., nExtVar)
@@ -391,17 +403,24 @@ ggplotSamplesMDS <- function(
             segmentNames <- rep("", nExtVar)
             visible <- rep(FALSE, nExtVar)
             for (j in seq_len(nExtVar)) {
-                segmentLength <- radius * mdsBiplot$R2vec[j]
-                segmentAngle <- atan(
-                    mdsBiplot$coefficients[2,j] / 
-                        mdsBiplot$coefficients[1,j])
-                if(mdsBiplot$coefficients[1,j] < 0){
-                    segmentAngle <- segmentAngle + pi
+                if (biplotType == "regression"){
+                    segmentLength <- radius * mdsBiplot$R2vec[j]
+                    segmentAngle <- atan(
+                        mdsBiplot$coefficients[2,j] / 
+                            mdsBiplot$coefficients[1,j])
+                    if(mdsBiplot$coefficients[1,j] < 0){
+                        segmentAngle <- segmentAngle + pi
+                    }
+                    segmentXs[j] <- segmentLength * cos(segmentAngle)
+                    segmentYs[j] <- segmentLength * sin(segmentAngle)
+                } else {
+                    # biplotType == "correlation"
+                    segmentXs[j] <- radius * mdsBiplot$pearsonCorr[1, j]
+                    segmentYs[j] <- radius * mdsBiplot$pearsonCorr[2, j]
+                    segmentLength <- sqrt(segmentXs[j]^2 + segmentYs[j]^2)
                 }
-                segmentXs[j] <- segmentLength * cos(segmentAngle)
-                segmentYs[j] <- segmentLength * sin(segmentAngle)
                 
-                if (abs(mdsBiplot$R2vec[j]) >= arrowThreshold){
+                if (segmentLength >= lengthThreshold){
                     visible[j] <- TRUE
                     segmentNames[j] <- colnames(mdsBiplot$coefficients)[j]
                 }

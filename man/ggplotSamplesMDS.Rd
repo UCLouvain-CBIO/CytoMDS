@@ -9,6 +9,7 @@ ggplotSamplesMDS(
   pData = data.frame(sampleId = seq_len(nrow(mdsObj$proj))),
   projectionAxes = c(1, 2),
   biplot = FALSE,
+  biplotType = c("correlation", "regression"),
   extVariables = NULL,
   pDataForColour = NULL,
   pDataForShape = NULL,
@@ -18,7 +19,7 @@ ggplotSamplesMDS(
   title = "Multi Dimensional Scaling",
   repelPointsLabels = TRUE,
   displayArrowLabels = TRUE,
-  arrowThreshold = 0.7,
+  arrowThreshold = 0.8,
   repelArrowLabels = FALSE,
   flipXAxis = FALSE,
   flipYAxis = FALSE,
@@ -37,6 +38,16 @@ and will be used to highlight sample categories in the plot.}
 (should be a numeric vector of length 2)}
 
 \item{biplot}{if TRUE, adds projection of external variables}
+
+\item{biplotType}{type of biplot used:
+\itemize{
+\item if "correlation", projection of external variables will be according to
+Pearson correlations w.r.t. projection axes (arrow x & y coordinates)
+\item if "regression", a linear regression of external variables using the 2
+projection axes as explanatory variables is performed, and the projection
+of external variables will be according to regression coefficients
+(arrow direction) and R square of regression (arrow size)
+}}
 
 \item{extVariables}{are used to generate a biplot
 these are the external variables to regress with obtained configuration

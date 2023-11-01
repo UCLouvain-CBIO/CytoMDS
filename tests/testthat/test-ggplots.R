@@ -99,6 +99,21 @@ test_that("ggplotSamplesMDS works", {
     
     p <- ggplotSamplesMDS(mdsObj = mdsObj,
                           pData = flowCore::pData(fsAll),
+                          projectionAxes = c(1,2),
+                          biplot = TRUE,
+                          biplotType = "regression",
+                          extVariables = extVars,
+                          pDataForColour = "grpId",
+                          pDataForLabel = NULL,
+                          pDataForShape = "type",
+                          seed = 0)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSamplesMDS axes 1 2 biplot regression",
+        fig = p)    
+    
+    p <- ggplotSamplesMDS(mdsObj = mdsObj,
+                          pData = flowCore::pData(fsAll),
                           projectionAxes = c(3,4),
                           biplot = TRUE,
                           extVariables = extVars,
@@ -109,6 +124,21 @@ test_that("ggplotSamplesMDS works", {
     vdiffr::expect_doppelganger(
         "ggplotSamplesMDS with axes 3 and 4 and extVars",
         fig = p)
+    
+    p <- ggplotSamplesMDS(mdsObj = mdsObj,
+                          pData = flowCore::pData(fsAll),
+                          projectionAxes = c(3,4),
+                          biplot = TRUE,
+                          biplotType = "regression",
+                          extVariables = extVars,
+                          pDataForColour = "grpId",
+                          pDataForLabel = NULL,
+                          pDataForShape = "type",
+                          seed = 0)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSamplesMDS axes 3 4 biplot regression",
+        fig = p)    
     
     p <- ggplotSamplesMDS(mdsObj = mdsObj,
                           pData = flowCore::pData(fsAll),

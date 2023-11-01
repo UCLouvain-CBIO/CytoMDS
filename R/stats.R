@@ -815,8 +815,12 @@ computeMetricMDS <- function(
 # Function to populate a mdsRes object with biplot information
 # Note this information is specific to the couple of projectionAxes
 # that will be used for the biplot
-# returns a `mdsBiplot` list with 2 entries: 
-# `$R2vec` and `$coefficients`
+# returns a `mdsBiplot` list with 3 entries: 
+# `$R2vec`, `$coefficients` - the 2 latter obtained while regressing 
+# the `extVariables` on the projectionAxes -, and `$correlations`, obtained
+# by computing the Pearson correlation of the extVariables with the axes -
+# each column being a vector of length nProjAxes corresponding to 
+# the correlations of one ext variables with the projection axes.
 computeMetricMDSBiplot <- function(
         mdsObj,
         projectionAxes,
@@ -831,6 +835,7 @@ computeMetricMDSBiplot <- function(
             "in configuration!")
     } 
     
+    # calculate linear regressions
     rownames(extVariables) <- rownames(mdsObj$proj)
     ext <- scale(extVariables, scale = TRUE)
     regfit <- lm(ext ~ -1 + X)
@@ -838,7 +843,6 @@ computeMetricMDSBiplot <- function(
     mdsBiplot$coefficients <- as.matrix(regfit$coefficients)
     regsum <- summary(regfit)
     if (ncol(ext) == 1) 
-        
         R2vec <- regsum$r.squared
     else
         R2vec <- vapply(
@@ -848,6 +852,11 @@ computeMetricMDSBiplot <- function(
             "r.squared")
     names(R2vec) <- colnames(ext)
     mdsBiplot$R2vec <- R2vec
+    
+    # calculate Pearson correlations
+    pearsonCorrelations <- t(stats::cor(ext, X))
+    mdsBiplot$pearsonCorr <- pearsonCorrelations
+    
     return(mdsBiplot)
 }
 
