@@ -66,6 +66,8 @@
 #' (provided as it might ease low dimensional projection comparisons)
 #' @param flipYAxis if TRUE, take the opposite of y values 
 #' (provided as it might ease low dimensional projection comparisons)
+#' @param displayPseudoRSq if TRUE, display pseudo RSquare in subtitle, on top
+#' of nb of dimensions
 #' @param ... additional parameters passed to `ggrepel::geom_text_repel()` 
 #' (if used)
 #' @importFrom stats as.dist dist lm 
@@ -167,6 +169,7 @@ ggplotSamplesMDS <- function(
         repelArrowLabels = FALSE,
         flipXAxis = FALSE,
         flipYAxis = FALSE,
+        displayPseudoRSq = TRUE,
         ...){
         
     #browser()
@@ -269,10 +272,21 @@ ggplotSamplesMDS <- function(
         " (% var. : ",
         round(100*explVar[projectionAxes[2]], 2),
         "%)")
-
-    subtitle <- paste0("(Pseudo R2 = ", round(RSq, 4),
-                       #"; Goodness of Fit = ", round(GoF, 4),
-                       "; nDim = ", nDim, ")")
+    
+    subtitle <- "("
+    if (displayPseudoRSq) {
+        subtitle <- paste0(
+            subtitle,
+            "Pseudo R2 = ", 
+            round(RSq, 4),
+            #"; Goodness of Fit = ", round(GoF, 4),
+            "; ")
+    } 
+    subtitle <- paste0(
+        subtitle, 
+        "nDim = ",
+        nDim,
+        ")")
     
     mainAesMapping <- ggplot2::aes(
         x = .data[["x"]],
@@ -522,6 +536,8 @@ ggplotSamplesMDS <- function(
 #' as calculated in `mdsObj`
 #' @param title title to give to the plot
 #' @param pointSize plot size of points
+#' @param displayPseudoRSq if TRUE, display pseudo RSquare in subtitle, on top
+#' of nb of dimensions
 #'
 #' @importFrom rlang .data
 #' @export
@@ -556,7 +572,8 @@ ggplotSamplesMDSShepard <- function(
         mdsObj,
         nDim = NULL,
         title = "Multi Dimensional Scaling - Shepard's diagram",
-        pointSize = 0.5) {
+        pointSize = 0.5,
+        displayPseudoRSq = TRUE) {
     
     if (!inherits(mdsObj,"mdsRes")) {
         stop("mdsObj should be a 'mdsRes' object")
@@ -576,9 +593,21 @@ ggplotSamplesMDSShepard <- function(
     
     RSq <- mdsObj$RSq[nDim]
     GoF <- mdsObj$GoF[nDim]
-    subtitle <- paste0("(Pseudo R2 = ", round(RSq, 4),
-                       #"; Goodness of Fit = ", round(GoF, 4),
-                       "; nDim = ", nDim, ")")
+    
+    subtitle <- "("
+    if (displayPseudoRSq) {
+        subtitle <- paste0(
+            subtitle,
+            "Pseudo R2 = ", 
+            round(RSq, 4),
+            #"; Goodness of Fit = ", round(GoF, 4),
+            "; ")
+    } 
+    subtitle <- paste0(
+        subtitle, 
+        "nDim = ",
+        nDim,
+        ")")
     
     xlabel <- "HD distances"
     ylabel <- "Proj. distances"

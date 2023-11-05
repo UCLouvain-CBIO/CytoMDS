@@ -23,6 +23,7 @@ ggplotSamplesMDS(
   repelArrowLabels = FALSE,
   flipXAxis = FALSE,
   flipYAxis = FALSE,
+  displayPseudoRSq = TRUE,
   ...
 )
 }
@@ -92,6 +93,9 @@ instead of \code{ggplot2::geom_text()} for the arrows (only with biplot)}
 
 \item{flipYAxis}{if TRUE, take the opposite of y values
 (provided as it might ease low dimensional projection comparisons)}
+
+\item{displayPseudoRSq}{if TRUE, display pseudo RSquare in subtitle, on top
+of nb of dimensions}
 
 \item{...}{additional parameters passed to \code{ggrepel::geom_text_repel()}
 (if used)}

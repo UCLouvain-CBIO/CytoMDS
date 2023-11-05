@@ -8,7 +8,8 @@ ggplotSamplesMDSShepard(
   mdsObj,
   nDim = NULL,
   title = "Multi Dimensional Scaling - Shepard's diagram",
-  pointSize = 0.5
+  pointSize = 0.5,
+  displayPseudoRSq = TRUE
 )
 }
 \arguments{
@@ -23,6 +24,9 @@ as calculated in \code{mdsObj}}
 \item{title}{title to give to the plot}
 
 \item{pointSize}{plot size of points}
+
+\item{displayPseudoRSq}{if TRUE, display pseudo RSquare in subtitle, on top
+of nb of dimensions}
 }
 \value{
 a ggplot object

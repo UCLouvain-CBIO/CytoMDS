@@ -18,4 +18,5 @@ to possibly ease low dimensional projection comparisons
 - in `ggplotSampleMDS()`, added `displayArrowLabels` to discard
 the arrow labels in biplot. Also added `arrowThreshold`.
 Moved arrow labels toward the end of the arrows.
-
+- in `ggplotSampleMDS()` and `ggplotSampleMDSShepard()`: added 
+`displayPseudoRSq` parameter.
