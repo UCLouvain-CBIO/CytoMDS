@@ -34,11 +34,6 @@
 #' when approximating the marginal distributions
 #' @param returnAll If `TRUE`, distributions and marginal distribution
 #' distances are returned as well. Default = `FALSE`.
-#' @param nEventsLCM used to make the distance calculation a true metric. 
-#' It is the lowest common multiplier of the number of events of each ff.
-#' If it is provided as `NULL`, then it is calculated based on provided ffs.
-#' If it is provided as an integer, then it is used as target (in the context
-#' of calculating a matrix of pairwise distance between several ffs).
 #'
 #' @return the Earth Mover's distance between `ff1` and `ff2`,
 #' which is calculated by summing up all EMD approximates for
@@ -97,8 +92,7 @@ getEMDDist <- function(
         binSize = 0.05,
         minRange = -10,
         maxRange = 10,
-        returnAll = FALSE,
-        nEventsLCM = NULL) {
+        returnAll = FALSE) {
                        
     if (!inherits(ff1, "flowFrame") || !inherits(ff2, "flowFrame")) {
         stop("both flowFrame objects should inherit from flowCore::flowFrame")
@@ -187,21 +181,10 @@ getEMDDist <- function(
     
     ratioA <- 1
     ratioB <- 1
-    if (is.null(nEventsLCM)) {
-        nEventsLCM <-  pracma::Lcm(nA, nB)  
-        ratioA <- nEventsLCM / nA
-        ratioB <- nEventsLCM / nB
-    } else {
-        if (nEventsLCM - floor(nEventsLCM) > 1e-12)
-            stop("provided [nEventsLCM] should be an integer")
-        ratioA <- nEventsLCM / nA
-        if (ratioA - floor(ratioA) > 1e-12)
-            stop("provided [nEventsLCM] should be a multiple of nEvents(ff1)")
-        
-        ratioB <- nEventsLCM / nB
-        if (ratioB - floor(ratioB) > 1e-12)
-            stop("provided [nEventsLCM] should be a multiple of nEvents(ff2)")
-    }
+    
+    nEventsLCM <-  pracma::Lcm(nA, nB)  
+    ratioA <- nEventsLCM / nA
+    ratioB <- nEventsLCM / nB
     
     for (ch in channels) {
         
@@ -251,6 +234,10 @@ getEMDDist <- function(
 #' @title Calculate all pairwise Earth Mover's distances 
 #' between flowFrames of a flowSet
 #' @param fs a flowCore::flowSet
+#' @param fs2 a flowCore::flowSet   
+#' - if fs2 is NULL, pairwise distances will be calculated for all pairs of `fs`
+#' - if fs2 is not NULL, distances will be calculated for all pairs where the 
+#' first element comes from `fs`, and the second element comes from `fs2`
 #' @param channels which channels (integer index(ices) or character(s)):
 #' - if it is a character vector, 
 #' it can refer to either the channel names, or the marker names
@@ -291,12 +278,19 @@ getEMDDist <- function(
 #' 
 getPairwiseEMDDist <- function(
         fs,
+        fs2 = NULL,
         channels = NULL,
         verbose = FALSE,
         ...){
         
     if(!inherits(fs, "flowSet")) {
         stop("fs object should inherit from flowCore::flowSet")
+    }
+    
+    if (!is.null(fs2)) {
+        if (!inherits(fs2, "flowSet")) {
+            stop("fs2 object should inherit from flowCore::flowSet")
+        }
     }
     
     # check channels
@@ -321,70 +315,77 @@ getPairwiseEMDDist <- function(
             channels[wrongCh])
     }
     
+    if (!is.null(fs2)) {
+        wrongCh <- which(! channels %in% flowCore::colnames(fs2))
+        if (length(wrongCh) > 0) {
+            stop(
+                "found some channels that are non existent in flowSet 2: ",
+                channels[wrongCh])
+        }
+    }
+    
     # take only the channels of interest for the following
     #browser()
     # for performance
     fs <- fs[,channels]
-    
-    nFF <- length(fs)
-    if (nFF < 1) stop("empty flowSet passed")
-    
-    
-    # lowest common multiplier of the number of events of all flowframes
-    #browser()
-    nEventsLCM <- NULL
-    # if (trueMetric) {
-    #   
-    #   fs <- flowCore::fsApply(fs,
-    #                    FUN = function(ff){
-    #                      nEvents <- flowCore::nrow(ff)
-    #                      nEventsToAdd <- 2^ceiling(log2(nEvents)) - nEvents
-    #                      if (nEventsToAdd > 0) {
-    #                        withr::local_seed(0)
-    #                        mySample <- sample(1:nEvents, size = nEventsToAdd)
-    #                        flowCore::exprs(ff) <-
-    #                          rbind(
-    #                            flowCore::exprs(ff),
-    #                            flowCore::exprs(ff)[mySample, , drop = FALSE]
-    #                          )  
-    #                      }
-    #                      ff
-    #                    })
-    #   
-    #   nCorrectedEvents <- flowCore::fsApply(fs, FUN = flowCore::nrow)
-    #   
-    #   nEventsLCM <- Reduce(f = pracma::Lcm, x = nCorrectedEvents, init = 1)
-    #   #nEventsLCM <- max(nCorrectedEvents)
-    # }
-    
-    #browser()
-    pwDist <- diag(0., nrow = nFF)
-    for (i in seq_len(nFF)) {
-        j <- 1
-        while (j < i) {
-            # note channels are already checked :-)
-            pwDist[i,j] <- getEMDDist(
-                fs[[i]], 
-                fs[[j]], 
-                channels = channels,
-                checkChannels = FALSE,
-                nEventsLCM = nEventsLCM,
-                ...)
-                                      
-            if (verbose) {
-                message(
-                    "i = ", i, 
-                    "; j = ", j, 
-                    "; dist = ", round(pwDist[i,j], 12))  
-            }
-            
-            j <- j+1  
-        }
+    if (!is.null(fs2)) {
+        fs2 <- fs2[,channels]
     }
     
-    # copy lower diagonal to upper diagonal
-    pwDist <- pwDist + t(pwDist)
+    nFF <- length(fs)
+    if (nFF < 1) stop("empty fs passed")
+    if (!is.null(fs2)) {
+        nFF2 <- length(fs2)
+        if (nFF2 < 1) stop("empty fs2 passed")
+    }
     
+    if (is.null(fs2)){
+        #browser()
+        pwDist <- diag(0., nrow = nFF)
+        for (i in seq_len(nFF)) {
+            j <- 1
+            while (j < i) {
+                # note channels are already checked :-)
+                pwDist[i,j] <- getEMDDist(
+                    fs[[i]], 
+                    fs[[j]], 
+                    channels = channels,
+                    checkChannels = FALSE,
+                    ...)
+                
+                if (verbose) {
+                    message(
+                        "i = ", i, 
+                        "; j = ", j, 
+                        "; dist = ", round(pwDist[i,j], 12))  
+                }
+                
+                j <- j+1  
+            }
+        }
+        # copy lower diagonal to upper diagonal
+        pwDist <- pwDist + t(pwDist)
+    } else {
+        pwDist <- matrix(rep(0., nFF*nFF2, nrow = nFF))
+        for (i in seq_len(nFF)) {
+            for (j in seq_len(nFF2)) {
+                # note channels are already checked :-)
+                pwDist[i,j] <- getEMDDist(
+                    fs[[i]], 
+                    fs2[[j]], 
+                    channels = channels,
+                    checkChannels = FALSE,
+                    ...)
+                
+                if (verbose) {
+                    message(
+                        "i = ", i, 
+                        "; j = ", j, 
+                        "; dist = ", round(pwDist[i,j], 12))  
+                } 
+            }
+        }
+    }
     return(pwDist)
 }
 

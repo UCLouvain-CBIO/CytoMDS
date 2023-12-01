@@ -115,6 +115,16 @@ test_that("getPairwiseEMDDist works", {
     expect_equal(pwDist[2,1], 0.1551)
     expect_equal(pwDist[2,2], 0.)
     
+    pwDist2 <- getPairwiseEMDDist(
+        fs = OMIP021Trans[1],
+        fs2 = OMIP021Trans[2],
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10)
+    expect_equal(dim(pwDist2), c(1,1))
+    expect_equal(pwDist2[1,1], 0.1551)
+    
 })
 
 test_that("getChannelsSummaryStat works", {
