@@ -5,10 +5,17 @@
 \title{Calculate all pairwise Earth Mover's distances
 between flowFrames of a flowSet}
 \usage{
-getPairwiseEMDDist(fs, channels = NULL, verbose = FALSE, ...)
+getPairwiseEMDDist(fs, fs2 = NULL, channels = NULL, verbose = FALSE, ...)
 }
 \arguments{
 \item{fs}{a flowCore::flowSet}
+
+\item{fs2}{a flowCore::flowSet
+\itemize{
+\item if fs2 is NULL, pairwise distances will be calculated for all pairs of \code{fs}
+\item if fs2 is not NULL, distances will be calculated for all pairs where the
+first element comes from \code{fs}, and the second element comes from \code{fs2}
+}}
 
 \item{channels}{which channels (integer index(ices) or character(s)):
 \itemize{

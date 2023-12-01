@@ -12,8 +12,7 @@ getEMDDist(
   binSize = 0.05,
   minRange = -10,
   maxRange = 10,
-  returnAll = FALSE,
-  nEventsLCM = NULL
+  returnAll = FALSE
 )
 }
 \arguments{
@@ -45,12 +44,6 @@ when approximating the marginal distributions}
 
 \item{returnAll}{If \code{TRUE}, distributions and marginal distribution
 distances are returned as well. Default = \code{FALSE}.}
-
-\item{nEventsLCM}{used to make the distance calculation a true metric.
-It is the lowest common multiplier of the number of events of each ff.
-If it is provided as \code{NULL}, then it is calculated based on provided ffs.
-If it is provided as an integer, then it is used as target (in the context
-of calculating a matrix of pairwise distance between several ffs).}
 }
 \value{
 the Earth Mover's distance between \code{ff1} and \code{ff2},
