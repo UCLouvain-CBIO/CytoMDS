@@ -115,16 +115,35 @@ test_that("getPairwiseEMDDist works", {
     expect_equal(pwDist[2,1], 0.1551)
     expect_equal(pwDist[2,2], 0.)
     
+    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+    
+    for(i in 3:5){
+        ffList[[i]] <- 
+            aggregateAndSample(
+                OMIP021Trans,
+                seed = 10*i,
+                nTotalEvents = 5000)[,1:22]
+    }
+    
+    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+    names(ffList) <- fsNames
+    
+    fsAll <- as(ffList,"flowSet")
+    
     pwDist2 <- getPairwiseEMDDist(
-        fs = OMIP021Trans[1],
-        fs2 = OMIP021Trans[2],
+        fs = fsAll[1:3],
+        fs2 = fsAll[4:5],
         channels = c("FSC-A", "SSC-A"),
         binSize = 0.05,
         minRange = -10,
         maxRange = 10)
-    expect_equal(dim(pwDist2), c(1,1))
-    expect_equal(pwDist2[1,1], 0.1551)
-    
+    expect_equal(dim(pwDist2), c(3,2))
+    expect_equal(pwDist2[1,1], 0.07241)
+    expect_equal(pwDist2[1,2], 0.08347)
+    expect_equal(pwDist2[2,1], 0.08501)
+    expect_equal(pwDist2[2,2], 0.07451)
+    expect_equal(pwDist2[3,1], 0.01293)
+    expect_equal(pwDist2[3,2], 0.01813)
 })
 
 test_that("getChannelsSummaryStat works", {

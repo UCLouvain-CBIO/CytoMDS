@@ -366,7 +366,7 @@ getPairwiseEMDDist <- function(
         # copy lower diagonal to upper diagonal
         pwDist <- pwDist + t(pwDist)
     } else {
-        pwDist <- matrix(rep(0., nFF*nFF2, nrow = nFF))
+        pwDist <- matrix(rep(0., nFF*nFF2), nrow = nFF)
         for (i in seq_len(nFF)) {
             for (j in seq_len(nFF2)) {
                 # note channels are already checked :-)
