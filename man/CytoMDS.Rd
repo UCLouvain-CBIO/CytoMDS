@@ -22,5 +22,5 @@ as well as tools to help with the interpretation of
 the axes of the projection.
 }
 \seealso{
-\link{ggplotSamplesMDS}, \link{ggplotSamplesMDSShepard}, \link{computeMetricMDS}
+\link{ggplotSampleMDS}, \link{ggplotSampleMDSShepard}, \link{computeMetricMDS}
 }

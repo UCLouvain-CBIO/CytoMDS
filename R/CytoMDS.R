@@ -22,7 +22,7 @@
 #'
 #' @rdname CytoMDS
 #' 
-#' @seealso [ggplotSamplesMDS], [ggplotSamplesMDSShepard], [computeMetricMDS]
+#' @seealso [ggplotSampleMDS], [ggplotSampleMDSShepard], [computeMetricMDS]
 #'
 #' @description
 #'

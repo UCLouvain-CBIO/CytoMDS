@@ -15,7 +15,7 @@
 
 
 #' @title Plot of Metric MDS object
-#' @description `ggplotSamplesMDS` uses ggplot2 
+#' @description `ggplotSampleMDS` uses ggplot2 
 #' to provide plots of Metric MDS results.   
 #' If both `projectionAxes` are in c(1,2), 
 #' a global RSquare for these 2 axes is provided. For additional dimensions,
@@ -75,7 +75,7 @@
 #' 
 #' @export
 #' 
-#' @seealso [ggplotSamplesMDSShepard], [computeMetricMDS]
+#' @seealso [ggplotSampleMDSShepard], [computeMetricMDS]
 #' 
 #' @return a ggplot object
 #' 
@@ -87,7 +87,7 @@
 #' # plot mds projection on axes 1 and 2,
 #' # use 'group' for colour, 'type' for shape, and no label 
 #' 
-#' p_12 <- ggplotSamplesMDS(
+#' p_12 <- ggplotSampleMDS(
 #'     mdsObj = mdsObj,
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(1,2),
@@ -98,7 +98,7 @@
 #' # plot mds projection on axes 3 and 4,
 #' # use 'group' for colour, and 'name' as point label
 #' 
-#' p_34 <- ggplotSamplesMDS(
+#' p_34 <- ggplotSampleMDS(
 #'     mdsObj = mdsObj,
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(3,4),
@@ -110,7 +110,7 @@
 #' # have sample point size reflecting 'stress'
 #' # i.e. quality of projection w.r.t. distances to other points
 #' 
-#' p12_Stress <- ggplotSamplesMDS(
+#' p12_Stress <- ggplotSampleMDS(
 #'     mdsObj = mdsObj,
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(1,2),
@@ -128,7 +128,7 @@
 #'     statsFUN = stats::median)
 #' 
 #' 
-#' bp_12 <- ggplotSamplesMDS(
+#' bp_12 <- ggplotSampleMDS(
 #'     mdsObj = mdsObj,
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(1,2),
@@ -139,7 +139,7 @@
 #'     pDataForShape = "type",
 #'     seed = 0)
 #' 
-#' bp_34 <- ggplotSamplesMDS(
+#' bp_34 <- ggplotSampleMDS(
 #'     mdsObj = mdsObj,
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(3,4),
@@ -149,7 +149,7 @@
 #'     pDataForLabel = "name",
 #'     seed = 0)
 #' 
-ggplotSamplesMDS <- function(
+ggplotSampleMDS <- function(
         mdsObj,
         pData = data.frame(
             sampleId = seq_len(nrow(mdsObj$proj))),
@@ -171,7 +171,7 @@ ggplotSamplesMDS <- function(
         flipYAxis = FALSE,
         displayPseudoRSq = TRUE,
         ...){
-        
+    
     #browser()
     
     if (!inherits(mdsObj, "mdsRes")) {
@@ -406,7 +406,7 @@ ggplotSamplesMDS <- function(
             mdsObj,
             projectionAxes = projectionAxes,
             extVariables = extVariables)
-            
+        
         radius <- 0.9*min(-axesLimits[1], axesLimits[2])
         lengthThreshold <- radius * arrowThreshold
         
@@ -480,18 +480,18 @@ ggplotSamplesMDS <- function(
             
             if (displayArrowLabels) {
                 newMapping <- c(newMapping, 
-                    ggplot2::aes(label = .data[["segmentName"]]))
+                                ggplot2::aes(label = .data[["segmentName"]]))
             } else {
                 # provide the segmentName for ggplotly
                 newMapping <- c(newMapping,
-                    ggplot2::aes(label = ""))
-            #                      text1 = .data[["segmentName"]]))
+                                ggplot2::aes(label = ""))
+                #                      text1 = .data[["segmentName"]]))
             }
             
             # avoids error message: mapping should be created with `aes()`
             attr(newMapping, "class") <- "uneval"
             
-             
+            
             if (repelArrowLabels) {
                 # discarding possible warning message: 
                 # 'Ignoring unknown aesthetics: text1'
@@ -521,7 +521,7 @@ ggplotSamplesMDS <- function(
 }
 
 #' @title Plot of Metric MDS object - Shepard diagram
-#' @description `ggplotSamplesMDSShepard` uses ggplot2 
+#' @description `ggplotSampleMDSShepard` uses ggplot2 
 #' to provide plot of Metric MDS results.  
 #' Shepard diagram provides a scatter plot of :
 #' - on the x axis, the high dimensional pairwise distances 
@@ -542,7 +542,7 @@ ggplotSamplesMDS <- function(
 #' @importFrom rlang .data
 #' @export
 #' 
-#' @seealso [ggplotSamplesMDS], [computeMetricMDS]
+#' @seealso [ggplotSampleMDS], [computeMetricMDS]
 #'
 #' @return a ggplot object
 #' 
@@ -553,22 +553,22 @@ ggplotSamplesMDS <- function(
 #' 
 #' # Shepard diagrams 
 #' 
-#' p2D <- ggplotSamplesMDSShepard(
+#' p2D <- ggplotSampleMDSShepard(
 #'     mdsObj,
 #'     nDim = 2,
 #'     pointSize = 1,
 #'     title = "Shepard with 2 dimensions")
 #' 
-#' p3D <- ggplotSamplesMDSShepard(
+#' p3D <- ggplotSampleMDSShepard(
 #'     mdsObj,
 #'     nDim = 3,
 #'     title = "Shepard with 3 dimensions") 
 #'     #' 
-#' pDefD <- ggplotSamplesMDSShepard(
+#' pDefD <- ggplotSampleMDSShepard(
 #'     mdsObj,
 #'     title = "Shepard with default nb of dimensions") 
 #'
-ggplotSamplesMDSShepard <- function(
+ggplotSampleMDSShepard <- function(
         mdsObj,
         nDim = NULL,
         title = "Multi Dimensional Scaling - Shepard's diagram",
@@ -629,7 +629,7 @@ ggplotSamplesMDSShepard <- function(
             y = ylabel,
             title = title,
             subtitle = subtitle) + 
-                      
+        
         ggplot2::geom_point(colour = "blue", size = pointSize) +
         ggplot2::geom_abline(
             intercept = 0.,

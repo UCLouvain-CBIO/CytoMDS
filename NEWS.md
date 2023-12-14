@@ -26,3 +26,5 @@ Moved arrow labels toward the end of the arrows.
 flowSet arguments are non-null, distances are calculated for all sample pairs, 
 where the first element comes from `fs`, 
 and the second element comes from `fs2`.
+- renamed `ggplotSamplesMDS` into `ggplotSampleMDS` and 
+`ggplotSamplesMDSShepard` into `ggplotSampleMDSShepard`
