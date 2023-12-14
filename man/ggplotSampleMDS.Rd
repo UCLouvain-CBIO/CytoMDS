@@ -51,8 +51,9 @@ of external variables will be according to regression coefficients
 }}
 
 \item{extVariables}{are used to generate a biplot
-these are the external variables to regress with obtained configuration
-according to the two projection axes}
+these are the external variables that will be used in the biplot.
+They should be provided as a matrix with named columns corresponding to the
+variables. The number of rows should be the same as the number of samples.}
 
 \item{pDataForColour}{if not NULL, which \code{pData} variable
 will be used as colour aesthetic. Should be a character.}
@@ -106,9 +107,8 @@ a ggplot object
 \description{
 \code{ggplotSampleMDS} uses ggplot2
 to provide plots of Metric MDS results.
-If both \code{projectionAxes} are in c(1,2),
-a global RSquare for these 2 axes is provided. For additional dimensions,
-a marginal RSquare per dimension is provided.
+By default, a pseudo Rsquare projection quality indicator,
+and the number of dimensions of the MDS projection are provided in sub-title
 }
 \examples{
 
@@ -116,24 +116,24 @@ a marginal RSquare per dimension is provided.
 example("computeMetricMDS")
 
 # plot mds projection on axes 1 and 2,
-# use 'group' for colour, 'type' for shape, and no label 
+# use 'grpId' for colour, 'type' for shape, and no label 
 
 p_12 <- ggplotSampleMDS(
     mdsObj = mdsObj,
     pData = flowCore::pData(fsAll),
     projectionAxes = c(1,2),
-    pDataForColour = "group",
+    pDataForColour = "grpId",
     pDataForLabel = NULL,
     pDataForShape = "type")
 
 # plot mds projection on axes 3 and 4,
-# use 'group' for colour, and 'name' as point label
+# use 'grpId' for colour, and 'name' as point label
 
 p_34 <- ggplotSampleMDS(
     mdsObj = mdsObj,
     pData = flowCore::pData(fsAll),
     projectionAxes = c(3,4),
-    pDataForColour = "group",
+    pDataForColour = "grpId",
     pDataForLabel = "name")
 
 # plot mds projection on axes 1 and 2,
@@ -145,7 +145,7 @@ p12_Stress <- ggplotSampleMDS(
     mdsObj = mdsObj,
     pData = flowCore::pData(fsAll),
     projectionAxes = c(1,2),
-    pDataForColour = "group",
+    pDataForColour = "grpId",
     pDataForLabel = "name",
     pDataForShape = "type",
     sizeReflectingStress = TRUE)
@@ -165,7 +165,7 @@ bp_12 <- ggplotSampleMDS(
     projectionAxes = c(1,2),
     biplot = TRUE,
     extVariables = extVars,
-    pDataForColour = "group",
+    pDataForColour = "grpId",
     pDataForLabel = NULL,
     pDataForShape = "type",
     seed = 0)
@@ -176,11 +176,12 @@ bp_34 <- ggplotSampleMDS(
     projectionAxes = c(3,4),
     biplot = TRUE,
     extVariables = extVars,
-    pDataForColour = "group",
+    pDataForColour = "grpId",
     pDataForLabel = "name",
     seed = 0)
 
 }
 \seealso{
-\link{ggplotSampleMDSShepard}, \link{computeMetricMDS}
+\link{ggplotSampleMDSWrapBiplots}, \link{ggplotSampleMDSShepard},
+\link{computeMetricMDS}
 }

@@ -52,7 +52,6 @@ pwDist <- getPairwiseEMDDist(fsAll,
 
 test_that("ggplotSampleMDS works", {
     
-    
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
     
     p <- ggplotSampleMDS(mdsObj = mdsObj,
@@ -76,10 +75,10 @@ test_that("ggplotSampleMDS works", {
         "ggplotSampleMDS with axes 3 and 4",
         fig = p)
     
-    extVars <- getChannelsSummaryStat(
+    extVars <- getChannelSummaryStats(
         fsAll,
         channels = c("FSC-A", "SSC-A"),
-        statFUN = stats::median,
+        statFUNs = stats::median,
         verbose = FALSE)
     
     
@@ -261,6 +260,48 @@ test_that("ggplotSampleMDS works", {
     
 })
 
+
+test_that("ggplotSampleMDSWrapBiplots works", {
+    mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
+    
+    # try to associate axes with median or std deviation of each channel
+    # => use bi-plots
+
+    extVarList <- getChannelSummaryStats(
+        fsAll,
+        channels = c("FSC-A", "SSC-A"),
+        statFUNs = c("median" = stats::median, 
+                     "std.dev" = stats::sd))
+
+    bpFull <- ggplotSampleMDSWrapBiplots(
+        mdsObj = mdsObj,
+        extVariableList = extVarList,
+        pData = flowCore::pData(fsAll),
+        projectionAxes = c(1,2),
+        pDataForColour = "grpId",
+        pDataForLabel = NULL,
+        pDataForShape = "type",
+        seed = 0)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSampleMDSWrapBiplots default rows and cols",
+        fig = bpFull)
+    
+    bpFull2 <- ggplotSampleMDSWrapBiplots(
+        mdsObj = mdsObj,
+        extVariableList = extVarList,
+        ncol = 1,
+        pData = flowCore::pData(fsAll),
+        projectionAxes = c(1,2),
+        pDataForColour = "grpId",
+        pDataForLabel = NULL,
+        pDataForShape = "type",
+        seed = 0)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSampleMDSWrapBiplots with 1 col",
+        fig = bpFull2)
+})
 
 test_that("ggplotSampleMDSShepard works", {
     

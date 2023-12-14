@@ -106,6 +106,8 @@ fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
 names(ffList) <- fsNames
 
 fsAll <- as(ffList,"flowSet")
+flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
+flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
 
 # calculate all pairwise distances
 

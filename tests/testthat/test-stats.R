@@ -146,7 +146,7 @@ test_that("getPairwiseEMDDist works", {
     expect_equal(pwDist2[3,2], 0.01813)
 })
 
-test_that("getChannelsSummaryStat works", {
+test_that("getChannelSummaryStats works", {
    
     ffList <- flowCore::flowSet_to_list(OMIP021Trans)
     
@@ -165,7 +165,7 @@ test_that("getChannelsSummaryStat works", {
     
     channelsOrMarkers <- c("FSC-A", "SSC-A", "BV785 - CD3")
     
-    ret <- getChannelsSummaryStat(
+    ret <- getChannelSummaryStats(
         fsAll,
         channels = channelsOrMarkers,
         statFUNs = stats::median,
@@ -177,14 +177,14 @@ test_that("getChannelsSummaryStat works", {
     expect_equal(unname(ret[3,2]), 1.131832378296435)
     expect_equal(unname(ret[4,3]), 1.638696159955064)
     
-    ret <- getChannelsSummaryStat(
+    ret <- getChannelSummaryStats(
         fsAll,
         channels = channelsOrMarkers,
-        statFUNs = list(mean, stats::sd),
+        statFUNs = list("mean" = mean, "std.dev" = stats::sd),
         verbose = FALSE)
     
+    expect_equal(names(ret), c("mean", "std.dev"))
     expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
-    
     expect_equal(unname(ret[[1]][2,1]), 1.961771149533659)
     expect_equal(unname(ret[[1]][3,2]), 1.393034241892733)
     expect_equal(unname(ret[[1]][4,3]), 1.907561024702794)

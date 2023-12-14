@@ -17,9 +17,8 @@
 #' @title Plot of Metric MDS object
 #' @description `ggplotSampleMDS` uses ggplot2 
 #' to provide plots of Metric MDS results.   
-#' If both `projectionAxes` are in c(1,2), 
-#' a global RSquare for these 2 axes is provided. For additional dimensions,
-#' a marginal RSquare per dimension is provided.
+#' By default, a pseudo Rsquare projection quality indicator, 
+#' and the number of dimensions of the MDS projection are provided in sub-title
 #' @param mdsObj a MDS object calculated by the SMACOF algorithm using
 #' the computeMetricMDS() function
 #' @param pData a data.frame providing user input sample data. 
@@ -29,8 +28,9 @@
 #' (should be a numeric vector of length 2)
 #' @param biplot if TRUE, adds projection of external variables
 #' @param extVariables are used to generate a biplot
-#' these are the external variables to regress with obtained configuration
-#' according to the two projection axes
+#' these are the external variables that will be used in the biplot. 
+#' They should be provided as a matrix with named columns corresponding to the 
+#' variables. The number of rows should be the same as the number of samples. 
 #' @param biplotType type of biplot used:   
 #' - if "correlation", projection of external variables will be according to 
 #' Pearson correlations w.r.t. projection axes (arrow x & y coordinates)
@@ -75,7 +75,8 @@
 #' 
 #' @export
 #' 
-#' @seealso [ggplotSampleMDSShepard], [computeMetricMDS]
+#' @seealso [ggplotSampleMDSWrapBiplots], [ggplotSampleMDSShepard], 
+#' [computeMetricMDS]
 #' 
 #' @return a ggplot object
 #' 
@@ -85,24 +86,24 @@
 #' example("computeMetricMDS")
 #' 
 #' # plot mds projection on axes 1 and 2,
-#' # use 'group' for colour, 'type' for shape, and no label 
+#' # use 'grpId' for colour, 'type' for shape, and no label 
 #' 
 #' p_12 <- ggplotSampleMDS(
 #'     mdsObj = mdsObj,
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(1,2),
-#'     pDataForColour = "group",
+#'     pDataForColour = "grpId",
 #'     pDataForLabel = NULL,
 #'     pDataForShape = "type")
 #' 
 #' # plot mds projection on axes 3 and 4,
-#' # use 'group' for colour, and 'name' as point label
+#' # use 'grpId' for colour, and 'name' as point label
 #' 
 #' p_34 <- ggplotSampleMDS(
 #'     mdsObj = mdsObj,
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(3,4),
-#'     pDataForColour = "group",
+#'     pDataForColour = "grpId",
 #'     pDataForLabel = "name")
 #' 
 #' # plot mds projection on axes 1 and 2,
@@ -114,7 +115,7 @@
 #'     mdsObj = mdsObj,
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(1,2),
-#'     pDataForColour = "group",
+#'     pDataForColour = "grpId",
 #'     pDataForLabel = "name",
 #'     pDataForShape = "type",
 #'     sizeReflectingStress = TRUE)
@@ -134,7 +135,7 @@
 #'     projectionAxes = c(1,2),
 #'     biplot = TRUE,
 #'     extVariables = extVars,
-#'     pDataForColour = "group",
+#'     pDataForColour = "grpId",
 #'     pDataForLabel = NULL,
 #'     pDataForShape = "type",
 #'     seed = 0)
@@ -145,7 +146,7 @@
 #'     projectionAxes = c(3,4),
 #'     biplot = TRUE,
 #'     extVariables = extVars,
-#'     pDataForColour = "group",
+#'     pDataForColour = "grpId",
 #'     pDataForLabel = "name",
 #'     seed = 0)
 #' 
@@ -638,4 +639,158 @@ ggplotSampleMDSShepard <- function(
     p
 }
 
+
+#' @title SampleMDS biplot wrapping
+#' @description `ggplotSampleMDSWrapBiplots` calls `ggplotSampleMDS` 
+#' repeatly to generate biplots with different sets of external variables
+#' and align them in a grid using the `patchwork` package, in a similar fashion 
+#' as `ggplot2::facet_wrap()` does.
+#' @param ncol passed to `patchwork::wrap_plots()`
+#' @param nrow passed to `patchwork::wrap_plots()`
+#' @param byrow passed to `patchwork::wrap_plots()`
+#' @param mdsObj a MDS object calculated by the SMACOF algorithm using
+#' the computeMetricMDS() function
+#' @param pData a data.frame providing user input sample data. 
+#' These can be design of experiment variables, phenotype data per sample,...
+#' and will be used to highlight sample categories in the plot. 
+#' @param projectionAxes which two axes should be plotted 
+#' (should be a numeric vector of length 2)
+#' @param extVariableList should be a named list of external variable matrices
+#' Each element of the list should be a matrix with named columns 
+#' corresponding to the variables. 
+#' The number of rows should be the same as the number of samples. 
+#' @param biplotType type of biplot used (see `ggplotSampleMDS()`)
+#' @param pDataForColour if not NULL, which `pData` variable
+#' will be used as colour aesthetic. Should be a character.
+#' @param pDataForShape if not NULL, which `pData` variable
+#' will be used as shape aesthetic. Should be a character.
+#' @param pDataForLabel if not NULL, which `pData` variable 
+#' will be used as point labels in the plot. Should be a character.
+#' @param sizeReflectingStress if TRUE, size of points will appear 
+#' proportional to stress by point, i.e. the bigger the sample point appears,
+#' the less accurate its representation is 
+#' (in terms of distances w.r.t. other points)
+#' @param repelPointsLabels if TRUE, uses `ggrepel::geom_text_repel()` 
+#' instead of `ggplot2::geom_text()`
+#' (try to split the labels such that they do not overlap) for the points
+#' @param repelArrowLabels if TRUE, uses `ggrepel::geom_text_repel()` 
+#' instead of `ggplot2::geom_text()` for the arrows
+#' @param displayArrowLabels if TRUE, displays arrows labels
+#' @param arrowThreshold arrows will be made barely visible 
+#' if their length is (in absolute value) less than this threshold.  
+#' @param flipXAxis if TRUE, take the opposite of x values 
+#' (provided as it might ease low dimensional projection comparisons)
+#' @param flipYAxis if TRUE, take the opposite of y values 
+#' (provided as it might ease low dimensional projection comparisons)
+#' @param ... additional parameters passed to `ggrepel::geom_text_repel()` 
+#' (if used)
+#' 
+#' @export
+#' 
+#' @seealso [ggplotSampleMDS], [ggplotSampleMDSShepard], [computeMetricMDS]
+#' 
+#' @return a ggplot object
+#' 
+#' @examples
+#' 
+#' # prepare data, build MDS object
+#' example("computeMetricMDS")
+#' 
+#' # plot mds projection on axes 1 and 2,
+#' # use 'group' for colour, 'type' for shape, and no label 
+#' 
+#' p_12 <- ggplotSampleMDS(
+#'     mdsObj = mdsObj,
+#'     pData = flowCore::pData(fsAll),
+#'     projectionAxes = c(1,2),
+#'     pDataForColour = "grpId",
+#'     pDataForLabel = NULL,
+#'     pDataForShape = "type")
+#' 
+#' # try to associate axes with median or std deviation of each channel
+#' # => use bi-plots
+#' 
+#' extVarList <- getChannelSummaryStats(
+#'     fsAll,
+#'     channels = c("FSC-A", "SSC-A"),
+#'     statFUNs = c("median" = stats::median, 
+#'                  "std.dev" = stats::sd))
+#' 
+#' bpFull <- ggplotSampleMDSWrapBiplots(
+#'     mdsObj = mdsObj,
+#'     extVariableList = extVarList,
+#'     pData = flowCore::pData(fsAll),
+#'     projectionAxes = c(1,2),
+#'     pDataForColour = "group",
+#'     pDataForLabel = NULL,
+#'     pDataForShape = "type",
+#'     seed = 0)
+#' 
+ggplotSampleMDSWrapBiplots <- function(
+        mdsObj,
+        extVariableList,
+        ncol = NULL,
+        nrow = NULL,
+        byrow = NULL,
+        pData = data.frame(
+            sampleId = seq_len(nrow(mdsObj$proj))),
+        projectionAxes = c(1,2),
+        biplotType = c("correlation", "regression"),
+        pDataForColour = NULL,
+        pDataForShape = NULL,
+        pDataForLabel = NULL,
+        sizeReflectingStress = FALSE,
+        repelPointsLabels = TRUE,
+        displayArrowLabels = TRUE,
+        arrowThreshold = 0.8,
+        repelArrowLabels = FALSE,
+        flipXAxis = FALSE,
+        flipYAxis = FALSE,
+        ...){
+    
+    #browser()
+    
+    if (!is.list(extVariableList)) {
+        stop("[extVariableList] should be a non zero length list!")
+    }
+    
+    if (is.null(names(extVariableList))) {
+        stop("[extVariableList] should be a named list!")
+    }
+    
+    nPlots <- length(extVariableList)
+    
+    pList <- list()
+    
+    for (i in seq_len(nPlots)) {
+        p <- ggplotSampleMDS(
+            mdsObj = mdsObj,
+            pData = pData,
+            title = paste0("biplot with ",
+                           names(extVariableList)[i]),
+            biplot = TRUE,
+            biplotType = biplotType,
+            extVariables = extVariableList[[i]],
+            pDataForColour = pDataForColour,
+            pDataForShape = pDataForShape,
+            pDataForLabel = pDataForLabel,
+            pDataForAdditionalLabelling = NULL,
+            sizeReflectingStress = sizeReflectingStress,
+            repelPointsLabels = repelPointsLabels,
+            displayArrowLabels = displayArrowLabels,
+            arrowThreshold = arrowThreshold,
+            repelArrowLabels = repelArrowLabels,
+            flipXAxis = flipXAxis,
+            flipYAxis = flipYAxis,
+            ...) 
+        pList[[i]] <- p + ggplot2::labs(subtitle = NULL)
+    }
+        
+    p <- patchwork::wrap_plots(
+        pList, 
+        ncol = ncol,
+        nrow = nrow,
+        byrow = byrow)
+    p
+}
 

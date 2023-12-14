@@ -50,6 +50,7 @@ Imports:
     ggplot2,
     ggrepel,
     ggforce,
+    patchwork,
     transport,
     smacof,
     CytoPipeline

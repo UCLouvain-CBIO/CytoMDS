@@ -403,6 +403,8 @@ getPairwiseEMDDist <- function(
 #' after each single distance calculation
 #' @param statFUNs a list (possibly of length one) of
 #' functions to call to calculate the statistics, or a simple function
+#' This list can be named, in that case, these names will be transfered to the
+#' returned value.
 #' @param ... additional parameters passed to `getEMDDist()`
 #' @return a matrix of which the columns are the channel statistics 
 #' for all flowFrames of the flowSet. 
@@ -432,7 +434,7 @@ getPairwiseEMDDist <- function(
 #' 
 #' # calculate mean for each 4 selected channels, for each 2 samples
 #' 
-#' channelMeans <- getChannelsSummaryStat(
+#' channelMeans <- getChannelSummaryStats(
 #'     OMIP021Trans,
 #'     channels = channelsOrMarkers,
 #'     statFUNs = mean)
@@ -440,12 +442,13 @@ getPairwiseEMDDist <- function(
 #' # calculate median AND std deviation
 #' # for each 4 selected channels, for each 2 samples
 #' 
-#' channelMedians <- getChannelsSummaryStat(
+#' channelMedians <- getChannelSummaryStats(
 #'     OMIP021Trans,
 #'     channels = channelsOrMarkers,
-#'     statFUNs = list(stats::median, stats::sd))
+#'     statFUNs = list("median" = stats::median, 
+#'                     "std.dev" = stats::sd))
 #'    
-getChannelsSummaryStat <- function(
+getChannelSummaryStats <- function(
         fs,
         channels = NULL,
         statFUNs = stats::median,
@@ -462,12 +465,13 @@ getChannelsSummaryStat <- function(
     }
     
     if (nStats > 1) {
-        statFUNs <- lapply(statFUNs, FUN = match.fun)
+        statFUNList <- lapply(statFUNs, FUN = match.fun)
     } else {
         # also create a list to have it uniform single vs more functions cases
-        statFUNs <- list(match.fun(statFUNs))
+        statFUNList <- list(match.fun(statFUNs))
     }
-    
+    # set names to the list
+    names(statFUNList) <- names(statFUNs)
     
     # check channels
     if (is.null(channels)) {
@@ -513,7 +517,7 @@ getChannelsSummaryStat <- function(
     nChannels <- length(channels)
     
     statList <- list()
-    for (fu in seq_along(statFUNs)) {
+    for (fu in seq_along(statFUNList)) {
         if (verbose) {
             message(
                 "computing statistical function ", fu,
@@ -525,7 +529,7 @@ getChannelsSummaryStat <- function(
                 chRes <- flowCore::fsApply(
                     fs,
                     FUN = function(ff){
-                        statFUNs[[fu]](flowCore::exprs(ff)[, ch], 
+                        statFUNList[[fu]](flowCore::exprs(ff)[, ch], 
                                 na.rm = TRUE)
                     })
             },
@@ -538,10 +542,15 @@ getChannelsSummaryStat <- function(
         }
     }
     
+    
+    
     # if only one stat function => unlist to return one single matrix
     if (nStats == 1){
         statList <- statList[[1]]
     }
+    
+    # transfer function names to return value
+    names(statList) <- names(statFUNList)
     
     statList
 }
@@ -632,6 +641,8 @@ getChannelsSummaryStat <- function(
 #' names(ffList) <- fsNames
 #' 
 #' fsAll <- as(ffList,"flowSet")
+#' flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
+#' flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
 #' 
 #' # calculate all pairwise distances
 #' 
