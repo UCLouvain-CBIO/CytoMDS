@@ -790,7 +790,8 @@ ggplotSampleMDSWrapBiplots <- function(
         pList, 
         ncol = ncol,
         nrow = nrow,
-        byrow = byrow)
+        byrow = byrow,
+        guides = 'collect')
     p
 }
 
