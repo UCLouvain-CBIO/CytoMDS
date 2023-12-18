@@ -30,3 +30,6 @@ and the second element comes from `fs2`.
 - renamed `ggplotSamplesMDSShepard` into `ggplotSampleMDSShepard`
 - renamed `getChannelsSummaryStat` into `getChannelSummaryStats`
 - new function `ggplotSampleMDSWrapBiplots()`
+
+### CytoMDS 0.99.4
+- in `getPairwiseEMDDist()`, added support for `BiocParallel`

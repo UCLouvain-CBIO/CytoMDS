@@ -123,7 +123,7 @@
 #' # try to associate axes with median of each channel
 #' # => use bi-plot
 #' 
-#' extVars <- getChannelsSummaryStat(
+#' extVars <- getChannelSummaryStats(
 #'     fsAll,
 #'     channels = c("FSC-A", "SSC-A"),
 #'     statsFUN = stats::median)

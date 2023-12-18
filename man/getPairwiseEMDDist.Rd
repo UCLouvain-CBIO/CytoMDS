@@ -5,7 +5,16 @@
 \title{Calculate all pairwise Earth Mover's distances
 between flowFrames of a flowSet}
 \usage{
-getPairwiseEMDDist(fs, fs2 = NULL, channels = NULL, verbose = FALSE, ...)
+getPairwiseEMDDist(
+  fs,
+  fs2 = NULL,
+  channels = NULL,
+  verbose = FALSE,
+  useBiocParallel = FALSE,
+  BPPARAM = BiocParallel::bpparam(),
+  nBlocks = NULL,
+  ...
+)
 }
 \arguments{
 \item{fs}{a flowCore::flowSet}
@@ -30,10 +39,23 @@ will be selected
 \item{verbose}{if \code{TRUE}, output a message
 after each single distance calculation}
 
+\item{useBiocParallel}{if \code{TRUE}, use \code{BiocParallel} for computation of the
+pairwise distances in parallel - one (i,j) at a time.
+Note the \code{BiocParallel} function used internally is \code{bplapply()}}
+
+\item{BPPARAM}{if \code{useBiocParallel} is TRUE, sets the \code{BPPARAM} back-end to
+be used for the computation. If not provided, will use the top back-end on
+the \code{BiocParallel::registered()} stack.}
+
+\item{nBlocks}{(only with \code{useBiocParallel}) specifies the number of blocks
+to divide the row of the matrix into. If set to \code{NULL}, will try to choose
+it such that the number of tasks is near \code{BiocParallel::bpWorkers(BPPARAM)}}
+
 \item{...}{additional parameters passed to \code{getEMDDist()}}
 }
 \value{
-a distance matrix (full symmetric with 0. diagonal)
+a distance matrix of pairwise distances
+(full symmetric with 0. diagonal)
 }
 \description{
 Calculate all pairwise Earth Mover's distances

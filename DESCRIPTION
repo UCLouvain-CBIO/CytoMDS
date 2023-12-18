@@ -1,6 +1,6 @@
 Package: CytoMDS
 Title: Low Dimensions projection of cytometry samples
-Version: 0.99.4
+Version: 0.99.5
 Authors@R:
     c(person(given = "Philippe",
              family = "Hauchamps",
@@ -46,6 +46,7 @@ Imports:
     rlang,
     pracma,
     withr,
+    purrr,
     flowCore,
     ggplot2,
     ggrepel,
@@ -53,6 +54,7 @@ Imports:
     patchwork,
     transport,
     smacof,
+    BiocParallel,
     CytoPipeline
 Suggests:
     testthat (>= 3.0.0),

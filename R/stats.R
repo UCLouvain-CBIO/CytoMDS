@@ -230,6 +230,40 @@ getEMDDist <- function(
     }
 }
 
+.generateBlocks2D <- function(nSamples, nBlocks, symmetric = TRUE) {
+    blocks1D <- split(1:nSamples,  
+                      cut(seq_along(1:nSamples), 
+                          nBlocks, 
+                          labels = FALSE))
+    nBlock1D <- nBlocks
+    if (symmetric) {
+        nBlocks2D <- 0.5*nBlock1D*(nBlock1D+1)    
+    } else {
+        nBlocks2D <- nBlock1D*nBlock1D
+    }
+    
+    rowMins <- rowMaxs <- colMins <- colMaxs <- rep(0, nBlocks2D)
+    iBlocks2D <- 0
+    for (j in seq_len(nBlock1D)) {
+        for (k in seq(ifelse(symmetric, j, 1),nBlock1D)) {
+            iBlocks2D <- iBlocks2D+1
+            rowMins[iBlocks2D] <- blocks1D[[j]][1]
+            rowMaxs[iBlocks2D] <- blocks1D[[j]][length(blocks1D[[j]])]
+            colMins[iBlocks2D] <- blocks1D[[k]][1]
+            colMaxs[iBlocks2D] <- blocks1D[[k]][length(blocks1D[[k]])]
+        }
+    }
+    blocks2D <- data.frame(
+        rowMin = rowMins,
+        rowMax = rowMaxs,
+        colMin = colMins,
+        colMax = colMaxs)
+    
+    purrr::list_transpose(as.list(blocks2D), simplify = FALSE)
+}
+
+
+
 
 #' @title Calculate all pairwise Earth Mover's distances 
 #' between flowFrames of a flowSet
@@ -247,9 +281,20 @@ getEMDDist <- function(
 #' will be selected
 #' @param verbose if `TRUE`, output a message 
 #' after each single distance calculation
+#' @param useBiocParallel if `TRUE`, use `BiocParallel` for computation of the
+#' pairwise distances in parallel - one (i,j) at a time.
+#' Note the `BiocParallel` function used internally is `bplapply()`
+#' @param BPPARAM if `useBiocParallel` is TRUE, sets the `BPPARAM` back-end to
+#' be used for the computation. If not provided, will use the top back-end on 
+#' the `BiocParallel::registered()` stack.
+#' @param nBlocks (only with `useBiocParallel`) specifies the number of blocks
+#' to divide the row of the matrix into. If set to `NULL`, will try to choose
+#' it such that the number of tasks is near `BiocParallel::bpWorkers(BPPARAM)`
 #' @param ... additional parameters passed to `getEMDDist()`
-#' @return a distance matrix (full symmetric with 0. diagonal)
+#' @return a distance matrix of pairwise distances 
+#' (full symmetric with 0. diagonal)
 #' @importFrom CytoPipeline areSignalCols
+#' @importFrom purrr list_transpose
 #' @export
 #' 
 #' @examples
@@ -281,6 +326,9 @@ getPairwiseEMDDist <- function(
         fs2 = NULL,
         channels = NULL,
         verbose = FALSE,
+        useBiocParallel = FALSE,
+        BPPARAM = BiocParallel::bpparam(),
+        nBlocks = NULL,
         ...){
         
     if(!inherits(fs, "flowSet")) {
@@ -339,53 +387,136 @@ getPairwiseEMDDist <- function(
         if (nFF2 < 1) stop("empty fs2 passed")
     }
     
-    if (is.null(fs2)){
-        #browser()
-        pwDist <- diag(0., nrow = nFF)
-        for (i in seq_len(nFF)) {
-            j <- 1
-            while (j < i) {
-                # note channels are already checked :-)
-                pwDist[i,j] <- getEMDDist(
-                    fs[[i]], 
-                    fs[[j]], 
-                    channels = channels,
-                    checkChannels = FALSE,
-                    ...)
-                
-                if (verbose) {
-                    message(
-                        "i = ", i, 
-                        "; j = ", j, 
-                        "; dist = ", round(pwDist[i,j], 12))  
+    if (!useBiocParallel) {
+        if (is.null(fs2)){
+            pwDist <- diag(0., nrow = nFF)
+            for (i in seq_len(nFF)) {
+                for (j in seq_len(i-1)) {
+                    # note channels are already checked :-)
+                    pwDist[i,j] <- getEMDDist(
+                        fs[[i]], 
+                        fs[[j]], 
+                        channels = channels,
+                        checkChannels = FALSE,
+                        ...)
+                    
+                    if (verbose) {
+                        message(
+                            "i = ", i, 
+                            "; j = ", j, 
+                            "; dist = ", round(pwDist[i,j], 12))  
+                    }
                 }
-                
-                j <- j+1  
+            }
+            # copy lower diagonal to upper diagonal
+            pwDist <- pwDist + t(pwDist)
+        } else {
+            pwDist <- matrix(rep(0., nFF*nFF2), nrow = nFF)
+            for (i in seq_len(nFF)) {
+                for (j in seq_len(nFF2)) {
+                    # note channels are already checked :-)
+                    pwDist[i,j] <- getEMDDist(
+                        fs[[i]], 
+                        fs2[[j]], 
+                        channels = channels,
+                        checkChannels = FALSE,
+                        ...)
+                    
+                    if (verbose) {
+                        message(
+                            "i = ", i, 
+                            "; j = ", j, 
+                            "; dist = ", round(pwDist[i,j], 12))  
+                    } 
+                }
             }
         }
-        # copy lower diagonal to upper diagonal
-        pwDist <- pwDist + t(pwDist)
     } else {
-        pwDist <- matrix(rep(0., nFF*nFF2), nrow = nFF)
-        for (i in seq_len(nFF)) {
-            for (j in seq_len(nFF2)) {
-                # note channels are already checked :-)
-                pwDist[i,j] <- getEMDDist(
-                    fs[[i]], 
-                    fs2[[j]], 
-                    channels = channels,
-                    checkChannels = FALSE,
-                    ...)
-                
-                if (verbose) {
-                    message(
-                        "i = ", i, 
-                        "; j = ", j, 
-                        "; dist = ", round(pwDist[i,j], 12))  
+        nWorkers <- BiocParallel::bpworkers(BPPARAM)
+        if (is.null(nBlocks)) {
+            # find nBlocks such that we approach nTasks = nWorkers
+            
+            if (is.null(fs2)) {
+                nBlocks <- ceiling(
+                    0.5*(-1+sqrt(1+8*nWorkers)))   
+            } else {
+                if (nFF2 != nFF) {
+                    stop("Using BiocParallel currently only works ",
+                         "with same number of flow frames in both flow sets")
+                }
+                nBlocks <- ceiling(sqrt(nWorkers))
+            }
+        } 
+        
+        if (verbose) {
+            message("Using BiocParallel with ", 
+                    nWorkers,
+                    " workers, nBlocks(1D) = ", 
+                    nBlocks,
+                    "...")
+        }
+        
+        blocks2D <- .generateBlocks2D(
+            nSamples = nFF, nBlocks, symmetric = is.null(fs2))
+        
+        computeDistForOneBlock <- 
+            function(block2D, fs, fs2, channels, verbose, ...) {
+                if (is.null(fs2)) {
+                    if (block2D$rowMin == block2D$colMin && 
+                        block2D$rowMax == block2D$colMax) {
+                        pwDist <- getPairwiseEMDDist(
+                            fs = fs[seq(block2D$rowMin, block2D$rowMax)],
+                            fs2 = NULL,
+                            channels = channels,
+                            useBiocParallel = FALSE,
+                            verbose = verbose)
+                    } else {
+                        pwDist <- getPairwiseEMDDist(
+                            fs = fs[seq(block2D$rowMin, block2D$rowMax)],
+                            fs2 = fs[seq(block2D$colMin, block2D$colMax)],
+                            channels = channels,
+                            useBiocParallel = FALSE,
+                            verbose = verbose)
+                    }
+                } else {
+                    pwDist <- getPairwiseEMDDist(
+                        fs = fs[seq(block2D$rowMin, block2D$rowMax)],
+                        fs2 = fs2[seq(block2D$colMin, block2D$colMax)],
+                        channels = channels,
+                        useBiocParallel = FALSE,
+                        verbose = verbose)
                 } 
+            }
+        
+        pwDistByBlock <- BiocParallel::bplapply(
+            blocks2D, 
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BiocParallel::bpoptions(packages = c("flowCore")),
+            FUN = computeDistForOneBlock,
+            fs = fs,
+            fs2 = fs2,
+            channels = channels,
+            verbose = verbose)
+        
+        # sort out all block results to create one single matrix
+        pwDist <- matrix(rep(0., nFF*nFF), nrow = nFF)
+        for (b in seq_along(blocks2D)){
+            block <- blocks2D[[b]]
+            for (i in seq(block$rowMin, block$rowMax))
+                for (j in seq(block$colMin, block$colMax))
+                    pwDist[i,j] <- 
+                        pwDistByBlock[[b]][i-block$rowMin+1, j-block$colMin+1]
+        }
+        # if fs2 is null (symmetric matrix)
+        # => set lower triangular matrix to upper triangular
+        if (is.null(fs2)) {
+            for(i in 1:nFF) {
+                for (j in 1:(i-1))
+                    pwDist[i,j] <- pwDist[j,i]
             }
         }
     }
+    
     return(pwDist)
 }
 
