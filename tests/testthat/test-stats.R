@@ -217,6 +217,339 @@ test_that("getPairwiseEMDDist works with BiocParallel", {
     expect_equal(pwDist2[2,2], 0.07451)
 })
 
+test_that("generateBlocks2D works", {
+    
+    # trivial cases with 1 sample
+    blocks2D <- .generateBlocks2D(
+        rowRange = c(1, 1),
+        colRange = c(1, 1),
+        nRowBlock = 1)
+    
+    expect_equal(length(blocks2D), 0)
+    # expect_equal(blocks2D[[1]]$rowMin, 1)
+    # expect_equal(blocks2D[[1]]$rowMax, 1)
+    # expect_equal(blocks2D[[1]]$colMin, 1)
+    # expect_equal(blocks2D[[1]]$colMax, 1)
+    
+    # cases that imposes the nb of blocks in 1D
+    blocks2D <- .generateBlocks2D(
+        rowRange = c(1,10),
+        colRange = c(1,10),
+        nRowBlock = 2)
+    
+    expect_equal(length(blocks2D), 3)
+    expect_equal(blocks2D[[2]]$rowMin, 1)
+    expect_equal(blocks2D[[2]]$rowMax, 5)
+    expect_equal(blocks2D[[2]]$colMin, 6)
+    expect_equal(blocks2D[[2]]$colMax, 10)
+    
+    blocks2D <- .generateBlocks2D(
+        rowRange = c(1,10),
+        colRange = c(1,10),
+        nRowBlock = 3)
+    
+    expect_equal(length(blocks2D), 6)
+    expect_equal(blocks2D[[2]]$rowMin, 1)
+    expect_equal(blocks2D[[2]]$rowMax, 4)
+    expect_equal(blocks2D[[2]]$colMin, 5)
+    expect_equal(blocks2D[[2]]$colMax, 7)
+    
+    blocks2D <- .generateBlocks2D(
+        rowRange = c(1,10),
+        colRange = c(9,10),
+        nRowBlock = 3)
+    
+    expect_equal(length(blocks2D),3)
+    expect_equal(blocks2D[[2]]$rowMin, 5)
+    expect_equal(blocks2D[[2]]$rowMax, 7)
+    expect_equal(blocks2D[[2]]$colMin, 9)
+    expect_equal(blocks2D[[2]]$colMax, 10)
+    
+    blocks2D <- .generateBlocks2D(
+        rowRange = c(1,10),
+        colRange = c(1,22),
+        nRowBlock = 1)
+    
+    expect_equal(length(blocks2D),3)
+    expect_equal(blocks2D[[2]]$rowMin, 1)
+    expect_equal(blocks2D[[2]]$rowMax, 10)
+    expect_equal(blocks2D[[2]]$colMin, 9)
+    expect_equal(blocks2D[[2]]$colMax, 15)
+    
+    blocks2D <- .generateBlocks2D(
+        rowRange = c(1,10),
+        colRange = c(10,10),
+        nRowBlock = 10)
+    
+    expect_equal(length(blocks2D),10)
+    expect_equal(blocks2D[[2]]$rowMin, 2)
+    expect_equal(blocks2D[[2]]$rowMax, 2)
+    expect_equal(blocks2D[[2]]$colMin, 10)
+    expect_equal(blocks2D[[2]]$colMax, 10)
+    
+    blocks2D <- .generateBlocks2D(
+        rowRange = c(1,10),
+        colRange = c(11,20),
+        nRowBlock = 2)
+    
+    expect_equal(length(blocks2D),4)
+    expect_equal(blocks2D[[2]]$rowMin, 1)
+    expect_equal(blocks2D[[2]]$rowMax, 5)
+    expect_equal(blocks2D[[2]]$colMin, 16)
+    expect_equal(blocks2D[[2]]$colMax, 20)
+    
+    blocks2D <- .generateBlocks2D(
+        rowRange = c(1,10),
+        colRange = c(11,21),
+        nRowBlock = 2)
+    
+    expect_equal(length(blocks2D),6)
+    expect_equal(blocks2D[[2]]$rowMin, 1)
+    expect_equal(blocks2D[[2]]$rowMax, 5)
+    expect_equal(blocks2D[[2]]$colMin, 15)
+    expect_equal(blocks2D[[2]]$colMax, 17)
+    
+    blocks2D <- .generateBlocks2D(
+        rowRange = c(1,1),
+        colRange = c(1,10),
+        nRowBlock = 1)
+    
+    expect_equal(length(blocks2D),9)
+    expect_equal(blocks2D[[2]]$rowMin, 1)
+    expect_equal(blocks2D[[2]]$rowMax, 1)
+    expect_equal(blocks2D[[2]]$colMin, 2)
+    expect_equal(blocks2D[[2]]$colMax, 2)
+    
+    blocks2D <- .generateBlocks2D(
+        rowRange = c(1,2), 
+        colRange = c(1,2), 
+        nRowBlock = 2)
+    
+    expect_equal(length(blocks2D),1)
+    expect_equal(blocks2D[[2]]$rowMin, 1)
+    expect_equal(blocks2D[[2]]$rowMax, 1)
+    expect_equal(blocks2D[[2]]$colMin, 2)
+    expect_equal(blocks2D[[2]]$colMax, 2)
+    
+})
+
+test_that("optimizeRowBlockSize works", {
+    
+    nRowBlock <- .optimizeRowBlockNb(
+        rowRange = c(1,1), 
+        colRange = c(1,10), 
+        nCores = 1, 
+        memSize = 1)
+    
+    expect_equal(nRowBlock, 1)
+    
+    nRowBlock <- .optimizeRowBlockNb(
+        rowRange = c(1,10), 
+        colRange = c(10,10), 
+        nCores = 1, 
+        memSize = 1)
+    
+    expect_equal(nRowBlock, 10)
+    
+    nRowBlock <- .optimizeRowBlockNb(
+        rowRange = c(1,10), 
+        colRange = c(10,10), 
+        nCores = 1)
+    
+    expect_equal(nRowBlock, 1)
+    
+    nRowBlock <- .optimizeRowBlockNb(
+        rowRange = c(1,10), 
+        colRange = c(10,10), 
+        nCores = 1,
+        memSize = 10)
+    
+    expect_equal(nRowBlock, 1)
+    
+    nRowBlock <- .optimizeRowBlockNb(
+        rowRange = c(1,10), 
+        colRange = c(10,10), 
+        nCores = 1,
+        memSize = 6)
+    
+    expect_equal(nRowBlock, 2)
+    
+    nRowBlock <- .optimizeRowBlockNb(
+        rowRange = c(1,10), 
+        colRange = c(10,10), 
+        nCores = 4,
+        memSize = 6)
+    
+    expect_equal(nRowBlock, 4)
+    
+    nRowBlock <- .optimizeRowBlockNb(
+        rowRange = c(1,10), 
+        colRange = c(10,10), 
+        nCores = 4,
+        memSize = 2)
+    
+    expect_equal(nRowBlock, 10)
+    
+    nRowBlock <- .optimizeRowBlockNb(
+        rowRange = c(1,12),
+        colRange = c(1,12),
+        nCores = 8,
+        memSize = 6 
+    )
+    
+    expect_equal(nRowBlock, 3)
+    
+    nRowBlock <- .optimizeRowBlockNb(
+        rowRange = c(1,12),
+        colRange = c(1,12),
+        nCores = 8,
+        memSize = 12
+    )
+    
+    expect_equal(nRowBlock, 4)
+    
+    nRowBlock <- .optimizeRowBlockNb(
+        rowRange = c(1,12),
+        colRange = c(1,12),
+        memSize = 12
+    )
+    
+    expect_equal(nRowBlock, 1)
+    
+    })
+
+test_that("pairwiseEMDDist with fs works", {
+    pwDist <- pairwiseEMDDist(
+        fs = OMIP021Trans[1],
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10)
+    expect_equal(dim(pwDist), c(1,1))
+    expect_equal(pwDist[1,1], 0.)
+    
+    pwDist <- pairwiseEMDDist(
+        fs = OMIP021Trans,
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10)
+    expect_equal(dim(pwDist), c(2,2))
+    expect_equal(pwDist[1,1], 0.)
+    expect_equal(pwDist[1,2], 0.1551)
+    expect_equal(pwDist[2,1], 0.1551)
+    expect_equal(pwDist[2,2], 0.)
+    
+    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+    
+    for(i in 3:5){
+        ffList[[i]] <- 
+            aggregateAndSample(
+                OMIP021Trans,
+                seed = 10*i,
+                nTotalEvents = 5000)[,1:22]
+    }
+    
+    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+    names(ffList) <- fsNames
+    
+    fsAll <- as(ffList,"flowSet")
+    
+    pwDist2 <- pairwiseEMDDist(
+        fs = fsAll,
+        rowRange = c(1,3),
+        colRange = c(4,5),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        verbose = FALSE)
+    expect_equal(dim(pwDist2), c(3,2))
+    expect_equal(pwDist2[1,1], 0.07241)
+    expect_equal(pwDist2[1,2], 0.08347)
+    expect_equal(pwDist2[2,1], 0.08501)
+    expect_equal(pwDist2[2,2], 0.07451)
+    expect_equal(pwDist2[3,1], 0.01293)
+    expect_equal(pwDist2[3,2], 0.01813)
+})
+
+test_that("pairwiseEMDDist works with fs and BiocParallel", {
+    
+    logDir <- file.path(outputDir, "BiocParallel", "log")
+    
+    suppressWarnings(dir.create(logDir, recursive = TRUE))
+    
+    bp <- BiocParallel::SnowParam(workers = 2, log = TRUE, 
+                                  logdir = logDir,
+                                  progressbar = TRUE)
+    
+    pwDist <- suppressWarnings(pairwiseEMDDist(
+        fs = OMIP021Trans,
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        useBiocParallel = TRUE,
+        BPPARAM = bp))
+    
+    expect_equal(dim(pwDist), c(2,2))
+    expect_equal(pwDist[1,1], 0.)
+    expect_equal(pwDist[1,2], 0.1551)
+    expect_equal(pwDist[2,1], 0.1551)
+    expect_equal(pwDist[2,2], 0.)
+    
+    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+    
+    for(i in 3:5){
+        ffList[[i]] <- 
+            aggregateAndSample(
+                OMIP021Trans,
+                seed = 10*i,
+                nTotalEvents = 5000)[,1:22]
+    }
+    
+    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+    names(ffList) <- fsNames
+    
+    fsAll <- as(ffList,"flowSet")
+    
+    pwDist2 <- suppressWarnings(pairwiseEMDDist(
+            fs = fsAll,
+            rowRange = c(1,3),
+            colRange = c(4,5),
+            channels = c("FSC-A", "SSC-A"),
+            binSize = 0.05,
+            minRange = -10,
+            maxRange = 10,
+            useBiocParallel = TRUE,
+            BPPARAM = bp))
+    
+    expect_equal(dim(pwDist2), c(3,2))
+    expect_equal(pwDist2[1,1], 0.07241)
+    expect_equal(pwDist2[1,2], 0.08347)
+    expect_equal(pwDist2[2,1], 0.08501)
+    expect_equal(pwDist2[2,2], 0.07451)
+    expect_equal(pwDist2[3,1], 0.01293)
+    expect_equal(pwDist2[3,2], 0.01813)
+    
+    pwDist3 <- suppressWarnings(pairwiseEMDDist(
+        fs = fsAll,
+        rowRange = c(1,2),
+        colRange = c(4,5),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        useBiocParallel = TRUE,
+        BPPARAM = bp))
+    
+    expect_equal(dim(pwDist3), c(2,2))
+    expect_equal(pwDist3[1,1], 0.07241)
+    expect_equal(pwDist3[1,2], 0.08347)
+    expect_equal(pwDist3[2,1], 0.08501)
+    expect_equal(pwDist3[2,2], 0.07451)
+})
+
 test_that("getChannelSummaryStats works", {
    
     ffList <- flowCore::flowSet_to_list(OMIP021Trans)
