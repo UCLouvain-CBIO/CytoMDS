@@ -111,7 +111,7 @@ flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
 
 # calculate all pairwise distances
 
-pwDist <- getPairwiseEMDDist(fsAll, 
+pwDist <- pairwiseEMDDist(fsAll, 
                              channels = c("FSC-A", "SSC-A"),
                              verbose = FALSE)
 

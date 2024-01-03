@@ -31,5 +31,7 @@ and the second element comes from `fs2`.
 - renamed `getChannelsSummaryStat` into `getChannelSummaryStats`
 - new function `ggplotSampleMDSWrapBiplots()`
 
-### CytoMDS 0.99.4
-- in `getPairwiseEMDDist()`, added support for `BiocParallel`
+### CytoMDS 0.99.5
+- renamed `getPairwiseEMDDist()` into pairwiseEMDDist()
+- in `pairwiseEMDDist()`, added support for `BiocParallel`, and allowed
+for not loading the whole flowSet in memory at once.

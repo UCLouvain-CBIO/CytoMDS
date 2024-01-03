@@ -104,118 +104,118 @@ test_that("getEMDDist works", {
     
 })
 
-test_that("getPairwiseEMDDist works", {
-    pwDist <- getPairwiseEMDDist(fs = OMIP021Trans,
-                                 channels = c("FSC-A", "SSC-A"),
-                                 binSize = 0.05,
-                                 minRange = -10,
-                                 maxRange = 10
-    )
-    expect_equal(dim(pwDist), c(2,2))
-    expect_equal(pwDist[1,1], 0.)
-    expect_equal(pwDist[1,2], 0.1551)
-    expect_equal(pwDist[2,1], 0.1551)
-    expect_equal(pwDist[2,2], 0.)
-    
-    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
-    
-    for(i in 3:5){
-        ffList[[i]] <- 
-            aggregateAndSample(
-                OMIP021Trans,
-                seed = 10*i,
-                nTotalEvents = 5000)[,1:22]
-    }
-    
-    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
-    names(ffList) <- fsNames
-    
-    fsAll <- as(ffList,"flowSet")
-    
-    pwDist2 <- getPairwiseEMDDist(
-        fs = fsAll[1:3],
-        fs2 = fsAll[4:5],
-        channels = c("FSC-A", "SSC-A"),
-        binSize = 0.05,
-        minRange = -10,
-        maxRange = 10)
-    expect_equal(dim(pwDist2), c(3,2))
-    expect_equal(pwDist2[1,1], 0.07241)
-    expect_equal(pwDist2[1,2], 0.08347)
-    expect_equal(pwDist2[2,1], 0.08501)
-    expect_equal(pwDist2[2,2], 0.07451)
-    expect_equal(pwDist2[3,1], 0.01293)
-    expect_equal(pwDist2[3,2], 0.01813)
-})
-
-test_that("getPairwiseEMDDist works with BiocParallel", {
-    
-    logDir <- file.path(outputDir, "BiocParallel", "log")
-    
-    suppressWarnings(dir.create(logDir, recursive = TRUE))
-    
-    bp <- BiocParallel::SnowParam(workers = 2, log = TRUE, 
-                                  logdir = logDir,
-                                  progressbar = TRUE)
-    
-    pwDist <- suppressWarnings(getPairwiseEMDDist(
-        fs = OMIP021Trans,
-        channels = c("FSC-A", "SSC-A"),
-        binSize = 0.05,
-        minRange = -10,
-        maxRange = 10,
-        useBiocParallel = TRUE,
-        BPPARAM = bp))
-    
-    expect_equal(dim(pwDist), c(2,2))
-    expect_equal(pwDist[1,1], 0.)
-    expect_equal(pwDist[1,2], 0.1551)
-    expect_equal(pwDist[2,1], 0.1551)
-    expect_equal(pwDist[2,2], 0.)
-    
-    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
-    
-    for(i in 3:5){
-        ffList[[i]] <- 
-            aggregateAndSample(
-                OMIP021Trans,
-                seed = 10*i,
-                nTotalEvents = 5000)[,1:22]
-    }
-    
-    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
-    names(ffList) <- fsNames
-    
-    fsAll <- as(ffList,"flowSet")
-    
-    expect_error (
-        getPairwiseEMDDist(
-            fs = fsAll[1:3],
-            fs2 = fsAll[4:5],
-            channels = c("FSC-A", "SSC-A"),
-            binSize = 0.05,
-            minRange = -10,
-            maxRange = 10,
-            useBiocParallel = TRUE,
-            BPPARAM = bp), 
-        regexp = "Using BiocParallel currently only works")
-    
-    pwDist2 <- suppressWarnings(getPairwiseEMDDist(
-        fs = fsAll[1:2],
-        fs2 = fsAll[4:5],
-        channels = c("FSC-A", "SSC-A"),
-        binSize = 0.05,
-        minRange = -10,
-        maxRange = 10,
-        useBiocParallel = TRUE,
-        BPPARAM = bp))
-        
-    expect_equal(dim(pwDist2), c(2,2))
-    expect_equal(pwDist2[1,1], 0.07241)
-    expect_equal(pwDist2[1,2], 0.08347)
-    expect_equal(pwDist2[2,1], 0.08501)
-    expect_equal(pwDist2[2,2], 0.07451)
-})
+# test_that("getPairwiseEMDDist works", {
+#     pwDist <- getPairwiseEMDDist(fs = OMIP021Trans,
+#                                  channels = c("FSC-A", "SSC-A"),
+#                                  binSize = 0.05,
+#                                  minRange = -10,
+#                                  maxRange = 10
+#     )
+#     expect_equal(dim(pwDist), c(2,2))
+#     expect_equal(pwDist[1,1], 0.)
+#     expect_equal(pwDist[1,2], 0.1551)
+#     expect_equal(pwDist[2,1], 0.1551)
+#     expect_equal(pwDist[2,2], 0.)
+#     
+#     ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+#     
+#     for(i in 3:5){
+#         ffList[[i]] <- 
+#             aggregateAndSample(
+#                 OMIP021Trans,
+#                 seed = 10*i,
+#                 nTotalEvents = 5000)[,1:22]
+#     }
+#     
+#     fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+#     names(ffList) <- fsNames
+#     
+#     fsAll <- as(ffList,"flowSet")
+#     
+#     pwDist2 <- getPairwiseEMDDist(
+#         fs = fsAll[1:3],
+#         fs2 = fsAll[4:5],
+#         channels = c("FSC-A", "SSC-A"),
+#         binSize = 0.05,
+#         minRange = -10,
+#         maxRange = 10)
+#     expect_equal(dim(pwDist2), c(3,2))
+#     expect_equal(pwDist2[1,1], 0.07241)
+#     expect_equal(pwDist2[1,2], 0.08347)
+#     expect_equal(pwDist2[2,1], 0.08501)
+#     expect_equal(pwDist2[2,2], 0.07451)
+#     expect_equal(pwDist2[3,1], 0.01293)
+#     expect_equal(pwDist2[3,2], 0.01813)
+# })
+# 
+# test_that("getPairwiseEMDDist works with BiocParallel", {
+#     
+#     logDir <- file.path(outputDir, "BiocParallel", "log")
+#     
+#     suppressWarnings(dir.create(logDir, recursive = TRUE))
+#     
+#     bp <- BiocParallel::SnowParam(workers = 2, log = TRUE, 
+#                                   logdir = logDir,
+#                                   progressbar = TRUE)
+#     
+#     pwDist <- suppressWarnings(getPairwiseEMDDist(
+#         fs = OMIP021Trans,
+#         channels = c("FSC-A", "SSC-A"),
+#         binSize = 0.05,
+#         minRange = -10,
+#         maxRange = 10,
+#         useBiocParallel = TRUE,
+#         BPPARAM = bp))
+#     
+#     expect_equal(dim(pwDist), c(2,2))
+#     expect_equal(pwDist[1,1], 0.)
+#     expect_equal(pwDist[1,2], 0.1551)
+#     expect_equal(pwDist[2,1], 0.1551)
+#     expect_equal(pwDist[2,2], 0.)
+#     
+#     ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+#     
+#     for(i in 3:5){
+#         ffList[[i]] <- 
+#             aggregateAndSample(
+#                 OMIP021Trans,
+#                 seed = 10*i,
+#                 nTotalEvents = 5000)[,1:22]
+#     }
+#     
+#     fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+#     names(ffList) <- fsNames
+#     
+#     fsAll <- as(ffList,"flowSet")
+#     
+#     expect_error (
+#         getPairwiseEMDDist(
+#             fs = fsAll[1:3],
+#             fs2 = fsAll[4:5],
+#             channels = c("FSC-A", "SSC-A"),
+#             binSize = 0.05,
+#             minRange = -10,
+#             maxRange = 10,
+#             useBiocParallel = TRUE,
+#             BPPARAM = bp), 
+#         regexp = "Using BiocParallel currently only works")
+#     
+#     pwDist2 <- suppressWarnings(getPairwiseEMDDist(
+#         fs = fsAll[1:2],
+#         fs2 = fsAll[4:5],
+#         channels = c("FSC-A", "SSC-A"),
+#         binSize = 0.05,
+#         minRange = -10,
+#         maxRange = 10,
+#         useBiocParallel = TRUE,
+#         BPPARAM = bp))
+#         
+#     expect_equal(dim(pwDist2), c(2,2))
+#     expect_equal(pwDist2[1,1], 0.07241)
+#     expect_equal(pwDist2[1,2], 0.08347)
+#     expect_equal(pwDist2[2,1], 0.08501)
+#     expect_equal(pwDist2[2,2], 0.07451)
+# })
 
 test_that("generateBlocks2D works", {
     
@@ -281,7 +281,7 @@ test_that("generateBlocks2D works", {
         colRange = c(10,10),
         nRowBlock = 10)
     
-    expect_equal(length(blocks2D),10)
+    expect_equal(length(blocks2D),9)
     expect_equal(blocks2D[[2]]$rowMin, 2)
     expect_equal(blocks2D[[2]]$rowMax, 2)
     expect_equal(blocks2D[[2]]$colMin, 10)
@@ -317,8 +317,8 @@ test_that("generateBlocks2D works", {
     expect_equal(length(blocks2D),9)
     expect_equal(blocks2D[[2]]$rowMin, 1)
     expect_equal(blocks2D[[2]]$rowMax, 1)
-    expect_equal(blocks2D[[2]]$colMin, 2)
-    expect_equal(blocks2D[[2]]$colMax, 2)
+    expect_equal(blocks2D[[2]]$colMin, 3)
+    expect_equal(blocks2D[[2]]$colMax, 3)
     
     blocks2D <- .generateBlocks2D(
         rowRange = c(1,2), 
@@ -326,10 +326,10 @@ test_that("generateBlocks2D works", {
         nRowBlock = 2)
     
     expect_equal(length(blocks2D),1)
-    expect_equal(blocks2D[[2]]$rowMin, 1)
-    expect_equal(blocks2D[[2]]$rowMax, 1)
-    expect_equal(blocks2D[[2]]$colMin, 2)
-    expect_equal(blocks2D[[2]]$colMax, 2)
+    expect_equal(blocks2D[[1]]$rowMin, 1)
+    expect_equal(blocks2D[[1]]$rowMax, 1)
+    expect_equal(blocks2D[[1]]$colMin, 2)
+    expect_equal(blocks2D[[1]]$colMax, 2)
     
 })
 
@@ -397,7 +397,7 @@ test_that("optimizeRowBlockSize works", {
         memSize = 6 
     )
     
-    expect_equal(nRowBlock, 3)
+    expect_equal(nRowBlock, 4)
     
     nRowBlock <- .optimizeRowBlockNb(
         rowRange = c(1,12),
@@ -420,7 +420,7 @@ test_that("optimizeRowBlockSize works", {
 
 test_that("pairwiseEMDDist with fs works", {
     pwDist <- pairwiseEMDDist(
-        fs = OMIP021Trans[1],
+        x = OMIP021Trans[1],
         channels = c("FSC-A", "SSC-A"),
         binSize = 0.05,
         minRange = -10,
@@ -429,7 +429,7 @@ test_that("pairwiseEMDDist with fs works", {
     expect_equal(pwDist[1,1], 0.)
     
     pwDist <- pairwiseEMDDist(
-        fs = OMIP021Trans,
+        x = OMIP021Trans,
         channels = c("FSC-A", "SSC-A"),
         binSize = 0.05,
         minRange = -10,
@@ -456,7 +456,7 @@ test_that("pairwiseEMDDist with fs works", {
     fsAll <- as(ffList,"flowSet")
     
     pwDist2 <- pairwiseEMDDist(
-        fs = fsAll,
+        x = fsAll,
         rowRange = c(1,3),
         colRange = c(4,5),
         channels = c("FSC-A", "SSC-A"),
@@ -484,7 +484,7 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
                                   progressbar = TRUE)
     
     pwDist <- suppressWarnings(pairwiseEMDDist(
-        fs = OMIP021Trans,
+        x = OMIP021Trans,
         channels = c("FSC-A", "SSC-A"),
         binSize = 0.05,
         minRange = -10,
@@ -514,7 +514,7 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
     fsAll <- as(ffList,"flowSet")
     
     pwDist2 <- suppressWarnings(pairwiseEMDDist(
-            fs = fsAll,
+            x = fsAll,
             rowRange = c(1,3),
             colRange = c(4,5),
             channels = c("FSC-A", "SSC-A"),
@@ -533,7 +533,7 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
     expect_equal(pwDist2[3,2], 0.01813)
     
     pwDist3 <- suppressWarnings(pairwiseEMDDist(
-        fs = fsAll,
+        x = fsAll,
         rowRange = c(1,2),
         colRange = c(4,5),
         channels = c("FSC-A", "SSC-A"),
@@ -548,6 +548,147 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
     expect_equal(pwDist3[1,2], 0.08347)
     expect_equal(pwDist3[2,1], 0.08501)
     expect_equal(pwDist3[2,2], 0.07451)
+})
+
+test_that("pairwiseEMDDist dynamic memory loading simulation", {
+    datasetPath <- system.file("extdata",
+                               package = "CytoPipeline")
+    
+    files <- list.files(datasetPath, pattern = "Donor", recursive = TRUE)
+    if (length(files) != 2) stop("unexpected nb of files!")
+    
+    filePaths <- file.path(datasetPath, files)
+    
+    simulMemoryLoad <- function(
+        ffIndex, 
+        filePaths, 
+        nSamples,
+        verbose) {
+        
+        if (!is.numeric(nSamples) || nSamples < 1) {
+            stop("nSamples should be a numeric greater than or equal to 1")
+        }
+        
+        if (!is.numeric(ffIndex) || ffIndex < 1) {
+            stop("ffIndex should be a numeric greater than or equal to 1")
+        }
+        
+        if (ffIndex > nSamples) {
+            stop("ffIndex should be <= nSamples")
+        }
+        
+        # init Flow Set
+        if (verbose) {
+            message("loading ff #", ffIndex, "/", nSamples, "...")
+            message("reading initial flow set...")
+        }
+        
+        initialFS <- flowCore::read.flowSet(
+            filePaths,
+            transformation = "linearize",
+            alter.names = FALSE,
+            name = "OMIP-21",
+            truncate_max_range = TRUE,
+            min.limit = NULL)
+        
+        if (verbose) {
+            message("transforming samples...")
+        }
+        
+        transList <- estimateScaleTransforms(
+            ff = initialFS[[1]],
+            fluoMethod = "estimateLogicle",
+            scatterMethod = "linearQuantile",
+            scatterRefMarker = "BV785 - CD3")
+        
+        transFS <- CytoPipeline::applyScaleTransforms(
+            initialFS, 
+            transList)
+        
+        if (verbose) {
+            message("creating specific sample...")
+        }
+        
+        if (ffIndex <= ceiling(nSamples/2)){
+            ff <- CytoPipeline::subsample(
+                transFS[[1]],
+                nEvents = 1000,
+                seed = ffIndex)[,1:22]
+        } else {
+            ff <- CytoPipeline::subsample(
+                transFS[[2]],
+                nEvents = 1000,
+                seed = ffIndex)[,1:22]
+        }
+        
+        # fscMean <- mean(flowCore::exprs(ff)[,"FSC-A"])
+        # sscMean <- mean(flowCore::exprs(ff)[,"SSC-A"])
+        # message("OBTAINED FF: FSC mean: ", round(fscMean,6), "; SSC mean:", 
+        #          round(sscMean,6), "\n")
+        
+        ff
+    }
+    
+    nSamples <- 10
+    verbose <- FALSE
+    pwDist <- pairwiseEMDDist(
+        x = nSamples,
+        loadFlowFrameFUN = simulMemoryLoad,
+        loadFlowFrameFUNArgs = list(
+            filePaths = filePaths,
+            nSamples = nSamples,
+            verbose = verbose
+        ),
+        channels = c("FSC-A", "SSC-A"),
+        verbose = verbose)
+    
+    expect_equal(dim(pwDist), c(10,10))
+    expect_equal(pwDist[1,2], 0.04635)
+    expect_equal(pwDist[1,7], 0.16470)
+    expect_equal(pwDist[4,8], 0.15715)
+    expect_equal(pwDist[6,10], 0.05570)
+    
+    # same with BiocParallel
+    
+    logDir <- file.path(outputDir, "BiocParallel", "log")
+    
+    suppressWarnings(dir.create(logDir, recursive = TRUE))
+    bp <- BiocParallel::SnowParam(log = TRUE, 
+                                  logdir = logDir,
+                                  progressbar = TRUE,
+                                  RNGseed = 0)
+    verbose <- FALSE
+    pwDist2 <- suppressWarnings(pairwiseEMDDist(
+        x = nSamples,
+        loadFlowFrameFUN = simulMemoryLoad,
+        loadFlowFrameFUNArgs = list(
+            filePaths = filePaths,
+            nSamples = nSamples,
+            verbose = verbose
+        ),
+        channels = c("FSC-A", "SSC-A"),
+        verbose = verbose,
+        useBiocParallel = TRUE,
+        BPPARAM = bp,
+        BPOPTIONS = BiocParallel::bpoptions(
+            packages = c("flowCore", "CytoPipeline"))))
+    
+    # Note it is normal that the computed distances are different 
+    # from the ones obtained when not using BiocParallel.
+    # As described in section 2.4 of technical note:
+    # https://bioconductor.org/packages/release/bioc/vignettes/
+    # BiocParallel/inst/doc/Random_Numbers.html ,
+    # it is not possible to reconcile results from lapply() with
+    # results from bplapply().
+    # However, using 'RNGseed' argument in BiocParallel::bp() insures
+    # results obtained with bplapply() are still reproducible from
+    # one run to another
+    # 
+    expect_equal(dim(pwDist2), c(10,10))
+    expect_equal(pwDist2[1,2], 0.07070)
+    expect_equal(pwDist2[1,7], 0.14340)
+    expect_equal(pwDist2[4,8], 0.16625)
+    expect_equal(pwDist2[6,10], 0.05840)
 })
 
 test_that("getChannelSummaryStats works", {
@@ -618,9 +759,9 @@ test_that("computeMetricMDS works", {
     
     fsAll <- as(ffList,"flowSet")
     
-    pwDist <- getPairwiseEMDDist(fsAll, 
-                                 channels = c("FSC-A", "SSC-A"),
-                                 verbose = FALSE)
+    pwDist <- pairwiseEMDDist(fsAll, 
+                              channels = c("FSC-A", "SSC-A"),
+                              verbose = FALSE)
     
     mdsObj <- computeMetricMDS(pwDist, nDim = 2, seed = 0)
     

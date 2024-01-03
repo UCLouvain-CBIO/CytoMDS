@@ -46,7 +46,7 @@ fsAll <- as(ffList,"flowSet")
 flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
 flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
 
-pwDist <- getPairwiseEMDDist(fsAll, 
+pwDist <- pairwiseEMDDist(fsAll, 
                              channels = c("FSC-A", "SSC-A"),
                              verbose = FALSE)
 

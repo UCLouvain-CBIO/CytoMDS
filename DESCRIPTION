@@ -46,7 +46,7 @@ Imports:
     rlang,
     pracma,
     withr,
-    purrr,
+    methods,
     flowCore,
     ggplot2,
     ggrepel,

@@ -2,31 +2,45 @@
 % Please edit documentation in R/stats.R
 \name{pairwiseEMDDist}
 \alias{pairwiseEMDDist}
-\title{Calculate all pairwise Earth Mover's distances
-between flowFrames of a flowSet}
+\title{Pairwise Earth Mover's Distance calculation}
 \usage{
 pairwiseEMDDist(
-  nSamples,
+  x,
   rowRange = c(1, nSamples),
   colRange = c(min(rowRange), nSamples),
-  loadFlowFrameFUN,
+  loadFlowFrameFUN = NULL,
+  loadFlowFrameFUNArgs = NULL,
   channels = NULL,
   verbose = FALSE,
   useBiocParallel = FALSE,
   BPPARAM = BiocParallel::bpparam(),
+  BPOPTIONS = BiocParallel::bpoptions(packages = c("flowCore")),
   memSize = Inf,
   ...
 )
 }
 \arguments{
+\item{x}{either a flowCore::flowSet, or the number of samples (integer >=1)}
+
+\item{rowRange}{the range of rows of the distance matrix to be calculated}
+
+\item{colRange}{the range of columns of the distance matrix to be calculated}
+
+\item{loadFlowFrameFUN}{the function used to translate a flowFrame index
+into a flowFrame. In other words, the function should code how to load a
+specific flowFrame into memory. Important: the flow Frame index should be
+the first function argument and should be named \code{ffIndex}.}
+
+\item{loadFlowFrameFUNArgs}{(optional) a named list containing
+additional input parameters of \code{loadFlowFrameFUN()}}
+
 \item{channels}{which channels (integer index(ices) or character(s)):
 \itemize{
 \item if it is a character vector,
 it can refer to either the channel names, or the marker names
 \item if it is a numeric vector,
 it refers to the indexes of channels in \code{fs}
-\item if NULL all scatter and fluorescent channels of \code{fs}
-will be selected
+\item if NULL all scatter and fluorescent channels of \code{fs} #' will be selected
 }}
 
 \item{verbose}{if \code{TRUE}, output a message
@@ -40,28 +54,44 @@ Note the \code{BiocParallel} function used internally is \code{bplapply()}}
 be used for the computation. If not provided, will use the top back-end on
 the \code{BiocParallel::registered()} stack.}
 
+\item{BPOPTIONS}{if \code{useBiocParallel} is TRUE, sets the BPOPTIONS to be
+passed to \code{bplapply()} function.
+Note that if you use a \code{SnowParams} back-end, you need to specify all
+the packages that need to be loaded for the different CytoProcessingStep
+to work properly (visibility of functions). As a minimum,
+the \code{flowCore} package needs to be loaded.
+(hence the default \code{BPOPTIONS = bpoptions(packages = c("flowCore"))} )}
+
+\item{memSize}{specifies an estimate of the number of flowFrames that can
+live concurrently in the memory available to a single core
+(in case BiocParallel is used). Note the provided value has to take into
+account the type of BiocParallel infrastructure used (i.e. whether it uses
+shared memory or not).}
+
 \item{...}{additional parameters passed to \code{getEMDDist()}}
-
-\item{fs}{a flowCore::flowSet}
-
-\item{fs2}{a flowCore::flowSet
-\itemize{
-\item if fs2 is NULL, pairwise distances will be calculated for all pairs of \code{fs}
-\item if fs2 is not NULL, distances will be calculated for all pairs where the
-first element comes from \code{fs}, and the second element comes from \code{fs2}
-}}
-
-\item{nRowBlock}{(only with \code{useBiocParallel}) specifies the number of blocks
-to divide the row of the matrix into. If set to \code{NULL}, will try to choose
-it such that the number of tasks is near \code{BiocParallel::bpWorkers(BPPARAM)}}
 }
 \value{
 a distance matrix of pairwise distances
 (full symmetric with 0. diagonal)
 }
 \description{
-Calculate all pairwise Earth Mover's distances
-between flowFrames of a flowSet
+Computation of all EMD between pairs of flowFrames belonging
+to a flowSet. This method provides two different input modes:
+\itemize{
+\item the user provides directly a flowSet. This is the preferred way when
+the flowSet can be stored entirely in memory (RAM).
+\item the user provides (1.) a number of samples \code{nSamples}; (2.) an ad-hoc
+function that takes as input an index between 1 and \code{nSamples}, and codes
+the method to load the corresponding flowFrame in memory; (3.) an estimate
+of the number of flow frame (per core) that can reside in memory. In that
+case the pairwise distance calculation will be split by matrix blocs, and
+the block size - hence the number of flow frames stored in memory
+concurrently - will be adjusted according to the estimate.
+Optional row and column ranges can be provided to limit the calculation
+to a specific rectangle of the matrix. These i.e. can be specified as a way
+to split heavy calculations of large distance matrices
+on several computation nodes.
+}
 }
 \examples{
 
@@ -69,7 +99,7 @@ library(CytoPipeline)
 
 data(OMIP021Samples)
 
-# estimate scale transformations 
+# estimate scale transformations
 # and transform the whole OMIP021Samples
 
 transList <- estimateScaleTransforms(
@@ -79,12 +109,12 @@ transList <- estimateScaleTransforms(
     scatterRefMarker = "BV785 - CD3")
 
 OMIP021Trans <- CytoPipeline::applyScaleTransforms(
-    OMIP021Samples, 
+    OMIP021Samples,
     transList)
-    
+
 # calculate pairwise distances using only FSC-A & SSC-A channels
-pwDist <- getPairwiseEMDDist(
-    fs = OMIP021Trans,
+pwDist <- pairwiseEMDDist(
+    x = OMIP021Trans,
     channels = c("FSC-A", "SSC-A"))
 
 }

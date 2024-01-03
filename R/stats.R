@@ -317,7 +317,7 @@ getEMDDist <- function(
 # #'     transList)
 # #'     
 # #' # calculate pairwise distances using only FSC-A & SSC-A channels
-# #' pwDist <- getPairwiseEMDDist(
+# #' pwDist <- airwiseEMDDist(
 # #'     fs = OMIP021Trans,
 # #'     channels = c("FSC-A", "SSC-A"))
 # #' 
@@ -623,75 +623,19 @@ getEMDDist <- function(
     nRowBlock
 }
 
-
-
-
-#' @title Calculate all pairwise Earth Mover's distances 
-#' between flowFrames of a flowSet
-#' @param fs a flowCore::flowSet
-#' @param fs2 a flowCore::flowSet   
-#' - if fs2 is NULL, pairwise distances will be calculated for all pairs of `fs`
-#' - if fs2 is not NULL, distances will be calculated for all pairs where the 
-#' first element comes from `fs`, and the second element comes from `fs2`
-#' @param channels which channels (integer index(ices) or character(s)):
-#' - if it is a character vector, 
-#' it can refer to either the channel names, or the marker names
-#' - if it is a numeric vector, 
-#' it refers to the indexes of channels in `fs`
-#' - if NULL all scatter and fluorescent channels of `fs`
-#' will be selected
-#' @param verbose if `TRUE`, output a message 
-#' after each single distance calculation
-#' @param useBiocParallel if `TRUE`, use `BiocParallel` for computation of the
-#' pairwise distances in parallel - one (i,j) at a time.
-#' Note the `BiocParallel` function used internally is `bplapply()`
-#' @param BPPARAM if `useBiocParallel` is TRUE, sets the `BPPARAM` back-end to
-#' be used for the computation. If not provided, will use the top back-end on 
-#' the `BiocParallel::registered()` stack.
-#' @param nRowBlock (only with `useBiocParallel`) specifies the number of blocks
-#' to divide the row of the matrix into. If set to `NULL`, will try to choose
-#' it such that the number of tasks is near `BiocParallel::bpWorkers(BPPARAM)`
-#' @param ... additional parameters passed to `getEMDDist()`
-#' @return a distance matrix of pairwise distances 
-#' (full symmetric with 0. diagonal)
-#' @importFrom CytoPipeline areSignalCols
-#' @importFrom purrr list_transpose
-#' @export
-#' 
-#' @examples
-#' 
-#' library(CytoPipeline)
-#' 
-#' data(OMIP021Samples)
-#' 
-#' # estimate scale transformations 
-#' # and transform the whole OMIP021Samples
-#' 
-#' transList <- estimateScaleTransforms(
-#'     ff = OMIP021Samples[[1]],
-#'     fluoMethod = "estimateLogicle",
-#'     scatterMethod = "linearQuantile",
-#'     scatterRefMarker = "BV785 - CD3")
-#' 
-#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
-#'     OMIP021Samples, 
-#'     transList)
-#'     
-#' # calculate pairwise distances using only FSC-A & SSC-A channels
-#' pwDist <- getPairwiseEMDDist(
-#'     fs = OMIP021Trans,
-#'     channels = c("FSC-A", "SSC-A"))
-#' 
+ 
 .pairwiseEMDDist <- function(
         nSamples,
         rowRange = c(1, nSamples), 
         colRange = c(min(rowRange), nSamples),
         loadFlowFrameFUN,
-        loadFlowFrameFUNArgs = c(),
+        loadFlowFrameFUNArgs = NULL,
         channels = NULL,
         verbose = FALSE,
         useBiocParallel = FALSE,
         BPPARAM = BiocParallel::bpparam(),
+        BPOPTIONS = BiocParallel::bpoptions(
+            packages = c("flowCore")),
         memSize = Inf,
         ...){
     
@@ -731,7 +675,10 @@ getEMDDist <- function(
     
     if (!is.infinite(memSize)) {
         if (!is.numeric(memSize) || memSize < 1) {
-            stop("memSize should be an integer >= 1")
+            stop("memSize should be an integer >= 2")
+        }
+        if (memSize == 1){
+            stop("sorry but memSize of minimum 2 is required!")
         }
     }
     
@@ -760,7 +707,8 @@ getEMDDist <- function(
         loadFlowFrameFUN,
         loadFlowFrameFUNArgs,
         channels,
-        verbose) {
+        verbose,
+        ...) {
         
         rowSeq <- seq(block$rowMin, block$rowMax)
         colSeq <- seq(block$colMin, block$colMax)
@@ -783,7 +731,7 @@ getEMDDist <- function(
             }
         }
         
-        fs <- as(ffList,"flowSet")
+        fs <- methods::as(ffList,"flowSet")
         
         # check channels
         if (is.null(channels)) {
@@ -849,12 +797,13 @@ getEMDDist <- function(
         pwDistByBlock <- BiocParallel::bplapply(
             blocks2D, 
             BPPARAM = BPPARAM,
-            BPOPTIONS = BiocParallel::bpoptions(packages = c("flowCore")),
+            BPOPTIONS = BPOPTIONS,
             FUN = handleOneBlock,
             loadFlowFrameFUN = loadFlowFrameFUN,
             loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
             channels = channels,
-            verbose = verbose)
+            verbose = verbose,
+            ...)
     } else {
         pwDistByBlock <- lapply(
             blocks2D,
@@ -862,8 +811,8 @@ getEMDDist <- function(
             loadFlowFrameFUN = loadFlowFrameFUN,
             loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
             channels = channels,
-            verbose = verbose
-        )
+            verbose = verbose,
+            ...)
     }
     
     # sort out all block results to create one single matrix
@@ -890,41 +839,157 @@ getEMDDist <- function(
         }
     }
     
-    rownames(pwDist) <- paste0("row", rowSeq)
-    colnames(pwDist) <- paste0("col", colSeq)
+    rownames(pwDist) <- rowSeq
+    colnames(pwDist) <- colSeq
     return(pwDist)
 }
 
+#' @title Pairwise Earth Mover's Distance calculation
+#' @description Computation of all EMD between pairs of flowFrames belonging
+#' to a flowSet. This method provides two different input modes:
+#' - the user provides directly a flowSet. This is the preferred way when  
+#' the flowSet can be stored entirely in memory (RAM).
+#' - the user provides (1.) a number of samples `nSamples`; (2.) an ad-hoc 
+#' function that takes as input an index between 1 and `nSamples`, and codes
+#' the method to load the corresponding flowFrame in memory; (3.) an estimate
+#' of the number of flow frame (per core) that can reside in memory. In that
+#' case the pairwise distance calculation will be split by matrix blocs, and 
+#' the block size - hence the number of flow frames stored in memory 
+#' concurrently - will be adjusted according to the estimate.
+#' Optional row and column ranges can be provided to limit the calculation
+#' to a specific rectangle of the matrix. These i.e. can be specified as a way 
+#' to split heavy calculations of large distance matrices 
+#' on several computation nodes.  
+#' 
+#' @param x either a flowCore::flowSet, or the number of samples (integer >=1)
+#' @param rowRange the range of rows of the distance matrix to be calculated
+#' @param colRange the range of columns of the distance matrix to be calculated
+#' @param loadFlowFrameFUN the function used to translate a flowFrame index
+#' into a flowFrame. In other words, the function should code how to load a
+#' specific flowFrame into memory. Important: the flow Frame index should be 
+#' the first function argument and should be named `ffIndex`. 
+#' @param loadFlowFrameFUNArgs (optional) a named list containing 
+#' additional input parameters of `loadFlowFrameFUN()`
+#' @param channels which channels (integer index(ices) or character(s)):
+#' - if it is a character vector,
+#' it can refer to either the channel names, or the marker names
+#' - if it is a numeric vector,
+#' it refers to the indexes of channels in `fs`
+#' - if NULL all scatter and fluorescent channels of `fs` #' will be selected
+#' @param verbose if `TRUE`, output a message
+#' after each single distance calculation
+#' @param useBiocParallel if `TRUE`, use `BiocParallel` for computation of the
+#' pairwise distances in parallel - one (i,j) at a time.
+#' Note the `BiocParallel` function used internally is `bplapply()`
+#' @param BPPARAM if `useBiocParallel` is TRUE, sets the `BPPARAM` back-end to
+#' be used for the computation. If not provided, will use the top back-end on
+#' the `BiocParallel::registered()` stack.
+#' @param BPOPTIONS if `useBiocParallel` is TRUE, sets the BPOPTIONS to be 
+#' passed to `bplapply()` function.   
+#' Note that if you use a `SnowParams` back-end, you need to specify all   
+#' the packages that need to be loaded for the different CytoProcessingStep   
+#' to work properly (visibility of functions). As a minimum,    
+#' the `flowCore` package needs to be loaded.  
+#' (hence the default `BPOPTIONS = bpoptions(packages = c("flowCore"))` )
+#' @param memSize specifies an estimate of the number of flowFrames that can
+#' live concurrently in the memory available to a single core 
+#' (in case BiocParallel is used). Note the provided value has to take into 
+#' account the type of BiocParallel infrastructure used (i.e. whether it uses 
+#' shared memory or not). 
+#' @param ... additional parameters passed to `getEMDDist()`
+#' @return a distance matrix of pairwise distances
+#' (full symmetric with 0. diagonal)
+#' @importFrom CytoPipeline areSignalCols
+#' @importFrom methods as
+#' @export
+#'
+#' @examples
+#'
+#' library(CytoPipeline)
+#'
+#' data(OMIP021Samples)
+#'
+#' # estimate scale transformations
+#' # and transform the whole OMIP021Samples
+#'
+#' transList <- estimateScaleTransforms(
+#'     ff = OMIP021Samples[[1]],
+#'     fluoMethod = "estimateLogicle",
+#'     scatterMethod = "linearQuantile",
+#'     scatterRefMarker = "BV785 - CD3")
+#'
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples,
+#'     transList)
+#'
+#' # calculate pairwise distances using only FSC-A & SSC-A channels
+#' pwDist <- pairwiseEMDDist(
+#'     x = OMIP021Trans,
+#'     channels = c("FSC-A", "SSC-A"))
+#'
 pairwiseEMDDist <- function(
-        fs,
+        x,
         rowRange = c(1, nSamples), 
         colRange = c(min(rowRange), nSamples),
+        loadFlowFrameFUN = NULL,
+        loadFlowFrameFUNArgs = NULL,
         channels = NULL,
         verbose = FALSE,
         useBiocParallel = FALSE,
         BPPARAM = BiocParallel::bpparam(),
+        BPOPTIONS = BiocParallel::bpoptions(
+            packages = c("flowCore")),
+        memSize = Inf,
         ...){
     
-    if(!inherits(fs, "flowSet")) {
-        stop("fs object should inherit from flowCore::flowSet")
+    nSamples <- NULL
+    inMemory <- FALSE
+    
+    if(inherits(x, "flowSet")) {
+        getFF <- function(ffIndex, fs) {
+            return(fs[[ffIndex]])
+        }
+        nSamples <- length(x)
+        pwDist <- .pairwiseEMDDist(
+            nSamples = nSamples,
+            rowRange = rowRange,
+            colRange = colRange,
+            loadFlowFrameFUN = getFF,
+            loadFlowFrameFUNArgs = list(fs = x),
+            channels = channels,
+            verbose = verbose,
+            useBiocParallel = useBiocParallel,
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BPOPTIONS)
+    } else {
+        if (!is.numeric(x) || length(x) > 1) {
+            stop("x should be either a flowCore::flowFrame ",
+                 "or a numeric of length 1")
+        }
+        if (x < 1) {
+            stop("x should be >= 1")
+        }
+        nSamples <- x
+        
+        if (is.null(loadFlowFrameFUN)) {
+            stop("loadFlowFrameFUN should be provided ",
+                 "when x is the number of samples")
+        }
+        
+        pwDist <- .pairwiseEMDDist(
+            nSamples = nSamples,
+            rowRange = rowRange,
+            colRange = colRange,
+            loadFlowFrameFUN = loadFlowFrameFUN,
+            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            channels = channels,
+            verbose = verbose,
+            useBiocParallel = useBiocParallel,
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BPOPTIONS,
+            memSize = memSize)
     }
-    
-    getFF <- function(ffIndex, fs) {
-        return(fs[[ffIndex]])
-    }
-    
-    nSamples <- length(fs)
-    
-    pwDist <- .pairwiseEMDDist(
-        nSamples = nSamples,
-        rowRange = rowRange,
-        colRange = colRange,
-        loadFlowFrameFUN = getFF,
-        loadFlowFrameFUNArgs = list(fs = fs),
-        channels = channels,
-        verbose = verbose,
-        useBiocParallel = useBiocParallel,
-        BPPARAM = BPPARAM)
+    pwDist
 }
 
 #' @title Calculate a summary statistic of some channels of 
@@ -1184,7 +1249,7 @@ getChannelSummaryStats <- function(
 #' 
 #' # calculate all pairwise distances
 #' 
-#' pwDist <- getPairwiseEMDDist(fsAll, 
+#' pwDist <- pairwiseEMDDist(fsAll, 
 #'                              channels = c("FSC-A", "SSC-A"),
 #'                              verbose = FALSE)
 #' 
