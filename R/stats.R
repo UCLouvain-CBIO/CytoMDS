@@ -1146,7 +1146,7 @@ getChannelSummaryStats <- function(
             statList[[fu]] <- matrix(statList[[fu]], nrow = 1)
         } 
         colnames(statList[[fu]]) <- channelNames
-        rowNames <- flowCore::pData(fs)$name
+        rowNames <- as.character(flowCore::pData(fs)$name)
         if (!is.null(rowNames)) {
             rownames(statList[[fu]]) <- rowNames
         }

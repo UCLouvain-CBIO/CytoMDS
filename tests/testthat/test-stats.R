@@ -769,7 +769,7 @@ test_that("getChannelSummaryStats works", {
         statFUNs = list("mean" = mean),
         verbose = FALSE)
     
-    expect_equal(as.character(rownames(ret[[1]])), "Donor1")
+    expect_equal(unname(rownames(ret[[1]])), "Donor1")
     expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
     expect_equal(unname(ret[[1]][1,1]), 1.900298)
     expect_equal(unname(ret[[1]][1,2]), 1.39186533)
@@ -782,7 +782,7 @@ test_that("getChannelSummaryStats works", {
         statFUNs = mean,
         verbose = FALSE)
     
-    expect_equal(as.character(rownames(ret)), "Donor1")
+    expect_equal(unname(rownames(ret)), "Donor1")
     expect_equal(unname(colnames(ret)), channelsOrMarkers)
     expect_equal(unname(ret[1,1]), 1.900298)
     expect_equal(unname(ret[1,2]), 1.39186533)
