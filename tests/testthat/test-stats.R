@@ -716,6 +716,8 @@ test_that("getChannelSummaryStats works", {
         statFUNs = stats::median,
         verbose = FALSE)
     
+    
+    expect_equal(unname(rownames(ret)), flowCore::sampleNames(fsAll))
     expect_equal(unname(colnames(ret)), channelsOrMarkers)
     
     expect_equal(unname(ret[2,1]), 1.941572819633120)
@@ -729,20 +731,19 @@ test_that("getChannelSummaryStats works", {
         verbose = FALSE)
     
     expect_equal(names(ret), c("mean", "std.dev"))
+    expect_equal(unname(rownames(ret[[1]])), flowCore::sampleNames(fsAll))
     expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
     expect_equal(unname(ret[[1]][2,1]), 1.961771149533659)
     expect_equal(unname(ret[[1]][3,2]), 1.393034241892733)
     expect_equal(unname(ret[[1]][4,3]), 1.907561024702794)
     
-    
+    expect_equal(unname(rownames(ret[[2]])), flowCore::sampleNames(fsAll))
     expect_equal(unname(colnames(ret[[2]])), channelsOrMarkers)
-    
     expect_equal(unname(ret[[2]][2,1]), 0.5942291770870205)
     expect_equal(unname(ret[[2]][3,2]), 0.7352746696905406)
     expect_equal(unname(ret[[2]][4,3]), 0.8420740225208073)
     
-    # test with only one flow frame => should return a vector 
-    # instead of a matrix
+    # test with only one flow frame 
     ret <- getChannelSummaryStats(
         fsAll[1],
         channels = channelsOrMarkers,
@@ -750,8 +751,10 @@ test_that("getChannelSummaryStats works", {
         verbose = FALSE)
     
     expect_equal(names(ret), c("mean", "std.dev"))
-    expect_equal(unname(names(ret[[1]])), channelsOrMarkers)
-    expect_equal(unname(names(ret[[2]])), channelsOrMarkers)
+    expect_equal(unname(rownames(ret[[1]])), "Donor1")
+    expect_equal(unname(rownames(ret[[2]])), "Donor1")
+    expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
+    expect_equal(unname(colnames(ret[[2]])), channelsOrMarkers)
     expect_equal(unname(ret[[1]][1]), 1.900298)
     expect_equal(unname(ret[[1]][2]), 1.39186533)
     expect_equal(unname(ret[[1]][3]), 1.8544648)
@@ -766,10 +769,11 @@ test_that("getChannelSummaryStats works", {
         statFUNs = list("mean" = mean),
         verbose = FALSE)
     
-    expect_equal(names(ret), channelsOrMarkers)
-    expect_equal(unname(ret[1]), 1.900298)
-    expect_equal(unname(ret[2]), 1.39186533)
-    expect_equal(unname(ret[3]), 1.8544648)
+    expect_equal(as.character(rownames(ret[[1]])), "Donor1")
+    expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
+    expect_equal(unname(ret[[1]][1,1]), 1.900298)
+    expect_equal(unname(ret[[1]][1,2]), 1.39186533)
+    expect_equal(unname(ret[[1]][1,3]), 1.8544648)
     
     # one flow frame, one stat (bis with direct impact of stat FUN)
     ret <- getChannelSummaryStats(
@@ -778,10 +782,11 @@ test_that("getChannelSummaryStats works", {
         statFUNs = mean,
         verbose = FALSE)
     
-    expect_equal(names(ret), channelsOrMarkers)
-    expect_equal(unname(ret[1]), 1.900298)
-    expect_equal(unname(ret[2]), 1.39186533)
-    expect_equal(unname(ret[3]), 1.8544648)
+    expect_equal(as.character(rownames(ret)), "Donor1")
+    expect_equal(unname(colnames(ret)), channelsOrMarkers)
+    expect_equal(unname(ret[1,1]), 1.900298)
+    expect_equal(unname(ret[1,2]), 1.39186533)
+    expect_equal(unname(ret[1,3]), 1.8544648)
 })
 
 test_that("computeMetricMDS works", {

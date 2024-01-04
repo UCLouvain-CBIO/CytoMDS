@@ -1009,8 +1009,11 @@ pairwiseEMDDist <- function(
 #' This list can be named, in that case, these names will be transfered to the
 #' returned value.
 #' @param ... additional parameters passed to `getEMDDist()`
-#' @return a matrix of which the columns are the channel statistics 
-#' for all flowFrames of the flowSet. 
+#' @return a list of named statistic matrices. 
+#' In each stat matrix, the columns are the channel statistics 
+#' for all flowFrames of the flowSet.
+#' Exception: if only one stat function (and not a list) is passed in
+#' `statFUNs`, the return value is simplified to the stat matrix itself.
 #' @importFrom CytoPipeline areSignalCols
 #' @export
 #' 
@@ -1132,20 +1135,20 @@ getChannelSummaryStats <- function(
                 chRes <- flowCore::fsApply(
                     fs,
                     FUN = function(ff){
-                        statFUNList[[fu]](flowCore::exprs(ff)[, ch], 
-                                na.rm = TRUE)
+                        statFUNList[[fu]](
+                            flowCore::exprs(ff)[, ch, drop = FALSE],
+                            na.rm = TRUE)
                     })
             },
             FUN.VALUE = numeric(length = nFF))
         
-        if (is.vector(statList[[fu]])) {
-            names(statList[[fu]]) <- channelNames
-        } else { # matrix
-            colnames(statList[[fu]]) <- channelNames
-            rowNames <- flowCore::pData(fs)$name
-            if (!is.null(rowNames)) {
-                rownames(statList[[fu]]) <- rowNames
-            }
+        if (!is.matrix(statList[[fu]]) ) {
+            statList[[fu]] <- matrix(statList[[fu]], nrow = 1)
+        } 
+        colnames(statList[[fu]]) <- channelNames
+        rowNames <- flowCore::pData(fs)$name
+        if (!is.null(rowNames)) {
+            rownames(statList[[fu]]) <- rowNames
         }
     }
     
@@ -1153,7 +1156,7 @@ getChannelSummaryStats <- function(
     names(statList) <- names(statFUNList)
     
     # if only one stat function => unlist to return one single matrix
-    if (nStats == 1){
+    if (nStats == 1 && !is.list(statFUNs)){
         statList <- statList[[1]]
     }
     

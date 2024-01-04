@@ -37,8 +37,11 @@ after each single distance calculation}
 \item{...}{additional parameters passed to \code{getEMDDist()}}
 }
 \value{
-a matrix of which the columns are the channel statistics
+a list of named statistic matrices.
+In each stat matrix, the columns are the channel statistics
 for all flowFrames of the flowSet.
+Exception: if only one stat function (and not a list) is passed in
+\code{statFUNs}, the return value is simplified to the stat matrix itself.
 }
 \description{
 Calculate a summary statistic of some channels of
