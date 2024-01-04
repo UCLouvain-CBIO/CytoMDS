@@ -1067,7 +1067,7 @@ getChannelSummaryStats <- function(
         stop("At least one stat function should be provided for calculation")
     }
     
-    if (nStats > 1) {
+    if (is.list(statFUNs) || nStats>1) {
         statFUNList <- lapply(statFUNs, FUN = match.fun)
     } else {
         # also create a list to have it uniform single vs more functions cases
@@ -1138,22 +1138,24 @@ getChannelSummaryStats <- function(
             },
             FUN.VALUE = numeric(length = nFF))
         
-        colnames(statList[[fu]]) <- channelNames
-        rowNames <- flowCore::pData(fs)$name
-        if (!is.null(rowNames)) {
-            rownames(statList[[fu]]) <- rowNames
+        if (is.vector(statList[[fu]])) {
+            names(statList[[fu]]) <- channelNames
+        } else { # matrix
+            colnames(statList[[fu]]) <- channelNames
+            rowNames <- flowCore::pData(fs)$name
+            if (!is.null(rowNames)) {
+                rownames(statList[[fu]]) <- rowNames
+            }
         }
     }
     
-    
+    # transfer function names to return value
+    names(statList) <- names(statFUNList)
     
     # if only one stat function => unlist to return one single matrix
     if (nStats == 1){
         statList <- statList[[1]]
     }
-    
-    # transfer function names to return value
-    names(statList) <- names(statFUNList)
     
     statList
 }
