@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.6</span>
       </span>
     </div>
 
@@ -55,7 +55,7 @@
 <ul><li>Prior to Bioconductor submission</li>
 </ul><div class="section level3">
 <h3 id="cytomds-0-99-0">CytoMDS 0.99.1<a class="anchor" aria-label="anchor" href="#cytomds-0-99-0"></a></h3>
-<ul><li>in <code><a href="../reference/ggplotSamplesMDS.html">ggplotSamplesMDS()</a></code>, added parameter <code>pDataForAdditionalLabelling</code>
+<ul><li>in <code>ggplotSamplesMDS()</code>, added parameter <code>pDataForAdditionalLabelling</code>
 </li>
 </ul></div>
 <div class="section level3">
@@ -68,9 +68,31 @@
 <ul><li>new version of computeMetricMDS() which automatically sets the number of dimensions to reach a target <em>pseudo R squared</em>
 </li>
 <li>added ggplotly() functionality for output MDS plots</li>
-<li>in <code>ggplotSampleMDS()</code>, added <code>flipXAxis</code>, <code>flipYAxis</code> to possibly ease low dimensional projection comparisons</li>
-<li>in <code>ggplotSampleMDS()</code>, added <code>displayArrowLabels</code> to discard the arrow labels in biplot. Also added <code>arrowThreshold</code>. Moved arrow labels toward the end of the arrows.</li>
-<li>in <code>ggplotSampleMDS()</code> and <code>ggplotSampleMDSShepard()</code>: added <code>displayPseudoRSq</code> parameter.</li>
+<li>in <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code>, added <code>flipXAxis</code>, <code>flipYAxis</code> to possibly ease low dimensional projection comparisons</li>
+<li>in <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code>, added <code>displayArrowLabels</code> to discard the arrow labels in biplot. Also added <code>arrowThreshold</code>. Moved arrow labels toward the end of the arrows.</li>
+<li>in <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> and <code><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard()</a></code>: added <code>displayPseudoRSq</code> parameter.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="cytomds-0-99-0-3">CytoMDS 0.99.4<a class="anchor" aria-label="anchor" href="#cytomds-0-99-0-3"></a></h3>
+<ul><li>in <code>getPairwiseEMDDist()</code>, added a second flowSet argument. When the two flowSet arguments are non-null, distances are calculated for all sample pairs, where the first element comes from <code>fs</code>, and the second element comes from <code>fs2</code>.</li>
+<li>renamed <code>ggplotSamplesMDS</code> into <code>ggplotSampleMDS</code>
+</li>
+<li>renamed <code>ggplotSamplesMDSShepard</code> into <code>ggplotSampleMDSShepard</code>
+</li>
+<li>renamed <code>getChannelsSummaryStat</code> into <code>getChannelSummaryStats</code>
+</li>
+<li>new function <code><a href="../reference/ggplotSampleMDSWrapBiplots.html">ggplotSampleMDSWrapBiplots()</a></code>
+</li>
+</ul></div>
+<div class="section level3">
+<h3 id="cytomds-0-99-0-4">CytoMDS 0.99.5<a class="anchor" aria-label="anchor" href="#cytomds-0-99-0-4"></a></h3>
+<ul><li>renamed <code>getPairwiseEMDDist()</code> into pairwiseEMDDist()</li>
+<li>in <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code>, added support for <code>BiocParallel</code>, and allowed for not loading the whole flowSet in memory at once.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="cytomds-0-99-0-5">CytoMDS 0.99.6<a class="anchor" aria-label="anchor" href="#cytomds-0-99-0-5"></a></h3>
+<ul><li>added <code>subset</code> argument in <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> and <code>ggplotSampleMDSWrapBiplots</code>
+</li>
 </ul></div>
 </div>
   </div>
