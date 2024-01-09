@@ -11,6 +11,7 @@ ggplotSampleMDSWrapBiplots(
   nrow = NULL,
   byrow = NULL,
   pData = data.frame(sampleId = seq_len(nrow(mdsObj$proj))),
+  sampleSubset,
   projectionAxes = c(1, 2),
   biplotType = c("correlation", "regression"),
   pDataForColour = NULL,
@@ -43,7 +44,13 @@ The number of rows should be the same as the number of samples.}
 
 \item{pData}{a data.frame providing user input sample data.
 These can be design of experiment variables, phenotype data per sample,...
-and will be used to highlight sample categories in the plot.}
+and will be used to highlight sample categories in the plot,
+and/or for subsetting.}
+
+\item{sampleSubset}{(optional) a logical vector, of size \code{nrow(pData)},
+which is by construction the nb of samples, indicating which samples to keep
+in the plot. Typically it is obtained through the evaluation of
+a logical condition on \code{pData} rows.}
 
 \item{projectionAxes}{which two axes should be plotted
 (should be a numeric vector of length 2)}

@@ -23,7 +23,12 @@
 #' the computeMetricMDS() function
 #' @param pData a data.frame providing user input sample data. 
 #' These can be design of experiment variables, phenotype data per sample,...
-#' and will be used to highlight sample categories in the plot. 
+#' and will be used to highlight sample categories in the plot 
+#' and/or for subsetting. 
+#' @param sampleSubset (optional) a logical vector, of size `nrow(pData)`, 
+#' which is by construction the nb of samples, indicating which samples to keep 
+#' in the plot. Typically it is obtained through the evaluation of 
+#' a logical condition on `pData` rows.   
 #' @param projectionAxes which two axes should be plotted 
 #' (should be a numeric vector of length 2)
 #' @param biplot if TRUE, adds projection of external variables
@@ -154,6 +159,7 @@ ggplotSampleMDS <- function(
         mdsObj,
         pData = data.frame(
             sampleId = seq_len(nrow(mdsObj$proj))),
+        sampleSubset,
         projectionAxes = c(1,2),
         biplot = FALSE,
         biplotType = c("correlation", "regression"),
@@ -179,12 +185,30 @@ ggplotSampleMDS <- function(
         stop("mdsObj should be a 'mdsRes' object")
     }
     
+    
+    # biplot type (if any)
     biplotType <- match.arg(biplotType)
     
     nSamples <- nrow(pData)
     
     if (nrow(mdsObj$proj) != nSamples) {
         stop("nb samples mismatch between mdsObj and pData")
+    }
+    
+    # sample subset
+    if (missing(sampleSubset)) {
+        sampleSubset <- rep_len(TRUE, nrow(mdsObj$proj))
+    } else {
+        if (!is.logical(sampleSubset) || length(sampleSubset) != nSamples) {
+            stop("'sampleSubset' should be a logical vector of length = ",
+                 "nb of samples")                            
+        }
+        # old code used for non standard evaluation (discarded)
+        # e <- substitute(sampleSubset)
+        # r <- eval(e, pData, parent.frame())
+        # if (!is.logical(r)) 
+        #     stop("'plotSubset' must be logical")
+        # sampleSubset <- r & !is.na(r)    
     }
     
     if (!is.numeric(projectionAxes)) stop("projectionAxes should be numeric")
@@ -329,7 +353,7 @@ ggplotSampleMDS <- function(
     ggplot2::scale_x_continuous(limits = axesLimits)
     
     p <- ggplot2::ggplot(
-        data = DF,
+        data = DF[sampleSubset,],
         mapping = mainAesMapping) +
         ggplot2::labs(
             x = xlabel,
@@ -652,7 +676,12 @@ ggplotSampleMDSShepard <- function(
 #' the computeMetricMDS() function
 #' @param pData a data.frame providing user input sample data. 
 #' These can be design of experiment variables, phenotype data per sample,...
-#' and will be used to highlight sample categories in the plot. 
+#' and will be used to highlight sample categories in the plot, 
+#' and/or for subsetting. 
+#' @param sampleSubset (optional) a logical vector, of size `nrow(pData)`, 
+#' which is by construction the nb of samples, indicating which samples to keep 
+#' in the plot. Typically it is obtained through the evaluation of 
+#' a logical condition on `pData` rows.  
 #' @param projectionAxes which two axes should be plotted 
 #' (should be a numeric vector of length 2)
 #' @param extVariableList should be a named list of external variable matrices
@@ -734,6 +763,7 @@ ggplotSampleMDSWrapBiplots <- function(
         byrow = NULL,
         pData = data.frame(
             sampleId = seq_len(nrow(mdsObj$proj))),
+        sampleSubset,
         projectionAxes = c(1,2),
         biplotType = c("correlation", "regression"),
         pDataForColour = NULL,
@@ -766,6 +796,7 @@ ggplotSampleMDSWrapBiplots <- function(
         p <- ggplotSampleMDS(
             mdsObj = mdsObj,
             pData = pData,
+            sampleSubset = sampleSubset,
             title = paste0("biplot with ",
                            names(extVariableList)[i]),
             biplot = TRUE,

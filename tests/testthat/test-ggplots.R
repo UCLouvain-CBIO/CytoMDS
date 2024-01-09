@@ -64,6 +64,29 @@ test_that("ggplotSampleMDS works", {
     vdiffr::expect_doppelganger("ggplotSampleMDS with axes 1 and 2",
                                 fig = p)
     
+    # testing with subset
+    
+    p <- ggplotSampleMDS(mdsObj = mdsObj,
+                         pData = flowCore::pData(fsAll),
+                         sampleSubset = (flowCore::pData(fsAll)$type == "real"),
+                         projectionAxes = c(1,2),
+                         pDataForColour = "grpId",
+                         pDataForLabel = NULL,
+                         pDataForShape = "type")
+    
+    vdiffr::expect_doppelganger("ggplotSampleMDS with axes 1 and 2 - real",
+                                fig = p)
+    
+    expect_error(ggplotSampleMDS(mdsObj = mdsObj,
+                         pData = flowCore::pData(fsAll),
+                         sampleSubset = (grpId == "Agg"),
+                         projectionAxes = c(1,2),
+                         pDataForColour = "grpId",
+                         pDataForLabel = NULL,
+                         pDataForShape = "type"), 
+                 regexp = "object 'grpId' not found")
+                              
+    
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(3,4),
@@ -153,6 +176,23 @@ test_that("ggplotSampleMDS works", {
         "ggplotSampleMDS arrowThreshold",
         fig = p)
     
+    # testing with subset
+    
+    p <- ggplotSampleMDS(mdsObj = mdsObj,
+                         pData = flowCore::pData(fsAll),
+                         sampleSubset = (flowCore::pData(fsAll)$grpId == "Agg"),
+                         projectionAxes = c(1,2),
+                         biplot = TRUE,
+                         extVariables = extVars,
+                         pDataForColour = "grpId",
+                         pDataForLabel = "name",
+                         arrowThreshold = 0.,
+                         seed = 0)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSampleMDS arrowThreshold subset",
+        fig = p)
+    
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
@@ -163,6 +203,8 @@ test_that("ggplotSampleMDS works", {
                          pDataForShape = "type",
                          displayArrowLabels = FALSE,
                          seed = 0)
+    
+    
     
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS no arrow label",
@@ -258,6 +300,9 @@ test_that("ggplotSampleMDS works", {
     vdiffr::expect_doppelganger("ggplotSampMDS with bipl-flpX-Y",
                                 fig = p)
     
+    
+    
+    
 })
 
 
@@ -286,6 +331,23 @@ test_that("ggplotSampleMDSWrapBiplots works", {
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSWrapBiplots default rows and cols",
         fig = bpFull)
+    
+    # with subset
+    bpFull <- ggplotSampleMDSWrapBiplots(
+        mdsObj = mdsObj,
+        extVariableList = extVarList,
+        pData = flowCore::pData(fsAll),
+        sampleSubset = (flowCore::pData(fsAll)$type == "synthetic"),
+        projectionAxes = c(1,2),
+        pDataForColour = "grpId",
+        pDataForLabel = NULL,
+        pDataForShape = "type",
+        seed = 0)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSampleMDSWrapBiplots default rows and cols - subset",
+        fig = bpFull)
+
     
     bpFull2 <- ggplotSampleMDSWrapBiplots(
         mdsObj = mdsObj,
