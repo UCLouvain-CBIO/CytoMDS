@@ -168,7 +168,7 @@ jobs:
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE)
         shell: Rscript {0}
         
-      - pre-install cytolib
+      - name: pre-install cytolib
         run: |
           BiocManager::install("cytolib")
         shell: Rscript {0}
