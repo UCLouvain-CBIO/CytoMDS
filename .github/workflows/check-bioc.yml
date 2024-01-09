@@ -168,6 +168,15 @@ jobs:
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE)
         shell: Rscript {0}
         
+      - name: pre-install rlang
+        run: |
+          withr::with_makevars(
+            c(CFLAGS = "-w",
+              CXXFLAGS = "-w"),
+            BiocManager::install("rlang"),
+            assignment = "+=")
+        shell: Rscript {0}    
+        
       - name: pre-install cytolib
         run: |
           withr::with_makevars(
