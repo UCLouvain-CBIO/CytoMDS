@@ -200,10 +200,24 @@ jobs:
           BiocManager::install("BiocCheck")
         shell: Rscript {0}
         
+      - name: Session info
+        run: |
+          options(width = 100)
+          pkgs <- installed.packages()[, "Package"]
+          sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}    
+        
       ## Fix error: The magick package is required to crop "...png" but not available.
       - name: Manually install magick
         run: BiocManager::install("magick")
         shell: Rscript {0}
+        
+      - name: Session info
+        run: |
+          options(width = 100)
+          pkgs <- installed.packages()[, "Package"]
+          sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}   
 
       - name: Install BiocGenerics
         if:  env.has_RUnit == 'true'
@@ -211,6 +225,13 @@ jobs:
           ## Install BiocGenerics
           BiocManager::install("BiocGenerics")
         shell: Rscript {0}
+        
+      - name: Session info
+        run: |
+          options(width = 100)
+          pkgs <- installed.packages()[, "Package"]
+          sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}   
 
       - name: Install covr
         ##if: github.ref == 'refs/heads/master' && env.run_covr == 'true' && runner.os == 'Linux'
@@ -218,16 +239,23 @@ jobs:
         run: |
           remotes::install_cran("covr")
         shell: Rscript {0}
+        
+      - name: Session info
+        run: |
+          options(width = 100)
+          pkgs <- installed.packages()[, "Package"]
+          sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}   
 
       - name: Install pkgdown
         ##if: github.ref == 'refs/heads/master' && env.run_pkgdown == 'true' && runner.os == 'Linux'
         if: env.run_pkgdown == 'true' && runner.os == 'Linux'
         run: |
-          #withr::with_makevars(
-          #  c(CFLAGS = "-w",
-          #    CXXFLAGS = "-w"), 
-          #  remotes::install_github("r-lib/pkgdown"), 
-          #  assignment = "+=")
+          withr::with_makevars(
+           c(CFLAGS = "-w",
+             CXXFLAGS = "-w"),
+           remotes::install_github("r-lib/pkgdown"),
+           assignment = "+=")
         shell: Rscript {0}
 
       - name: Session info
