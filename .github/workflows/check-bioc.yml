@@ -170,7 +170,11 @@ jobs:
         
       - name: pre-install cytolib
         run: |
-          BiocManager::install("cytolib")
+          withr::with_makevars(
+            c(CFLAGS = "-w",
+              CXXFLAGS = "-w"),
+            BiocManager::install("cytolib"),
+            assignment = "+=")
         shell: Rscript {0}
       
 
