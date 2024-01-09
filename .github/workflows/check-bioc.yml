@@ -172,7 +172,8 @@ jobs:
         run: |
           withr::with_makevars(
             c(CFLAGS = "-w",
-              CXXFLAGS = "-w"),
+              CXXFLAGS = "-w",
+              CPPFLAGS = "-w"),
             BiocManager::install("rlang"),
             assignment = "+=")
         shell: Rscript {0}    
@@ -181,7 +182,8 @@ jobs:
         run: |
           withr::with_makevars(
             c(CFLAGS = "-w",
-              CXXFLAGS = "-w"),
+              CXXFLAGS = "-w",
+              CPPFLAGS = "-w"),
             BiocManager::install("cytolib"),
             assignment = "+=")
         shell: Rscript {0}
