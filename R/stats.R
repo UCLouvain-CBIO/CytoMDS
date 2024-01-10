@@ -450,7 +450,14 @@ EMDDist <- function(
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore")),
         memSize = Inf,
-        ...){
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10){
+    
+    # activate newer version of code
+    # which works only when EMD distance is based on unidimensional
+    # distribution distances
+    unidimHistograms <- FALSE 
     
     # validate nSamples, rowSeq and colSeq
     if (!is.numeric(nSamples) || nSamples <= 0) {
@@ -503,6 +510,7 @@ EMDDist <- function(
         nAvailableCores <- 1
     }
     
+    # calculate the block2D task allocations
     nRowBlock <- .optimizeRowBlockNb(
         rowRange = rowRange,
         colRange = colRange,
@@ -515,117 +523,244 @@ EMDDist <- function(
         colRange = colRange, 
         nRowBlock = nRowBlock)
     
-    handleOneBlock <- function(
+    if (unidimHistograms) {
+        
+        rowColRange <- union(
+            seq(rowRange[1], rowRange[2]),
+            seq(colRange[1], colRange[2]))
+        
+        # load all flowFrame in blocks and generate histograms
+        if (nAvailableCores == 1){
+            blocks1D <- list(rowColRange)
+        } else {
+            blocks1D <- split(rowColRange, 
+                              cut(rowColRange), 
+                              nAvailableCores, 
+                              labels = FALSE) 
+        }
+        
+        breaks <- seq(
+            minRange,
+            maxRange,
+            by = binSize)
+        
+        breaks <- round(breaks,12)
+        
+        loadFFAndCalcHistograms <- function(
+            block, 
+            loadFlowFrameFUN, 
+            loadFlowFrameFUNArgs,
+            channels,
+            breaks) {
+            
+            for (ffIndex in block){
+                ff <- do.call(
+                    loadFlowFrameFUN,
+                    args = c(list(ffIndex = ffIndex),
+                             loadFlowFrameFUNArgs))
+                if(!inherits(ff, "flowFrame")) {
+                    stop("object returned by loadFlowFrameFUN function ",
+                         "should inherit from flowCore::flowFrame")
+                }
+                if (ffIndex == block[1]) {
+                    # check & update channels
+                    if (is.null(channels)) {
+                        channels <- flowCore::colnames(ff)[areSignalCols(ff)]
+                    } else if (is.numeric(channels)) {
+                        channels <- flowCore::colnames(ff)[channels]
+                    } else {
+                        channels <- vapply(
+                            channels, 
+                            FUN = function(ch) {
+                                flowCore::getChannelMarker(ff, ch)$name
+                            },
+                            FUN.VALUE = "c")
+                    }
+                }
+                
+                # check that all channels are present in flow frame
+                wrongCh <- which(! channels %in% flowCore::colnames(ff))
+                if (length(wrongCh) > 0) {
+                    stop(
+                        "found some channels that are non existent ",
+                        "in flowframe ", ffIndex,": ",
+                        channels[wrongCh])
+                }
+                
+                # take only the channels of interest for the following,
+                # for performance
+                ff <- ff[,channels]
+                
+                distrs <- .unidimHistograms(
+                    ff,
+                    breaks = breaks
+                )
+                
+            }
+        }
+        
+        if (useBiocParallel){
+            distribBlockList <- bplapply(
+                blocks1D,
+                FUN = loadFFAndCalcHistograms,
+                BPPARAM = BPPARAM,
+                BPOPTIONS = BPOPTIONS,
+                loadFlowFrameFUN = loadFlowFrameFUN,
+                loadFlowFrameFUNArgs = loadFlowFrameFUN,
+                channels = channels,
+                breaks = breaks)
+        } else {
+            distribBlockList <- lapply(
+                blocks1D,
+                FUN = loadFFAndCalcHistograms,
+                loadFlowFrameFUN = loadFlowFrameFUN,
+                loadFlowFrameFUNArgs = loadFlowFrameFUN,
+                channels = channels,
+                breaks = breaks)
+        }
+        
+        # reorganize multivariate distributions in a single list
+        distrs <- list()
+        ind <- 0
+        for (b in seq_along(blocks1D)) {
+            for(i in seq_along(block1D[[b]])) {
+                ind <- ind+1    
+                distrs[[ind]] <- distribBlockList[[b]][[i]]
+            }
+        }
+        
+        handleOneBlockWithHistograms <- function(
+            block,
+            distrs,
+            verbose) {
+            
+        } 
+        
+        if (useBiocParallel) {
+            pwDistByBlock <- BiocParallel::bplapply(
+                blocks2D, 
+                BPPARAM = BPPARAM,
+                BPOPTIONS = BPOPTIONS,
+                FUN = handleOneBlockWithHistograms,
+                distrs = distrs,
+                verbose = verbose)
+        } else {
+            pwDistByBlock <- lapply(
+                blocks2D,
+                FUN = handleOneBlockWithHistograms,
+                distrs = distrs,
+                verbose = verbose)
+        }
+    } else {
+        handleOneBlock <- function(
         block,
         loadFlowFrameFUN,
         loadFlowFrameFUNArgs,
         channels,
-        verbose,
-        ...) {
-        
-        rowSeq <- seq(block$rowMin, block$rowMax)
-        colSeq <- seq(block$colMin, block$colMax)
-        nRows <- length(rowSeq)
-        nCols <- length(colSeq)
-        ffIndexes <- union(rowSeq, colSeq)
-        
-        ffList <- list()
-        
-        i <- 0
-        for (ffIndex in ffIndexes){
-            i <- i+1
-            ffList[[i]] <- do.call(
-                loadFlowFrameFUN,
-                args = c(list(ffIndex = ffIndex),
-                         loadFlowFrameFUNArgs))
-            if(!inherits(ffList[[i]], "flowFrame")) {
-                stop("object returned by loadFlowFrameFUN function should inherit ",
-                     "from flowCore::flowFrame")
+        verbose) {
+            
+            rowSeq <- seq(block$rowMin, block$rowMax)
+            colSeq <- seq(block$colMin, block$colMax)
+            nRows <- length(rowSeq)
+            nCols <- length(colSeq)
+            ffIndexes <- union(rowSeq, colSeq)
+            
+            ffList <- list()
+            
+            i <- 0
+            for (ffIndex in ffIndexes){
+                i <- i+1
+                ffList[[i]] <- do.call(
+                    loadFlowFrameFUN,
+                    args = c(list(ffIndex = ffIndex),
+                             loadFlowFrameFUNArgs))
+                if(!inherits(ffList[[i]], "flowFrame")) {
+                    stop("object returned by loadFlowFrameFUN function should inherit ",
+                         "from flowCore::flowFrame")
+                }
             }
-        }
-        
-        fs <- methods::as(ffList,"flowSet")
-        
-        # check channels
-        if (is.null(channels)) {
-            channels <- flowCore::colnames(fs)[areSignalCols(fs[[1]])]
-        } else if (is.numeric(channels)) {
-            channels <- flowCore::colnames(fs)[channels]
-        } else {
-            channels <- vapply(
-                channels, 
-                FUN = function(ch) {
-                    flowCore::getChannelMarker(fs[[1]], ch)$name
-                },
-                FUN.VALUE = "c")
-        }
-        
-        # check that all channels are present in flowSet
-        wrongCh <- which(! channels %in% flowCore::colnames(fs))
-        if (length(wrongCh) > 0) {
-            stop(
-                "found some channels that are non existent in flowSet: ",
-                channels[wrongCh])
-        }
-        
-        # take only the channels of interest for the following,
-        # for performance
-        fs <- fs[,channels]
-        
-        pwDist <- matrix(rep(0., nRows * nCols),
+            
+            fs <- methods::as(ffList,"flowSet")
+            
+            # check channels
+            if (is.null(channels)) {
+                channels <- flowCore::colnames(fs)[areSignalCols(fs[[1]])]
+            } else if (is.numeric(channels)) {
+                channels <- flowCore::colnames(fs)[channels]
+            } else {
+                channels <- vapply(
+                    channels, 
+                    FUN = function(ch) {
+                        flowCore::getChannelMarker(fs[[1]], ch)$name
+                    },
+                    FUN.VALUE = "c")
+            }
+            
+            # check that all channels are present in flowSet
+            wrongCh <- which(! channels %in% flowCore::colnames(fs))
+            if (length(wrongCh) > 0) {
+                stop(
+                    "found some channels that are non existent in flowSet: ",
+                    channels[wrongCh])
+            }
+            
+            # take only the channels of interest for the following,
+            # for performance
+            fs <- fs[,channels]
+            
+            pwDist <- matrix(rep(0., nRows * nCols),
                              nrow = nRows)
-        
-        for (i in seq_along(rowSeq)) {
-            for (j in seq_along(colSeq)) {
-                if (colSeq[j] > rowSeq[i]) {
-                    pwDist[i,j] <- 
-                        EMDDist(
-                            ff1 = ffList[[which(ffIndexes == rowSeq[i])]],
-                            ff2 = ffList[[which(ffIndexes == colSeq[j])]],
-                            channels = channels,
-                            checkChannels = FALSE,
-                            ...) 
-                    if (verbose) {
-                        message(
-                            "i = ", rowSeq[i], 
-                            "; j = ", colSeq[j], 
-                            "; dist = ", round(pwDist[i,j], 12)) 
+            
+            for (i in seq_along(rowSeq)) {
+                for (j in seq_along(colSeq)) {
+                    if (colSeq[j] > rowSeq[i]) {
+                        pwDist[i,j] <- 
+                            EMDDist(
+                                ff1 = ffList[[which(ffIndexes == rowSeq[i])]],
+                                ff2 = ffList[[which(ffIndexes == colSeq[j])]],
+                                channels = channels,
+                                checkChannels = FALSE) 
+                        if (verbose) {
+                            message(
+                                "i = ", rowSeq[i], 
+                                "; j = ", colSeq[j], 
+                                "; dist = ", round(pwDist[i,j], 12)) 
+                        }
                     }
                 }
             }
-        }
-        
-        # apply symmetry for block elements that are in the lower triangle
-        for (i in seq_along(rowSeq)) {
-            for (j in seq_along(colSeq)) {
-                if (colSeq[j] < rowSeq[i]) {
-                    pwDist[i,j] <- pwDist[j,i]
+            
+            # apply symmetry for block elements that are in the lower triangle
+            for (i in seq_along(rowSeq)) {
+                for (j in seq_along(colSeq)) {
+                    if (colSeq[j] < rowSeq[i]) {
+                        pwDist[i,j] <- pwDist[j,i]
+                    }
                 }
             }
+            pwDist
         }
-        pwDist
-    }
-    
-    if (useBiocParallel) {
-        pwDistByBlock <- BiocParallel::bplapply(
-            blocks2D, 
-            BPPARAM = BPPARAM,
-            BPOPTIONS = BPOPTIONS,
-            FUN = handleOneBlock,
-            loadFlowFrameFUN = loadFlowFrameFUN,
-            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
-            channels = channels,
-            verbose = verbose,
-            ...)
-    } else {
-        pwDistByBlock <- lapply(
-            blocks2D,
-            FUN = handleOneBlock,
-            loadFlowFrameFUN = loadFlowFrameFUN,
-            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
-            channels = channels,
-            verbose = verbose,
-            ...)
+        
+        if (useBiocParallel) {
+            pwDistByBlock <- BiocParallel::bplapply(
+                blocks2D, 
+                BPPARAM = BPPARAM,
+                BPOPTIONS = BPOPTIONS,
+                FUN = handleOneBlock,
+                loadFlowFrameFUN = loadFlowFrameFUN,
+                loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+                channels = channels,
+                verbose = verbose)
+        } else {
+            pwDistByBlock <- lapply(
+                blocks2D,
+                FUN = handleOneBlock,
+                loadFlowFrameFUN = loadFlowFrameFUN,
+                loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+                channels = channels,
+                verbose = verbose)
+        }
+        
     }
     
     # sort out all block results to create one single matrix
@@ -709,7 +844,12 @@ EMDDist <- function(
 #' (in case BiocParallel is used). Note the provided value has to take into 
 #' account the type of BiocParallel infrastructure used (i.e. whether it uses 
 #' shared memory or not). 
-#' @param ... additional parameters passed to `EMDDist()`
+#' @param binSize  size of equal bins to approximate 
+#' the marginal distributions.
+#' @param minRange minimum value taken 
+#' when approximating the marginal distributions
+#' @param maxRange maximum value taken 
+#' when approximating the marginal distributions
 #' @return a distance matrix of pairwise distances
 #' (full symmetric with 0. diagonal)
 #' @importFrom CytoPipeline areSignalCols
@@ -753,7 +893,10 @@ pairwiseEMDDist <- function(
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore")),
         memSize = Inf,
-        ...){
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10
+        ){
     
     nSamples <- NULL
     inMemory <- FALSE
@@ -773,7 +916,10 @@ pairwiseEMDDist <- function(
             verbose = verbose,
             useBiocParallel = useBiocParallel,
             BPPARAM = BPPARAM,
-            BPOPTIONS = BPOPTIONS)
+            BPOPTIONS = BPOPTIONS,
+            binSize = binSize,
+            minRange = minRange,
+            maxRange = maxRange)
     } else {
         if (!is.numeric(x) || length(x) > 1) {
             stop("x should be either a flowCore::flowFrame ",
@@ -800,7 +946,10 @@ pairwiseEMDDist <- function(
             useBiocParallel = useBiocParallel,
             BPPARAM = BPPARAM,
             BPOPTIONS = BPOPTIONS,
-            memSize = memSize)
+            memSize = memSize,
+            binSize = binSize,
+            minRange = minRange,
+            maxRange = maxRange)
     }
     pwDist
 }

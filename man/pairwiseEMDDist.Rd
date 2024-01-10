@@ -16,7 +16,9 @@ pairwiseEMDDist(
   BPPARAM = BiocParallel::bpparam(),
   BPOPTIONS = BiocParallel::bpoptions(packages = c("flowCore")),
   memSize = Inf,
-  ...
+  binSize = 0.05,
+  minRange = -10,
+  maxRange = 10
 )
 }
 \arguments{
@@ -68,7 +70,14 @@ live concurrently in the memory available to a single core
 account the type of BiocParallel infrastructure used (i.e. whether it uses
 shared memory or not).}
 
-\item{...}{additional parameters passed to \code{EMDDist()}}
+\item{binSize}{size of equal bins to approximate
+the marginal distributions.}
+
+\item{minRange}{minimum value taken
+when approximating the marginal distributions}
+
+\item{maxRange}{maximum value taken
+when approximating the marginal distributions}
 }
 \value{
 a distance matrix of pairwise distances
