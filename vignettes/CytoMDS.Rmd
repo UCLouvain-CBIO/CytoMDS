@@ -35,9 +35,109 @@ To install this package, start R and enter (uncommented):
 # BiocManager::install("CytoMDS")
 ```
 
+Loading dependent packages for the present vignette...
+
+```{r libs}
+library(CytoPipeline)
+library(CytoMDS)
+```
+
 # Introduction
 
 TO DO
+
+
+
+# Simulated datasets
+
+We now simulate 2 datasets by combining events from the two Donor samples of the
+OMIP021 original dataset.
+
+```{r OMIP021Trans}
+data(OMIP021Samples)
+
+#outputDir <- base::tempdir()
+
+transList <- estimateScaleTransforms(
+    ff = OMIP021Samples[[1]],
+    fluoMethod = "estimateLogicle",
+    scatterMethod = "linearQuantile",
+    scatterRefMarker = "BV785 - CD3")
+
+OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+    OMIP021Samples, 
+    transList)
+```
+
+
+```{r OMIPSim1}
+nSample <- 10
+ffList <- list()
+for (i in seq_len(nSample)) {
+    ffList[[i]] <- CytoPipeline::subsample(
+                OMIP021Trans[[(i+1)%%2+1]],
+                nEvents = 1000,
+                seed = i)[,1:22]
+}
+OMIP021Sim1 <- as(ffList, "flowSet")
+
+pData1 <- data.frame(name = paste0("S", seq_len(nSample)),
+                     clust = rep(c(1,2), 5))
+```
+
+```{r OMIPSim2}
+nSample <- 11
+ffList <- list()
+for (i in seq_len(nSample)) {
+    if (i==1) {
+        ffList[[i]] <- OMIP021Trans[[1]]
+    } else if (i==nSample) {
+        ffList[[i]] <- OMIP021Trans[[2]]
+    } else {
+        ff1 <- CytoPipeline::subsample(
+            OMIP021Trans[[1]],
+            nEvents = 1000 * (nSample-i)/(nSample-1),
+            seed = i)[,1:22]
+        ff2 <- CytoPipeline::subsample(
+            OMIP021Trans[[2]],
+            nEvents = 1000 * (i-1)/(nSample-1)
+        )
+        
+        ffList[[i]] <- CytoPipeline::aggregateAndSample(
+            flowCore::flowSet(ff1, ff2),
+            nTotalEvents = 1000000 # big number to have a simple aggregation
+        )[,1:22]
+    }
+}
+OMIP021Sim2 <- as(ffList, "flowSet")
+
+pData2 <- data.frame(name = paste0("S", seq_len(nSample)),
+                     origin = c("Raw", rep("Sim", nSample-2), "Raw"),
+                     rawLabel = c("D1", rep("", nSample-2), "D2"))
+
+```
+
+# calculating distances between samples
+
+```{r distCalc}
+pwDist1 <- pairwiseEMDDist(
+    OMIP021Sim1, verbose = TRUE)
+```
+
+```{r distShow}
+round(pwDist1, 2)
+```
+
+# calculating MDS projection
+
+```{r MDSCalc}
+
+```
+
+
+
+
+
 
 # Session information {-}
 

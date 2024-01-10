@@ -13,6 +13,101 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details (<http://www.gnu.org/licenses/>).
 
+# function calculating the unidimensional histograms of a flowFrame
+.unidimHistograms <- function(
+    ff, 
+    breaks){
+    
+    expr <- flowCore::exprs(ff)#[, drop = FALSE]
+    
+    # discretize all marginal distributions
+    # check that the range correctly spans all events
+    distr <- vapply(
+        colnames(expr),
+        exprMat = expr,
+        FUN = function(colName, exprMat) {
+            #browser()
+            counts <- graphics::hist(
+                exprMat[, colName], 
+                breaks = c(-Inf, breaks, Inf),
+                plot = FALSE)$counts
+            counts <- counts[-c(1,length(counts))]
+            if (sum(counts) != nrow(exprMat)) {
+                warning(
+                    "for flowFrame: [", 
+                    flowCore::identifier(ff), "] : \n",
+                    "provided [minRange, maxRange] does not ",
+                    "span all events for channel ", colName,
+                    ": count(events) = ", sum(counts), 
+                    "; nEvents = ", nrow(exprMat))
+            }
+            return(counts)
+        },
+        FUN.VALUE = rep(0., length(breaks)-1))
+    
+    return(distr)
+}
+
+.distFromUnidimHistograms <- function(breaks, distr1, distr2) {
+    
+    nBreaks <- length(breaks)
+    if (nBreaks < 2) {
+        stop("nBreaks should be at least 2")
+    }
+    channels <- colnames(distr1)
+    nChannels <- length(channels)
+    
+    distances <- rep(0., length(channels))
+    names(distances) <- channels
+        
+    nA <- sum(distr1[,1])
+    nB <- sum(distr2[,1])
+        
+    ratioA <- 1
+    ratioB <- 1
+        
+    nEventsLCM <-  pracma::Lcm(nA, nB)  
+    ratioA <- nEventsLCM / nA
+    ratioB <- nEventsLCM / nB
+    
+    #browser()
+        
+    for (ch in seq_along(channels)) {
+        
+        wA <- distr1[, ch, drop=FALSE]
+        wA <- wA * ratioA
+        wB <- distr2[, ch, drop=FALSE]
+        wB <- wB * ratioB
+        #locations <- breaks[-1] - binSize/2
+        locations <- 0.5 * (breaks[-1] + breaks[-nBreaks])
+        
+        # distances[ch] <- 
+        #   emdist::emdw(A = locations,
+        #                wA = wA,
+        #                B = locations,
+        #                wB = wB)
+        distances[ch] <- 
+            transport::wasserstein1d(
+                a = locations,
+                wa = wA,
+                b = locations,
+                wb = wB)
+        
+        # make sure distance is a PRECISE multiple 
+        # of elementary mass transportation cost
+        
+        # if (distances[ch] < 1e-12) {
+        #   distances[ch] <- 0
+        # } else {
+        #   elemCost <- binSize / nEventsLCM
+        #   distances[ch] <- round(distances[ch]/elemCost) *  elemCost
+        # }  
+        
+    }
+    
+    return(distances)
+}
+
 #' @title Calculate Earth Mover's distance between two flowFrames
 #'
 #' @param ff1           a flowCore::flowFrame
@@ -127,101 +222,108 @@ getEMDDist <- function(
     }
     
     # for performance
-    ffList <- lapply(ffList, FUN = function(ff) ff[, channels])
+    ffList <- lapply(ffList, FUN = function(ff) ff[, channels, drop = FALSE])
     
     breaks <- seq(
-        minRange, 
-        maxRange, 
+        minRange,
+        maxRange,
         by = binSize)
-        
     
     breaks <- round(breaks,12)
     
-    distr <- lapply(
+    distrs <- lapply(
         X = ffList,
-        FUN = function(ff) {
-            #browser()
-            expr <- flowCore::exprs(ff)[, channels, drop = FALSE]
-            
-            # discretize all marginal distributions
-            # check that the range correctly spans all events
-            vapply(
-                colnames(expr),
-                exprMat = expr,
-                FUN = function(colName, exprMat) {
-                    #browser()
-                    counts <- graphics::hist(
-                        exprMat[, colName], 
-                        breaks = c(-Inf, breaks, Inf),
-                        plot = FALSE)$counts
-                    counts <- counts[-c(1,length(counts))]
-                    if (sum(counts) != nrow(exprMat)) {
-                        warning(
-                            "for flowFrame: [", 
-                            flowCore::identifier(ff), "] : \n",
-                            "provided [minRange, maxRange] does not ",
-                            "span all events for channel ", colName,
-                            ": count(events) = ", sum(counts), 
-                            "; nEvents = ", nrow(exprMat))
-                    }
-                    return(counts)
-                },
-                FUN.VALUE = rep(0., length(breaks)-1)
-                   
-            )
-        })
-                    
+        # FUN = function(ff) {
+        #     #browser()
+        #     expr <- flowCore::exprs(ff)[, drop = FALSE]
+        #     
+        #     # discretize all marginal distributions
+        #     # check that the range correctly spans all events
+        #     vapply(
+        #         colnames(expr),
+        #         exprMat = expr,
+        #         FUN = function(colName, exprMat) {
+        #             #browser()
+        #             counts <- graphics::hist(
+        #                 exprMat[, colName], 
+        #                 breaks = c(-Inf, breaks, Inf),
+        #                 plot = FALSE)$counts
+        #             counts <- counts[-c(1,length(counts))]
+        #             if (sum(counts) != nrow(exprMat)) {
+        #                 warning(
+        #                     "for flowFrame: [", 
+        #                     flowCore::identifier(ff), "] : \n",
+        #                     "provided [minRange, maxRange] does not ",
+        #                     "span all events for channel ", colName,
+        #                     ": count(events) = ", sum(counts), 
+        #                     "; nEvents = ", nrow(exprMat))
+        #             }
+        #             return(counts)
+        #         },
+        #         FUN.VALUE = rep(0., length(breaks)-1)
+        #            
+        #     )
+        # }
+        FUN = .unidimHistograms,
+        breaks = breaks)
+    
+    #browser()
     
     
-    distances <- rep(0., length(channels))
-    names(distances) <- channels
+    # distances <- rep(0., length(channels))
+    # names(distances) <- channels
+    # 
+    # nA <- flowCore::nrow(ff1)
+    # nB <- flowCore::nrow(ff2)
+    # 
+    # ratioA <- 1
+    # ratioB <- 1
+    # 
+    # nEventsLCM <-  pracma::Lcm(nA, nB)  
+    # ratioA <- nEventsLCM / nA
+    # ratioB <- nEventsLCM / nB
+    # 
+    # for (ch in channels) {
+    #     
+    #     wA <- distrs[[1]][, ch, drop=FALSE]
+    #     wA <- wA * ratioA
+    #     wB <- distrs[[2]][, ch, drop=FALSE]
+    #     wB <- wB * ratioB
+    #     locations <- breaks[-1] - binSize/2
+    #     # distances[ch] <- 
+    #     #   emdist::emdw(A = locations,
+    #     #                wA = wA,
+    #     #                B = locations,
+    #     #                wB = wB)
+    #     distances[ch] <- 
+    #         transport::wasserstein1d(
+    #             a = locations,
+    #             wa = wA,
+    #             b = locations,
+    #             wb = wB)
+    #     
+    #     # make sure distance is a PRECISE multiple 
+    #     # of elementary mass transportation cost
+    #     
+    #     # if (distances[ch] < 1e-12) {
+    #     #   distances[ch] <- 0
+    #     # } else {
+    #     #   elemCost <- binSize / nEventsLCM
+    #     #   distances[ch] <- round(distances[ch]/elemCost) *  elemCost
+    #     # }  
+    #     
+    # }
     
-    nA <- flowCore::nrow(ff1)
-    nB <- flowCore::nrow(ff2)
-    
-    ratioA <- 1
-    ratioB <- 1
-    
-    nEventsLCM <-  pracma::Lcm(nA, nB)  
-    ratioA <- nEventsLCM / nA
-    ratioB <- nEventsLCM / nB
-    
-    for (ch in channels) {
-        
-        wA <- distr[[1]][, ch, drop=FALSE]
-        wA <- wA * ratioA
-        wB <- distr[[2]][, ch, drop=FALSE]
-        wB <- wB * ratioB
-        locations <- breaks[-1] - binSize/2
-        # distances[ch] <- 
-        #   emdist::emdw(A = locations,
-        #                wA = wA,
-        #                B = locations,
-        #                wB = wB)
-        distances[ch] <- 
-            transport::wasserstein1d(
-                a = locations,
-                wa = wA,
-                b = locations,
-                wb = wB)
-        
-        # make sure distance is a PRECISE multiple 
-        # of elementary mass transportation cost
-        
-        # if (distances[ch] < 1e-12) {
-        #   distances[ch] <- 0
-        # } else {
-        #   elemCost <- binSize / nEventsLCM
-        #   distances[ch] <- round(distances[ch]/elemCost) *  elemCost
-        # }  
-        
-    }
+    distances <- .distFromUnidimHistograms(
+        breaks = breaks, 
+        distr1 = distrs[[1]], 
+        distr2 = distrs[[2]])
     
     globalDist <- sum(distances)
     
     if (returnAll) {
         return(list(
-            distr = distr, 
+            distrs = distrs, 
             distances = distances,
             globalDist = globalDist))
     }
