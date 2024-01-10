@@ -25,13 +25,13 @@
     <loc>/reference/CytoMDS.html</loc>
   </url>
   <url>
+    <loc>/reference/EMDDist.html</loc>
+  </url>
+  <url>
     <loc>/reference/computeMetricMDS.html</loc>
   </url>
   <url>
     <loc>/reference/getChannelSummaryStats.html</loc>
-  </url>
-  <url>
-    <loc>/reference/getEMDDist.html</loc>
   </url>
   <url>
     <loc>/reference/ggplotSampleMDS.html</loc>
