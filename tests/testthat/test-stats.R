@@ -29,9 +29,9 @@ OMIP021Trans <- CytoPipeline::applyScaleTransforms(
     OMIP021Samples, 
     transList)
 
-test_that("getEMDDist works", {
+test_that("EMDDist works", {
     # distance with itself, all channels
-    distDum <- getEMDDist(ff1 = OMIP021Trans[[1]],
+    distDum <- EMDDist(ff1 = OMIP021Trans[[1]],
                           ff2 = OMIP021Trans[[1]],
                           binSize = 0.05,
                           minRange = -10,
@@ -40,7 +40,7 @@ test_that("getEMDDist works", {
     expect_equal(distDum, 0.)
     
     # returning only distance, 2 channels
-    dist1 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+    dist1 <- EMDDist(ff1 = OMIP021Trans[[1]], 
                         ff2 = OMIP021Trans[[2]], 
                         channels = c("FSC-A", "SSC-A"),
                         binSize = 0.05,
@@ -51,7 +51,7 @@ test_that("getEMDDist works", {
     expect_equal(dist1, 0.1551)
     
     # using only one channel, passed by marker name
-    dist3 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+    dist3 <- EMDDist(ff1 = OMIP021Trans[[1]], 
                         ff2 = OMIP021Trans[[2]], 
                         channels = c("BV785 - CD3"),
                         binSize = 0.05,
@@ -62,7 +62,7 @@ test_that("getEMDDist works", {
     expect_equal(dist3, 0.1393)
     
     # using only one channel, passed by index
-    dist4 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+    dist4 <- EMDDist(ff1 = OMIP021Trans[[1]], 
                         ff2 = OMIP021Trans[[2]], 
                         channels = 10,
                         binSize = 0.05,
@@ -75,7 +75,7 @@ test_that("getEMDDist works", {
     # check that a warning is issued, when [minRange, maxRange] does not span
     # all events
     w <- capture_warnings({
-        distWarn <- getEMDDist(ff1 = OMIP021Trans[[1]],
+        distWarn <- EMDDist(ff1 = OMIP021Trans[[1]],
                                ff2 = OMIP021Trans[[1]],
                                channels = c("FSC-A", "SSC-A"),
                                binSize = 0.05,
@@ -90,7 +90,7 @@ test_that("getEMDDist works", {
     expect_equal(distWarn, 0.)
     
     #returning all
-    allDist <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+    allDist <- EMDDist(ff1 = OMIP021Trans[[1]], 
                           ff2 = OMIP021Trans[[2]], 
                           channels = c("FSC-A", "SSC-A"),
                           binSize = 0.05,

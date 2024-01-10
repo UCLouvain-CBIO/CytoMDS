@@ -68,7 +68,7 @@ live concurrently in the memory available to a single core
 account the type of BiocParallel infrastructure used (i.e. whether it uses
 shared memory or not).}
 
-\item{...}{additional parameters passed to \code{getEMDDist()}}
+\item{...}{additional parameters passed to \code{EMDDist()}}
 }
 \value{
 a distance matrix of pairwise distances

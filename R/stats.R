@@ -157,29 +157,29 @@
 #' 
 #' # distance with itself (all channels at once)
 #' # => should return 0
-#' dist0 <- getEMDDist(
+#' dist0 <- EMDDist(
 #'     ff1 = OMIP021Trans[[1]],
 #'     ff2 = OMIP021Trans[[1]])
 #' 
 #' # returning only distance, 2 channels
-#' dist1 <- getEMDDist(
+#' dist1 <- EMDDist(
 #'     ff1 = OMIP021Trans[[1]], 
 #'     ff2 = OMIP021Trans[[2]], 
 #'     channels = c("FSC-A", "SSC-A"))
 #' 
 #' # using only one channel, passed by marker name
-#' dist2 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+#' dist2 <- EMDDist(ff1 = OMIP021Trans[[1]], 
 #'                     ff2 = OMIP021Trans[[2]], 
 #'                     channels = c("BV785 - CD3"))
 #' 
 #' # using only one channel, passed by index
-#' dist3 <- getEMDDist(ff1 = OMIP021Trans[[1]], 
+#' dist3 <- EMDDist(ff1 = OMIP021Trans[[1]], 
 #'                     ff2 = OMIP021Trans[[2]], 
 #'                     channels = 10)
 #' 
 #' dist2 == dist3
 #' 
-getEMDDist <- function(
+EMDDist <- function(
         ff1, 
         ff2, 
         channels = NULL,
@@ -579,7 +579,7 @@ getEMDDist <- function(
             for (j in seq_along(colSeq)) {
                 if (colSeq[j] > rowSeq[i]) {
                     pwDist[i,j] <- 
-                        getEMDDist(
+                        EMDDist(
                             ff1 = ffList[[which(ffIndexes == rowSeq[i])]],
                             ff2 = ffList[[which(ffIndexes == colSeq[j])]],
                             channels = channels,
@@ -709,7 +709,7 @@ getEMDDist <- function(
 #' (in case BiocParallel is used). Note the provided value has to take into 
 #' account the type of BiocParallel infrastructure used (i.e. whether it uses 
 #' shared memory or not). 
-#' @param ... additional parameters passed to `getEMDDist()`
+#' @param ... additional parameters passed to `EMDDist()`
 #' @return a distance matrix of pairwise distances
 #' (full symmetric with 0. diagonal)
 #' @importFrom CytoPipeline areSignalCols
@@ -821,7 +821,7 @@ pairwiseEMDDist <- function(
 #' functions to call to calculate the statistics, or a simple function
 #' This list can be named, in that case, these names will be transfered to the
 #' returned value.
-#' @param ... additional parameters passed to `getEMDDist()`
+#' @param ... additional parameters passed to `EMDDist()`
 #' @return a list of named statistic matrices. 
 #' In each stat matrix, the columns are the channel statistics 
 #' for all flowFrames of the flowSet.

@@ -34,7 +34,7 @@ returned value.}
 \item{verbose}{if \code{TRUE}, output a message
 after each single distance calculation}
 
-\item{...}{additional parameters passed to \code{getEMDDist()}}
+\item{...}{additional parameters passed to \code{EMDDist()}}
 }
 \value{
 a list of named statistic matrices.
