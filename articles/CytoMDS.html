@@ -113,11 +113,158 @@ document.addEventListener("DOMContentLoaded", function() {
 <span><span class="co">#     install.packages("BiocManager")</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># BiocManager::install("CytoMDS")</span></span></code></pre></div>
+<p>Loading dependent packages for the present vignette…</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://uclouvain-cbio.github.io/CytoPipeline" class="external-link">CytoPipeline</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://uclouvain-cbio.github.io/CytoMDS" class="external-link">CytoMDS</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
 <p>TO DO</p>
+</div>
+<div class="section level2">
+<h2 id="simulated-datasets">Simulated datasets<a class="anchor" aria-label="anchor" href="#simulated-datasets"></a>
+</h2>
+<p>We now simulate 2 datasets by combining events from the two Donor
+samples of the OMIP021 original dataset.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">OMIP021Samples</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#outputDir &lt;- base::tempdir()</span></span>
+<span></span>
+<span><span class="va">transList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/estimateScaleTransforms.html" class="external-link">estimateScaleTransforms</a></span><span class="op">(</span></span>
+<span>    ff <span class="op">=</span> <span class="va">OMIP021Samples</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>    fluoMethod <span class="op">=</span> <span class="st">"estimateLogicle"</span>,</span>
+<span>    scatterMethod <span class="op">=</span> <span class="st">"linearQuantile"</span>,</span>
+<span>    scatterRefMarker <span class="op">=</span> <span class="st">"BV785 - CD3"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## estimating logicle transformations for fluorochrome channels...</span></span></code></pre>
+<pre><code><span><span class="co">## Estimating linear transformation for scatter channels : reference marker = BV785 - CD3...</span></span></code></pre>
+<pre><code><span><span class="co">## applying specific linear transformation for FSC-A channel...</span></span></code></pre>
+<pre><code><span><span class="co">## initial quantiles : q5 = 10464.0482 ; q95 = 192509.607</span></span></code></pre>
+<pre><code><span><span class="co">## target quantiles : q5 = 0.3849 ; q95 = 2.9395</span></span></code></pre>
+<pre><code><span><span class="co">## a = 1.40e-05 ; b = 2.38e-01</span></span></code></pre>
+<pre><code><span><span class="co">## applying FSC-A linear transformation for FSC-H channel...</span></span></code></pre>
+<pre><code><span><span class="co">## applying specific linear transformation for SSC-A channel...</span></span></code></pre>
+<pre><code><span><span class="co">## initial quantiles : q5 = 16345.6462 ; q95 = 245485.3555</span></span></code></pre>
+<pre><code><span><span class="co">## target quantiles : q5 = 0.3849 ; q95 = 2.9395</span></span></code></pre>
+<pre><code><span><span class="co">## a = 1.11e-05 ; b = 2.03e-01</span></span></code></pre>
+<pre><code><span><span class="co">## applying SSC-A linear transformation for SSC-H channel...</span></span></code></pre>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">OMIP021Trans</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/applyScaleTransforms.html" class="external-link">applyScaleTransforms</a></span><span class="op">(</span></span>
+<span>    <span class="va">OMIP021Samples</span>, </span>
+<span>    <span class="va">transList</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
+<span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/subsample.html" class="external-link">subsample</a></span><span class="op">(</span></span>
+<span>                <span class="va">OMIP021Trans</span><span class="op">[[</span><span class="op">(</span><span class="va">i</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span><span class="fl">2</span><span class="op">+</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>                nEvents <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>                seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">22</span><span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">OMIP021Sim1</span> <span class="op">&lt;-</span> <span class="fu">as</span><span class="op">(</span><span class="va">ffList</span>, <span class="st">"flowSet"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pData1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                     clust <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fl">11</span></span>
+<span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="kw">if</span> <span class="op">(</span><span class="va">i</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">OMIP021Trans</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span>    <span class="op">}</span> <span class="kw">else</span> <span class="kw">if</span> <span class="op">(</span><span class="va">i</span><span class="op">==</span><span class="va">nSample</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">OMIP021Trans</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
+<span>    <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>        <span class="va">ff1</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/subsample.html" class="external-link">subsample</a></span><span class="op">(</span></span>
+<span>            <span class="va">OMIP021Trans</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>            nEvents <span class="op">=</span> <span class="fl">1000</span> <span class="op">*</span> <span class="op">(</span><span class="va">nSample</span><span class="op">-</span><span class="va">i</span><span class="op">)</span><span class="op">/</span><span class="op">(</span><span class="va">nSample</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>            seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">22</span><span class="op">]</span></span>
+<span>        <span class="va">ff2</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/subsample.html" class="external-link">subsample</a></span><span class="op">(</span></span>
+<span>            <span class="va">OMIP021Trans</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>            nEvents <span class="op">=</span> <span class="fl">1000</span> <span class="op">*</span> <span class="op">(</span><span class="va">i</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">/</span><span class="op">(</span><span class="va">nSample</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span></span>
+<span>        <span class="op">)</span></span>
+<span>        </span>
+<span>        <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/aggregateAndSample.html" class="external-link">aggregateAndSample</a></span><span class="op">(</span></span>
+<span>            <span class="fu">flowCore</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/flowCore/man/flowSet-class.html" class="external-link">flowSet</a></span><span class="op">(</span><span class="va">ff1</span>, <span class="va">ff2</span><span class="op">)</span>,</span>
+<span>            nTotalEvents <span class="op">=</span> <span class="fl">1000000</span> <span class="co"># big number to have a simple aggregation</span></span>
+<span>        <span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">22</span><span class="op">]</span></span>
+<span>    <span class="op">}</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">OMIP021Sim2</span> <span class="op">&lt;-</span> <span class="fu">as</span><span class="op">(</span><span class="va">ffList</span>, <span class="st">"flowSet"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pData2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                     origin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Raw"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Sim"</span>, <span class="va">nSample</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span>, <span class="st">"Raw"</span><span class="op">)</span>,</span>
+<span>                     rawLabel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"D1"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">""</span>, <span class="va">nSample</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span>, <span class="st">"D2"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="calculating-distances-between-samples">calculating distances between samples<a class="anchor" aria-label="anchor" href="#calculating-distances-between-samples"></a>
+</h2>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pwDist1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span></span>
+<span>    <span class="va">OMIP021Sim1</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## i = 1; j = 2; dist = 1.86445</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 3; dist = 0.59115</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 4; dist = 1.71465</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 5; dist = 0.70575</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 6; dist = 1.77675</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 7; dist = 0.5349</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 8; dist = 1.87255</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 9; dist = 0.4528</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 10; dist = 1.95485</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 3; dist = 1.9992</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 4; dist = 0.5448</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 5; dist = 2.2985</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 6; dist = 0.6181</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 7; dist = 1.72795</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 8; dist = 0.4823</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 9; dist = 2.08035</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 10; dist = 0.4787</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 4; dist = 1.8807</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 5; dist = 0.7166</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 6; dist = 2.0389</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 7; dist = 0.73895</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 8; dist = 1.9526</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 9; dist = 0.61805</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 10; dist = 2.1447</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 5; dist = 2.0513</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 6; dist = 0.6476</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 7; dist = 1.62775</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 8; dist = 0.585</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 9; dist = 1.85405</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 10; dist = 0.6352</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 6; dist = 2.1803</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 7; dist = 1.01775</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 8; dist = 2.3318</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 9; dist = 0.48635</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 10; dist = 2.3687</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 7; dist = 1.69255</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 8; dist = 0.7768</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 9; dist = 1.98485</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 10; dist = 0.6741</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 8; dist = 1.68815</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 9; dist = 0.7329</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 10; dist = 1.80315</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 9; dist = 2.08035</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 10; dist = 0.5381</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 10; dist = 2.14825</span></span></code></pre>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pwDist1</span>, <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##       1    2    3    4    5    6    7    8    9   10</span></span>
+<span><span class="co">## 1  0.00 1.86 0.59 1.71 0.71 1.78 0.53 1.87 0.45 1.95</span></span>
+<span><span class="co">## 2  1.86 0.00 2.00 0.54 2.30 0.62 1.73 0.48 2.08 0.48</span></span>
+<span><span class="co">## 3  0.59 2.00 0.00 1.88 0.72 2.04 0.74 1.95 0.62 2.14</span></span>
+<span><span class="co">## 4  1.71 0.54 1.88 0.00 2.05 0.65 1.63 0.58 1.85 0.64</span></span>
+<span><span class="co">## 5  0.71 2.30 0.72 2.05 0.00 2.18 1.02 2.33 0.49 2.37</span></span>
+<span><span class="co">## 6  1.78 0.62 2.04 0.65 2.18 0.00 1.69 0.78 1.98 0.67</span></span>
+<span><span class="co">## 7  0.53 1.73 0.74 1.63 1.02 1.69 0.00 1.69 0.73 1.80</span></span>
+<span><span class="co">## 8  1.87 0.48 1.95 0.58 2.33 0.78 1.69 0.00 2.08 0.54</span></span>
+<span><span class="co">## 9  0.45 2.08 0.62 1.85 0.49 1.98 0.73 2.08 0.00 2.15</span></span>
+<span><span class="co">## 10 1.95 0.48 2.14 0.64 2.37 0.67 1.80 0.54 2.15 0.00</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="calculating-mds-projection">calculating MDS projection<a class="anchor" aria-label="anchor" href="#calculating-mds-projection"></a>
+</h2>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
@@ -145,21 +292,34 @@ document.addEventListener("DOMContentLoaded", function() {
 <span><span class="co">## [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">## [1] BiocStyle_2.31.0</span></span>
+<span><span class="co">## [1] CytoMDS_0.99.6     CytoPipeline_1.3.0 BiocStyle_2.31.0  </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
-<span><span class="co">##  [1] vctrs_0.6.5         cli_3.6.2           knitr_1.45         </span></span>
-<span><span class="co">##  [4] rlang_1.1.2         xfun_0.41           stringi_1.8.3      </span></span>
-<span><span class="co">##  [7] purrr_1.0.2         textshaping_0.3.7   jsonlite_1.8.8     </span></span>
-<span><span class="co">## [10] glue_1.6.2          htmltools_0.5.7     ragg_1.2.7         </span></span>
-<span><span class="co">## [13] sass_0.4.8          rmarkdown_2.25      evaluate_0.23      </span></span>
-<span><span class="co">## [16] jquerylib_0.1.4     fastmap_1.1.1       yaml_2.3.8         </span></span>
-<span><span class="co">## [19] lifecycle_1.0.4     memoise_2.0.1       bookdown_0.37      </span></span>
-<span><span class="co">## [22] BiocManager_1.30.22 stringr_1.5.1       compiler_4.4.0     </span></span>
-<span><span class="co">## [25] fs_1.6.3            systemfonts_1.0.5   digest_0.6.33      </span></span>
-<span><span class="co">## [28] R6_2.5.1            magrittr_2.0.3      bslib_0.6.1        </span></span>
-<span><span class="co">## [31] tools_4.4.0         pkgdown_2.0.7.9000  cachem_1.0.8       </span></span>
-<span><span class="co">## [34] desc_1.4.3</span></span></code></pre>
+<span><span class="co">##  [1] transport_0.14-6     gtable_0.3.4         xfun_0.41           </span></span>
+<span><span class="co">##  [4] bslib_0.6.1          ggplot2_3.4.4        Biobase_2.63.0      </span></span>
+<span><span class="co">##  [7] lattice_0.22-5       vctrs_0.6.5          tools_4.4.0         </span></span>
+<span><span class="co">## [10] generics_0.1.3       stats4_4.4.0         tibble_3.2.1        </span></span>
+<span><span class="co">## [13] fansi_1.0.6          flowWorkspace_4.15.1 pkgconfig_2.0.3     </span></span>
+<span><span class="co">## [16] data.table_1.14.10   RColorBrewer_1.1-3   desc_1.4.3          </span></span>
+<span><span class="co">## [19] S4Vectors_0.41.3     graph_1.81.0         lifecycle_1.0.4     </span></span>
+<span><span class="co">## [22] compiler_4.4.0       stringr_1.5.1        textshaping_0.3.7   </span></span>
+<span><span class="co">## [25] munsell_0.5.0        htmltools_0.5.7      sass_0.4.8          </span></span>
+<span><span class="co">## [28] yaml_2.3.8           pracma_2.4.4         flowCore_2.15.0     </span></span>
+<span><span class="co">## [31] pillar_1.9.0         pkgdown_2.0.7.9000   hexbin_1.28.3       </span></span>
+<span><span class="co">## [34] jquerylib_0.1.4      cachem_1.0.8         RProtoBufLib_2.15.0 </span></span>
+<span><span class="co">## [37] tidyselect_1.2.0     digest_0.6.33        stringi_1.8.3       </span></span>
+<span><span class="co">## [40] dplyr_1.1.4          purrr_1.0.2          bookdown_0.37       </span></span>
+<span><span class="co">## [43] fastmap_1.1.1        grid_4.4.0           colorspace_2.1-0    </span></span>
+<span><span class="co">## [46] cli_3.6.2            magrittr_2.0.3       ncdfFlow_2.49.0     </span></span>
+<span><span class="co">## [49] XML_3.99-0.16        utf8_1.2.4           withr_2.5.2         </span></span>
+<span><span class="co">## [52] scales_1.3.0         rmarkdown_2.25       matrixStats_1.2.0   </span></span>
+<span><span class="co">## [55] gridExtra_2.3        cytolib_2.15.0       ragg_1.2.7          </span></span>
+<span><span class="co">## [58] memoise_2.0.1        evaluate_0.23        knitr_1.45          </span></span>
+<span><span class="co">## [61] rlang_1.1.2          Rcpp_1.0.12          glue_1.7.0          </span></span>
+<span><span class="co">## [64] Rgraphviz_2.47.0     BiocManager_1.30.22  BiocGenerics_0.49.1 </span></span>
+<span><span class="co">## [67] jsonlite_1.8.8       R6_2.5.1             plyr_1.8.9          </span></span>
+<span><span class="co">## [70] systemfonts_1.0.5    fs_1.6.3             zlibbioc_1.49.0     </span></span>
+<span><span class="co">## [73] ggcyto_1.31.1</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
