@@ -168,29 +168,14 @@ jobs:
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE)
         shell: Rscript {0}
         
-      # - name: pre-install rlang
-      #   run: |
-      #     withr::with_makevars(
-      #       c(CFLAGS = "-w",
-      #         CXXFLAGS = "-w",
-      #         CPPFLAGS = "-w"),
-      #       BiocManager::install("rlang"),
-      #       assignment = "+=")
-      #   shell: Rscript {0}    
-      #   
-      # - name: pre-install cytolib
-      #   run: |
-      #     withr::with_makevars(
-      #       c(CFLAGS = "-w",
-      #         CXXFLAGS = "-w",
-      #         CPPFLAGS = "-w"),
-      #       BiocManager::install("cytolib"),
-      #       assignment = "+=")
-      #   shell: Rscript {0}
-      
+           
+        
 
       - name: Install dependencies
         run: |
+        ## work around a change in compiler setting, turning some warnings into
+        ## errors => deactivate warnings to allow some dependency package to
+        ## compile
           withr::with_makevars(
             c(CFLAGS = "-w",
               CXXFLAGS = "-w",
@@ -222,7 +207,7 @@ jobs:
             assignment = "+=")
 
         shell: Rscript {0}
-
+        
       - name: Session info
         run: |
           options(width = 100)
