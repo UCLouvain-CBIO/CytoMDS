@@ -525,7 +525,7 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
         loadFlowFrameFUNArgs = list(
             filePaths = filePaths,
             nSamples = nSamples,
-            verbose = verbose
+            verbose = FALSE
         ),
         channels = c("FSC-A", "SSC-A"),
         verbose = verbose)

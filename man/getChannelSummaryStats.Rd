@@ -9,8 +9,7 @@ getChannelSummaryStats(
   fs,
   channels = NULL,
   statFUNs = stats::median,
-  verbose = FALSE,
-  ...
+  verbose = FALSE
 )
 }
 \arguments{
@@ -33,8 +32,6 @@ returned value.}
 
 \item{verbose}{if \code{TRUE}, output a message
 after each single distance calculation}
-
-\item{...}{additional parameters passed to \code{EMDDist()}}
 }
 \value{
 a list of named statistic matrices.

@@ -38,4 +38,10 @@ for not loading the whole flowSet in memory at once.
 
 ### CytoMDS 0.99.6
 - added `subset` argument in `ggplotSampleMDS()` and 
-`ggplotSampleMDSWrapBiplots` 
+`ggplotSampleMDSWrapBiplots`
+
+### CytoMDS 0.99.7
+- refactored the pairwise distance calculation code, by pre-computing the
+unidimensional histograms and store them instead of recalculating them each
+time a distance between 2 samples is calculated. This improves CPU time and
+memory consumption.

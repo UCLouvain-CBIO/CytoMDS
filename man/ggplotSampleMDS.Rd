@@ -163,7 +163,7 @@ p12_Stress <- ggplotSampleMDS(
 extVars <- getChannelSummaryStats(
     fsAll,
     channels = c("FSC-A", "SSC-A"),
-    statsFUN = stats::median)
+    statFUNs = stats::median)
 
 
 bp_12 <- ggplotSampleMDS(
