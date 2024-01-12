@@ -436,7 +436,21 @@ EMDDist <- function(
     nRowBlock
 }
 
- 
+# Note `memSize` has been hidden in the user interface function.
+# It could be reactivated if we were to switch to distances not based on
+# unidimensional histograms, in that case tight memory management will
+# again be needed. 
+#
+# (3.)`memSize` should be an estimate of the number of flow frame (per core) 
+# that can reside concurrently in memory. In that case the pairwise distance 
+# calculation will be split by matrix blocs, and the block size 
+# - hence the number of flow frames stored in memory concurrently - 
+# will be adjusted according to the estimate.
+# @param memSize specifies an estimate of the number of flowFrames that can
+# live concurrently in the memory available to a single core 
+# (in case BiocParallel is used). Note the provided value has to take into 
+# account the type of BiocParallel infrastructure used (i.e. whether it uses 
+# shared memory or not). 
 .pairwiseEMDDist <- function(
         nSamples,
         rowRange = c(1, nSamples), 
@@ -870,15 +884,10 @@ EMDDist <- function(
 #' @title Pairwise Earth Mover's Distance calculation
 #' @description Computation of all EMD between pairs of flowFrames belonging
 #' to a flowSet. This method provides two different input modes:
-#' - the user provides directly a flowSet. This is the preferred way when  
-#' the flowSet can be stored entirely in memory (RAM).
+#' - the user provides directly a flowSet loaded in memory (RAM).
 #' - the user provides (1.) a number of samples `nSamples`; (2.) an ad-hoc 
 #' function that takes as input an index between 1 and `nSamples`, and codes
-#' the method to load the corresponding flowFrame in memory; (3.) an estimate
-#' of the number of flow frame (per core) that can reside in memory. In that
-#' case the pairwise distance calculation will be split by matrix blocs, and 
-#' the block size - hence the number of flow frames stored in memory 
-#' concurrently - will be adjusted according to the estimate.
+#' the method to load the corresponding flowFrame in memory; 
 #' Optional row and column ranges can be provided to limit the calculation
 #' to a specific rectangle of the matrix. These i.e. can be specified as a way 
 #' to split heavy calculations of large distance matrices 
@@ -914,11 +923,6 @@ EMDDist <- function(
 #' to work properly (visibility of functions). As a minimum,    
 #' the `flowCore` package needs to be loaded.  
 #' (hence the default `BPOPTIONS = bpoptions(packages = c("flowCore"))` )
-#' @param memSize specifies an estimate of the number of flowFrames that can
-#' live concurrently in the memory available to a single core 
-#' (in case BiocParallel is used). Note the provided value has to take into 
-#' account the type of BiocParallel infrastructure used (i.e. whether it uses 
-#' shared memory or not). 
 #' @param binSize  size of equal bins to approximate 
 #' the marginal distributions.
 #' @param minRange minimum value taken 
@@ -967,7 +971,6 @@ pairwiseEMDDist <- function(
         BPPARAM = BiocParallel::bpparam(),
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore")),
-        memSize = Inf,
         binSize = 0.05,
         minRange = -10,
         maxRange = 10
@@ -1008,6 +1011,13 @@ pairwiseEMDDist <- function(
         if (is.null(loadFlowFrameFUN)) {
             stop("loadFlowFrameFUN should be provided ",
                  "when x is the number of samples")
+        }
+        
+        if (useBiocParallel) {
+            # blocks of maximum (approximately) 50*50 will be used
+            memSize <- min(100, nSamples)
+        } else {
+            memSize <- Inf
         }
         
         pwDist <- .pairwiseEMDDist(
