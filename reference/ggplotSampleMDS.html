@@ -20,7 +20,7 @@ and the number of dimensions of the MDS projection are provided in sub-title"><!
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.7</span>
       </span>
     </div>
 
@@ -169,7 +169,7 @@ the less accurate its representation is
 
 
 <dt>repelPointsLabels</dt>
-<dd><p>if TRUE, uses <code><a href="https://rdrr.io/pkg/ggrepel/man/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
+<dd><p>if TRUE, uses <code><a href="https://ggrepel.slowkow.com/reference/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
 instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">ggplot2::geom_text()</a></code>
 (try to split the labels such that they do not overlap) for the points</p></dd>
 
@@ -184,7 +184,7 @@ if their length is (in absolute value) less than this threshold.</p></dd>
 
 
 <dt>repelArrowLabels</dt>
-<dd><p>if TRUE, uses <code><a href="https://rdrr.io/pkg/ggrepel/man/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
+<dd><p>if TRUE, uses <code><a href="https://ggrepel.slowkow.com/reference/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
 instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">ggplot2::geom_text()</a></code> for the arrows (only with biplot)</p></dd>
 
 
@@ -204,7 +204,7 @@ of nb of dimensions</p></dd>
 
 
 <dt>...</dt>
-<dd><p>additional parameters passed to <code><a href="https://rdrr.io/pkg/ggrepel/man/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
+<dd><p>additional parameters passed to <code><a href="https://ggrepel.slowkow.com/reference/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
 (if used)</p></dd>
 
 </dl></div>
@@ -333,7 +333,7 @@ of nb of dimensions</p></dd>
 <span class="r-in"><span><span class="va">extVars</span> <span class="op">&lt;-</span> <span class="fu"><a href="getChannelSummaryStats.html">getChannelSummaryStats</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    <span class="va">fsAll</span>,</span></span>
 <span class="r-in"><span>    channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FSC-A"</span>, <span class="st">"SSC-A"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    statsFUN <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span>    statFUNs <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">bp_12</span> <span class="op">&lt;-</span> <span class="fu">ggplotSampleMDS</span><span class="op">(</span></span></span>

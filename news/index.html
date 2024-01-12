@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.7</span>
       </span>
     </div>
 
@@ -93,6 +93,10 @@
 <h3 id="cytomds-0-99-0-5">CytoMDS 0.99.6<a class="anchor" aria-label="anchor" href="#cytomds-0-99-0-5"></a></h3>
 <ul><li>added <code>subset</code> argument in <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> and <code>ggplotSampleMDSWrapBiplots</code>
 </li>
+</ul></div>
+<div class="section level3">
+<h3 id="cytomds-0-99-0-6">CytoMDS 0.99.7<a class="anchor" aria-label="anchor" href="#cytomds-0-99-0-6"></a></h3>
+<ul><li>refactored the pairwise distance calculation code, by pre-computing the unidimensional histograms and store them instead of recalculating them each time a distance between 2 samples is calculated. This improves CPU time and memory consumption.</li>
 </ul></div>
 </div>
   </div>

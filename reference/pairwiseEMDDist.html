@@ -33,7 +33,7 @@ on several computation nodes.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.6</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.7</span>
       </span>
     </div>
 
@@ -97,7 +97,9 @@ on several computation nodes.</p></li>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/register.html" class="external-link">bpparam</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  BPOPTIONS <span class="op">=</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/bpoptions.html" class="external-link">bpoptions</a></span><span class="op">(</span>packages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"flowCore"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  memSize <span class="op">=</span> <span class="cn">Inf</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  binSize <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  minRange <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>,</span>
+<span>  maxRange <span class="op">=</span> <span class="fl">10</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -171,8 +173,19 @@ account the type of BiocParallel infrastructure used (i.e. whether it uses
 shared memory or not).</p></dd>
 
 
-<dt>...</dt>
-<dd><p>additional parameters passed to <code><a href="EMDDist.html">EMDDist()</a></code></p></dd>
+<dt>binSize</dt>
+<dd><p>size of equal bins to approximate
+the marginal distributions.</p></dd>
+
+
+<dt>minRange</dt>
+<dd><p>minimum value taken
+when approximating the marginal distributions</p></dd>
+
+
+<dt>maxRange</dt>
+<dd><p>maximum value taken
+when approximating the marginal distributions</p></dd>
 
 </dl></div>
     <div id="value">
