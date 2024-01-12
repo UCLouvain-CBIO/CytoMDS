@@ -15,7 +15,6 @@ pairwiseEMDDist(
   useBiocParallel = FALSE,
   BPPARAM = BiocParallel::bpparam(),
   BPOPTIONS = BiocParallel::bpoptions(packages = c("flowCore")),
-  memSize = Inf,
   binSize = 0.05,
   minRange = -10,
   maxRange = 10
@@ -64,12 +63,6 @@ to work properly (visibility of functions). As a minimum,
 the \code{flowCore} package needs to be loaded.
 (hence the default \code{BPOPTIONS = bpoptions(packages = c("flowCore"))} )}
 
-\item{memSize}{specifies an estimate of the number of flowFrames that can
-live concurrently in the memory available to a single core
-(in case BiocParallel is used). Note the provided value has to take into
-account the type of BiocParallel infrastructure used (i.e. whether it uses
-shared memory or not).}
-
 \item{binSize}{size of equal bins to approximate
 the marginal distributions.}
 
@@ -87,15 +80,10 @@ a distance matrix of pairwise distances
 Computation of all EMD between pairs of flowFrames belonging
 to a flowSet. This method provides two different input modes:
 \itemize{
-\item the user provides directly a flowSet. This is the preferred way when
-the flowSet can be stored entirely in memory (RAM).
+\item the user provides directly a flowSet loaded in memory (RAM).
 \item the user provides (1.) a number of samples \code{nSamples}; (2.) an ad-hoc
 function that takes as input an index between 1 and \code{nSamples}, and codes
-the method to load the corresponding flowFrame in memory; (3.) an estimate
-of the number of flow frame (per core) that can reside in memory. In that
-case the pairwise distance calculation will be split by matrix blocs, and
-the block size - hence the number of flow frames stored in memory
-concurrently - will be adjusted according to the estimate.
+the method to load the corresponding flowFrame in memory;
 Optional row and column ranges can be provided to limit the calculation
 to a specific rectangle of the matrix. These i.e. can be specified as a way
 to split heavy calculations of large distance matrices
