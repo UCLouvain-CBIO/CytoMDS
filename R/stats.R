@@ -518,11 +518,7 @@ EMDDist <- function(
         rowRange = rowRange,
         colRange = colRange,
         nCores = nAvailableCores,
-        memSize = ifelse(
-            unidimHistograms,
-            Inf,
-            memSize)
-    )
+        memSize = memSize)
     
     blocks2D <- .generateBlocks2D(
         rowRange = rowRange, 
