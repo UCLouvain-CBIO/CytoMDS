@@ -475,7 +475,7 @@ EMDDist <- function(
     # activate newer version of code
     # which works only when EMD distance is based on unidimensional
     # distribution distances
-    unidimHistograms <- FALSE 
+    unidimHistograms <- TRUE 
     
     # validate nSamples, rowSeq and colSeq
     if (!is.numeric(nSamples) || nSamples <= 0) {
