@@ -13,7 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details (<http://www.gnu.org/licenses/>).
 
-# function calculating the unidimensional histograms of a flowFrame
+# internal function calculating the unidimensional histograms of a flowFrame
 .unidimHistograms <- function(
     ff, 
     breaks){
@@ -48,6 +48,7 @@
     return(distr)
 }
 
+# internal function calculating the EMD distance from unidimensional histograms
 .distFromUnidimHistograms <- function(breaks, distr1, distr2) {
     
     nBreaks <- length(breaks)
@@ -332,7 +333,7 @@ EMDDist <- function(
     }
 }
 
-
+# internal function to generate blocks from a (rectangular piece of a) matrix
 .generateBlocks2D <- function(
         rowRange, 
         colRange, 
@@ -381,6 +382,8 @@ EMDDist <- function(
     blocks2D
 }   
 
+# internal function to find a good 2D block size for a computation task,
+# taking into account nb of available cores and memory size/core
 .optimizeRowBlockNb <- function(
         rowRange, 
         colRange, 
@@ -436,6 +439,7 @@ EMDDist <- function(
     nRowBlock
 }
 
+# internal function for pairwise EMD distance calculation
 # Note `memSize` has been hidden in the user interface function.
 # It could be reactivated if we were to switch to distances not based on
 # unidimensional histograms, in that case tight memory management will
@@ -471,7 +475,7 @@ EMDDist <- function(
     # activate newer version of code
     # which works only when EMD distance is based on unidimensional
     # distribution distances
-    unidimHistograms <- TRUE 
+    unidimHistograms <- FALSE 
     
     # validate nSamples, rowSeq and colSeq
     if (!is.numeric(nSamples) || nSamples <= 0) {
@@ -883,7 +887,8 @@ EMDDist <- function(
 
 #' @title Pairwise Earth Mover's Distance calculation
 #' @description Computation of all EMD between pairs of flowFrames belonging
-#' to a flowSet. This method provides two different input modes:
+#' to a flowSet.  
+#' This method provides two different input modes:
 #' - the user provides directly a flowSet loaded in memory (RAM).
 #' - the user provides (1.) a number of samples `nSamples`; (2.) an ad-hoc 
 #' function that takes as input an index between 1 and `nSamples`, and codes
@@ -1039,9 +1044,246 @@ pairwiseEMDDist <- function(
     pwDist
 }
 
+# internal function calculating some by channel summary stats of a flowFrame
+.calcFFStats <- function(
+        ff, 
+        channels,
+        statFUNList,
+        verbose){
+    
+    # chooses a display name for each channel:
+    # markerName if not NA, otherwise channelName
+    
+    #browser()
+    
+    channelNames <- channels
+    for (i in seq_along(channels)) {
+        channelMarker <- flowCore::getChannelMarker(ff, channels[i])$desc
+        if (!is.null(channelMarker) && !is.na(channelMarker)){
+            channelNames[i] <- channelMarker
+        }
+    }
+
+    nChannels <- length(channels)
+    nStats <- length(statFUNList)
+    
+    statMatrix <- matrix(rep(0., nStats * nChannels), nrow = nStats)
+    
+    for (fu in seq_along(statFUNList)) {
+        if (verbose) {
+            message(
+                "computing statistical function ", fu,
+                " per channel...")
+        }
+        statMatrix[fu,] <- vapply(
+            channels,
+            FUN = function(ch){
+                statFUNList[[fu]](
+                flowCore::exprs(ff)[, ch, drop = FALSE],
+                na.rm = TRUE)
+            },
+            FUN.VALUE = 0.)
+    }
+    
+    colnames(statMatrix) <- channelNames
+    rownames(statMatrix) <- names(statFUNList)
+    
+    
+    statMatrix
+}
+
+# internal function for summary stats calculation
+.channelSummaryStats <- function(
+        nSamples,
+        loadFlowFrameFUN,
+        loadFlowFrameFUNArgs,
+        channels = NULL,
+        statFUNs = stats::median,
+        verbose = FALSE,
+        useBiocParallel = FALSE,
+        BPPARAM = BiocParallel::bpparam(),
+        BPOPTIONS = BiocParallel::bpoptions(
+            packages = c("flowCore"))) {
+    #browser()
+    
+    nStats <- length(statFUNs)
+    if (nStats < 1) {
+        stop("At least one stat function should be provided for calculation")
+    }
+    
+    if (is.list(statFUNs) || nStats>1) {
+        statFUNList <- lapply(statFUNs, FUN = match.fun)
+    } else {
+        # also create a list to have it uniform single vs more functions cases
+        statFUNList <- list(match.fun(statFUNs))
+    }
+    # set names to the list
+    names(statFUNList) <- names(statFUNs)
+    
+    
+    if (useBiocParallel) {
+        nAvailableCores <- BiocParallel::bpworkers(BPPARAM) 
+    } else {
+        nAvailableCores <- 1
+    }
+    
+    #browser()
+    
+    if (verbose){
+        message("Loading flow frames and calculate stats...")
+    }
+    
+    sequence <- seq_len(nSamples)
+        
+        
+    if (nAvailableCores == 1){
+        blocks1D <- list(sequence)
+    } else {
+        blocks1D <- split(sequence, 
+                          cut(sequence, 
+                              nAvailableCores, 
+                              labels = FALSE)) 
+    }
+    
+    loadFFAndCalcStats <- function(
+        block, 
+        loadFlowFrameFUN, 
+        loadFlowFrameFUNArgs,
+        channels,
+        statFUNList,
+        verbose) {
+        
+        #browser()
+        
+        statMatList <- list()
+        ind <- 0
+        for (ffIndex in block){
+            if (verbose) {
+                message("Loading file ", ffIndex, "...")
+            }
+            ind <- ind + 1
+            ff <- do.call(
+                loadFlowFrameFUN,
+                args = c(list(ffIndex = ffIndex),
+                         loadFlowFrameFUNArgs))
+            invisible(gc()) # clean memory for ff stored in previous loop
+            if(!inherits(ff, "flowFrame")) {
+                stop("object returned by loadFlowFrameFUN function ",
+                     "should inherit from flowCore::flowFrame")
+            }
+            if (ind == 1) {
+                # check channels
+                if (is.null(channels)) {
+                    channels <- 
+                        flowCore::colnames(ff)[areSignalCols(ff)]
+                } else if (is.numeric(channels)) {
+                    channels <- 
+                        flowCore::colnames(ff)[channels]
+                } else {
+                    channels <- vapply(
+                        channels, 
+                        FUN = function(ch) {
+                            flowCore::getChannelMarker(ff, ch)$name
+                        },
+                        FUN.VALUE = "c")
+                }
+            } else {
+                wrongCh <- which(! channels%in% flowCore::colnames(ff))
+                if (length(wrongCh) > 0) {
+                    stop(
+                        "found some channels that are non existent in flowframe #",
+                        ffIndex, ": ",
+                        channels[wrongCh])
+                } 
+            }
+            
+            # take only the channels of interest for the following,
+            # for performance
+            ff <- ff[,channels]
+            
+            if (verbose) {
+                message("Calculating stats for file ", ffIndex, "...")
+            }
+            statMatList[[ind]] <- .calcFFStats(
+                ff,
+                channels = channels,
+                statFUNList = statFUNList,
+                verbose = verbose)
+        } # end loop on ffIndex
+        
+        statMatList
+        
+    } # end function
+    
+    if (useBiocParallel){
+        statMatBlockList <- BiocParallel::bplapply(
+            blocks1D,
+            FUN = loadFFAndCalcStats,
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BPOPTIONS,
+            loadFlowFrameFUN = loadFlowFrameFUN,
+            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            channels = channels,
+            statFUNList = statFUNList,
+            verbose = verbose)
+    } else {
+        statMatBlockList <- lapply(
+            blocks1D,
+            FUN = loadFFAndCalcStats,
+            loadFlowFrameFUN = loadFlowFrameFUN,
+            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            channels = channels,
+            statFUNList = statFUNList, 
+            verbose = verbose)
+    }
+    
+    #browser()
+    
+    # rearrange outputs
+    
+    nCh <- length(channels)
+    chStats <- list()
+    for (s in seq_along(statFUNs)){
+        chStats[[s]] <- matrix(
+            data = rep(0., nSamples * nCh), nrow = nSamples)
+        colnames(chStats[[s]]) <- colnames(statMatBlockList[[1]][[1]])
+        ind <- 0
+        for (b in seq_along(statMatBlockList)) {
+            for (f in seq_along(statMatBlockList[[b]])) {
+                ind <- ind + 1
+                chStats[[s]][ind,] <- 
+                    statMatBlockList[[b]][[f]][s,]
+            }
+        }
+    }
+    names(chStats) <- names(statFUNs)
+    
+    
+    # if only one stat function => unlist to return one single matrix
+    if (nStats == 1 && !is.list(statFUNs)){
+        chStats <- chStats[[1]]
+    }
+    chStats
+}
+
 #' @title Calculate a summary statistic of some channels of 
 #' all flowFrames of a flowSet 
-#' @param fs a flowCore::flowSet
+#' This method provides two different input modes:
+#' - the user provides directly a flowSet loaded in memory (RAM).
+#' - the user provides (1.) a number of samples `nSamples`; (2.) an ad-hoc 
+#' function that takes as input an index between 1 and `nSamples`, and codes
+#' the method to load the corresponding flowFrame in memory; 
+#' Optional row and column ranges can be provided to limit the calculation
+#' to a specific rectangle of the matrix. These i.e. can be specified as a way 
+#' to split heavy calculations of large distance matrices 
+#' on several computation nodes.  
+#' @param x either a flowCore::flowSet, or the number of samples (integer >=1)
+#' @param loadFlowFrameFUN the function used to translate a flowFrame index
+#' into a flowFrame. In other words, the function should code how to load a
+#' specific flowFrame into memory. Important: the flow Frame index should be 
+#' the first function argument and should be named `ffIndex`. 
+#' @param loadFlowFrameFUNArgs (optional) a named list containing 
+#' additional input parameters of `loadFlowFrameFUN()`
 #' @param channels which channels (integer index(ices) or character(s)):
 #' - if it is a character vector, 
 #' it can refer to either the channel names, or the marker names
@@ -1049,12 +1291,25 @@ pairwiseEMDDist <- function(
 #' it refers to the indexes of channels in `fs`
 #' - if NULL all scatter and fluorescent channels of `fs`
 #' will be selected
-#' @param verbose if `TRUE`, output a message 
-#' after each single distance calculation
 #' @param statFUNs a list (possibly of length one) of
 #' functions to call to calculate the statistics, or a simple function
 #' This list can be named, in that case, these names will be transfered to the
 #' returned value.
+#' @param verbose if `TRUE`, output a message 
+#' after each single distance calculation
+#' @param useBiocParallel if `TRUE`, use `BiocParallel` for computation of the
+#' pairwise distances in parallel - one (i,j) at a time.
+#' Note the `BiocParallel` function used internally is `bplapply()`
+#' @param BPPARAM if `useBiocParallel` is TRUE, sets the `BPPARAM` back-end to
+#' be used for the computation. If not provided, will use the top back-end on
+#' the `BiocParallel::registered()` stack.
+#' @param BPOPTIONS if `useBiocParallel` is TRUE, sets the BPOPTIONS to be 
+#' passed to `bplapply()` function.   
+#' Note that if you use a `SnowParams` back-end, you need to specify all   
+#' the packages that need to be loaded for the different CytoProcessingStep   
+#' to work properly (visibility of functions). As a minimum,    
+#' the `flowCore` package needs to be loaded.  
+#' (hence the default `BPOPTIONS = bpoptions(packages = c("flowCore"))` )
 #' @return a list of named statistic matrices. 
 #' In each stat matrix, the columns are the channel statistics 
 #' for all flowFrames of the flowSet.
@@ -1086,7 +1341,7 @@ pairwiseEMDDist <- function(
 #' 
 #' # calculate mean for each 4 selected channels, for each 2 samples
 #' 
-#' channelMeans <- getChannelSummaryStats(
+#' channelMeans <- channelSummaryStats(
 #'     OMIP021Trans,
 #'     channels = channelsOrMarkers,
 #'     statFUNs = mean)
@@ -1094,118 +1349,83 @@ pairwiseEMDDist <- function(
 #' # calculate median AND std deviation
 #' # for each 4 selected channels, for each 2 samples
 #' 
-#' channelMedians <- getChannelSummaryStats(
+#' channelMedians <- channelSummaryStats(
 #'     OMIP021Trans,
 #'     channels = channelsOrMarkers,
 #'     statFUNs = list("median" = stats::median, 
 #'                     "std.dev" = stats::sd))
-#'    
-getChannelSummaryStats <- function(
-        fs,
+#'  
+channelSummaryStats <- function(
+        x,
+        loadFlowFrameFUN = NULL,
+        loadFlowFrameFUNArgs = NULL,
         channels = NULL,
         statFUNs = stats::median,
-        verbose = FALSE){
-                                   
-    if(!inherits(fs, "flowSet")) {
-        stop("fs object should inherit from flowCore::flowSet")
-    }
+        verbose = FALSE,
+        useBiocParallel = FALSE,
+        BPPARAM = BiocParallel::bpparam(),
+        BPOPTIONS = BiocParallel::bpoptions(
+            packages = c("flowCore"))){
     
-    nStats <- length(statFUNs)
-    if (nStats < 1) {
-        stop("At least one stat function should be provided for calculation")
-    }
-    
-    if (is.list(statFUNs) || nStats>1) {
-        statFUNList <- lapply(statFUNs, FUN = match.fun)
-    } else {
-        # also create a list to have it uniform single vs more functions cases
-        statFUNList <- list(match.fun(statFUNs))
-    }
-    # set names to the list
-    names(statFUNList) <- names(statFUNs)
-    
-    # check channels
-    if (is.null(channels)) {
-        channels <- flowCore::colnames(fs)[areSignalCols(fs[[1]])]
-    } else if (is.numeric(channels)) {
-        channels <- flowCore::colnames(fs)[channels]
-    } else {
-        channels <- vapply(
-            channels, 
-            FUN = function(ch) {
-                flowCore::getChannelMarker(fs[[1]], ch)$name
-            },
-            FUN.VALUE = "c")
-    }
-    
-    # chooses a display name for each channel:
-    # markerName if not NA, otherwise channelName
-    
-    channelNames <- channels
-    for (i in seq_along(channels)) {
-        channelMarker <- flowCore::getChannelMarker(fs[[1]], channels[i])$desc
-        if (!is.null(channelMarker) && !is.na(channelMarker)){
-            channelNames[i] <- channelMarker
-        }
-    }
-    
-    # check that all channels are present in flowSet
-    wrongCh <- which(! channels %in% flowCore::colnames(fs))
-    if (length(wrongCh) > 0) {
-        stop(
-            "found some channels that are non existent in flowSet: ",
-            channels[wrongCh])
-    }
-    
-    # take only the channels of interest for the following
     #browser()
-    # for performance
-    fs <- fs[,channels]
     
-    nFF <- length(fs)
-    if (nFF < 1) stop("empty flowSet passed")
+    nSamples <- NULL
+    inMemory <- FALSE
     
-    nChannels <- length(channels)
-    
-    statList <- list()
-    for (fu in seq_along(statFUNList)) {
-        if (verbose) {
-            message(
-                "computing statistical function ", fu,
-                " per channel...")
+    if(inherits(x, "flowSet")) {
+        getFF <- function(ffIndex, fs) {
+            return(fs[[ffIndex]])
         }
-        statList[[fu]] <- vapply(
-            channels,
-            FUN = function(ch){
-                chRes <- flowCore::fsApply(
-                    fs,
-                    FUN = function(ff){
-                        statFUNList[[fu]](
-                            flowCore::exprs(ff)[, ch, drop = FALSE],
-                            na.rm = TRUE)
-                    })
-            },
-            FUN.VALUE = numeric(length = nFF))
+        nSamples <- length(x)
+        chStats <- .channelSummaryStats(
+            nSamples = nSamples,
+            loadFlowFrameFUN = getFF,
+            loadFlowFrameFUNArgs = list(fs = x),
+            channels = channels,
+            statFUNs = statFUNs,
+            verbose = verbose,
+            useBiocParallel = useBiocParallel,
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BPOPTIONS)
         
-        if (!is.matrix(statList[[fu]]) ) {
-            statList[[fu]] <- matrix(statList[[fu]], nrow = 1)
-        } 
-        colnames(statList[[fu]]) <- channelNames
-        rowNames <- as.character(flowCore::pData(fs)$name)
-        if (!is.null(rowNames)) {
-            rownames(statList[[fu]]) <- rowNames
+        # set flowframe names to returned matrix(ces)
+        #browser()
+        if (is.list(chStats)) {
+            chStats <- lapply(chStats, FUN = function(e, fs){
+                rownames(e) <- flowCore::sampleNames(fs)
+                e
+            }, fs = x)
+        } else { # simple matrix
+            rownames(chStats) <- flowCore::sampleNames(x)
         }
+    } else {
+        if (!is.numeric(x) || length(x) > 1) {
+            stop("x should be either a flowCore::flowFrame ",
+                 "or a numeric of length 1")
+        }
+        if (x < 1) {
+            stop("x should be >= 1")
+        }
+        nSamples <- x
+        
+        if (is.null(loadFlowFrameFUN)) {
+            stop("loadFlowFrameFUN should be provided ",
+                 "when x is the number of samples")
+        }
+        
+        chStats <- .channelSummaryStats(
+            nSamples = nSamples,
+            loadFlowFrameFUN = loadFlowFrameFUN,
+            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            channels = channels,
+            statFUNs = statFUNs,
+            verbose = verbose,
+            useBiocParallel = useBiocParallel,
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BPOPTIONS)
     }
+    chStats
     
-    # transfer function names to return value
-    names(statList) <- names(statFUNList)
-    
-    # if only one stat function => unlist to return one single matrix
-    if (nStats == 1 && !is.list(statFUNs)){
-        statList <- statList[[1]]
-    }
-    
-    statList
 }
 
 #' @title metric MDS projection of sample

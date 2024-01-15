@@ -98,7 +98,7 @@ test_that("ggplotSampleMDS works", {
         "ggplotSampleMDS with axes 3 and 4",
         fig = p)
     
-    extVars <- getChannelSummaryStats(
+    extVars <- channelSummaryStats(
         fsAll,
         channels = c("FSC-A", "SSC-A"),
         statFUNs = stats::median,
@@ -312,7 +312,7 @@ test_that("ggplotSampleMDSWrapBiplots works", {
     # try to associate axes with median or std deviation of each channel
     # => use bi-plots
 
-    extVarList <- getChannelSummaryStats(
+    extVarList <- channelSummaryStats(
         fsAll,
         channels = c("FSC-A", "SSC-A"),
         statFUNs = c("median" = stats::median, 

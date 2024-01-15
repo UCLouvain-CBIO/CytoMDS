@@ -128,7 +128,7 @@
 #' # try to associate axes with median of each channel
 #' # => use bi-plot
 #' 
-#' extVars <- getChannelSummaryStats(
+#' extVars <- channelSummaryStats(
 #'     fsAll,
 #'     channels = c("FSC-A", "SSC-A"),
 #'     statFUNs = stats::median)
@@ -739,7 +739,7 @@ ggplotSampleMDSShepard <- function(
 #' # try to associate axes with median or std deviation of each channel
 #' # => use bi-plots
 #' 
-#' extVarList <- getChannelSummaryStats(
+#' extVarList <- channelSummaryStats(
 #'     fsAll,
 #'     channels = c("FSC-A", "SSC-A"),
 #'     statFUNs = c("median" = stats::median, 

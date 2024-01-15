@@ -120,7 +120,7 @@ p_12 <- ggplotSampleMDS(
 # try to associate axes with median or std deviation of each channel
 # => use bi-plots
 
-extVarList <- getChannelSummaryStats(
+extVarList <- channelSummaryStats(
     fsAll,
     channels = c("FSC-A", "SSC-A"),
     statFUNs = c("median" = stats::median, 

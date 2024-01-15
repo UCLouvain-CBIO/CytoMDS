@@ -32,7 +32,7 @@ and the second element comes from `fs2`.
 - new function `ggplotSampleMDSWrapBiplots()`
 
 ### CytoMDS 0.99.5
-- renamed `getPairwiseEMDDist()` into pairwiseEMDDist()
+- renamed `getPairwiseEMDDist()` into `pairwiseEMDDist()`
 - in `pairwiseEMDDist()`, added support for `BiocParallel`, and allowed
 for not loading the whole flowSet in memory at once.
 
@@ -45,3 +45,7 @@ for not loading the whole flowSet in memory at once.
 unidimensional histograms and store them instead of recalculating them each
 time a distance between 2 samples is calculated. This improves CPU time and
 memory consumption.
+- renamed `getChannelSummaryStats()` into `channelSummaryStats()`
+- in `channelSummaryStats(), added support for `BiocParallel`, and allowed
+for not loading the whole flowSet in memory at once.
+

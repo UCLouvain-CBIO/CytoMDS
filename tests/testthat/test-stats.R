@@ -29,6 +29,78 @@ OMIP021Trans <- CytoPipeline::applyScaleTransforms(
     OMIP021Samples, 
     transList)
 
+# function used in subsequent tests where the flow set is not stored at once
+# in memory but the flow frames are loadeed dynamically upon request
+simulMemoryLoad <- function(
+        ffIndex, 
+        filePaths, 
+        nSamples,
+        verbose) {
+    
+    if (!is.numeric(nSamples) || nSamples < 1) {
+        stop("nSamples should be a numeric greater than or equal to 1")
+    }
+    
+    if (!is.numeric(ffIndex) || ffIndex < 1) {
+        stop("ffIndex should be a numeric greater than or equal to 1")
+    }
+    
+    if (ffIndex > nSamples) {
+        stop("ffIndex should be <= nSamples")
+    }
+    
+    # init Flow Set
+    if (verbose) {
+        message("loading ff #", ffIndex, "/", nSamples, "...")
+        message("reading initial flow set...")
+    }
+    
+    initialFS <- flowCore::read.flowSet(
+        filePaths,
+        transformation = "linearize",
+        alter.names = FALSE,
+        name = "OMIP-21",
+        truncate_max_range = TRUE,
+        min.limit = NULL)
+    
+    if (verbose) {
+        message("transforming samples...")
+    }
+    
+    transList <- estimateScaleTransforms(
+        ff = initialFS[[1]],
+        fluoMethod = "estimateLogicle",
+        scatterMethod = "linearQuantile",
+        scatterRefMarker = "BV785 - CD3")
+    
+    transFS <- CytoPipeline::applyScaleTransforms(
+        initialFS, 
+        transList)
+    
+    if (verbose) {
+        message("creating specific sample...")
+    }
+    
+    if (ffIndex <= ceiling(nSamples/2)){
+        ff <- CytoPipeline::subsample(
+            transFS[[1]],
+            nEvents = 1000,
+            seed = ffIndex)[,1:22]
+    } else {
+        ff <- CytoPipeline::subsample(
+            transFS[[2]],
+            nEvents = 1000,
+            seed = ffIndex)[,1:22]
+    }
+    
+    # fscMean <- mean(flowCore::exprs(ff)[,"FSC-A"])
+    # sscMean <- mean(flowCore::exprs(ff)[,"SSC-A"])
+    # message("OBTAINED FF: FSC mean: ", round(fscMean,6), "; SSC mean:", 
+    #          round(sscMean,6), "\n")
+    
+    ff
+}
+
 test_that("EMDDist works", {
     # distance with itself, all channels
     distDum <- EMDDist(ff1 = OMIP021Trans[[1]],
@@ -447,76 +519,6 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
     
     filePaths <- file.path(datasetPath, files)
     
-    simulMemoryLoad <- function(
-        ffIndex, 
-        filePaths, 
-        nSamples,
-        verbose) {
-        
-        if (!is.numeric(nSamples) || nSamples < 1) {
-            stop("nSamples should be a numeric greater than or equal to 1")
-        }
-        
-        if (!is.numeric(ffIndex) || ffIndex < 1) {
-            stop("ffIndex should be a numeric greater than or equal to 1")
-        }
-        
-        if (ffIndex > nSamples) {
-            stop("ffIndex should be <= nSamples")
-        }
-        
-        # init Flow Set
-        if (verbose) {
-            message("loading ff #", ffIndex, "/", nSamples, "...")
-            message("reading initial flow set...")
-        }
-        
-        initialFS <- flowCore::read.flowSet(
-            filePaths,
-            transformation = "linearize",
-            alter.names = FALSE,
-            name = "OMIP-21",
-            truncate_max_range = TRUE,
-            min.limit = NULL)
-        
-        if (verbose) {
-            message("transforming samples...")
-        }
-        
-        transList <- estimateScaleTransforms(
-            ff = initialFS[[1]],
-            fluoMethod = "estimateLogicle",
-            scatterMethod = "linearQuantile",
-            scatterRefMarker = "BV785 - CD3")
-        
-        transFS <- CytoPipeline::applyScaleTransforms(
-            initialFS, 
-            transList)
-        
-        if (verbose) {
-            message("creating specific sample...")
-        }
-        
-        if (ffIndex <= ceiling(nSamples/2)){
-            ff <- CytoPipeline::subsample(
-                transFS[[1]],
-                nEvents = 1000,
-                seed = ffIndex)[,1:22]
-        } else {
-            ff <- CytoPipeline::subsample(
-                transFS[[2]],
-                nEvents = 1000,
-                seed = ffIndex)[,1:22]
-        }
-        
-        # fscMean <- mean(flowCore::exprs(ff)[,"FSC-A"])
-        # sscMean <- mean(flowCore::exprs(ff)[,"SSC-A"])
-        # message("OBTAINED FF: FSC mean: ", round(fscMean,6), "; SSC mean:", 
-        #          round(sscMean,6), "\n")
-        
-        ff
-    }
-    
     nSamples <- 10
     verbose <- FALSE
     pwDist <- pairwiseEMDDist(
@@ -579,7 +581,7 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
     expect_equal(pwDist2[6,10], 0.05840)
 })
 
-test_that("getChannelSummaryStats works", {
+test_that("channelSummaryStats works", {
    
     ffList <- flowCore::flowSet_to_list(OMIP021Trans)
     
@@ -598,12 +600,11 @@ test_that("getChannelSummaryStats works", {
     
     channelsOrMarkers <- c("FSC-A", "SSC-A", "BV785 - CD3")
     
-    ret <- getChannelSummaryStats(
+    ret <- channelSummaryStats(
         fsAll,
         channels = channelsOrMarkers,
         statFUNs = stats::median,
         verbose = FALSE)
-    
     
     expect_equal(unname(rownames(ret)), flowCore::sampleNames(fsAll))
     expect_equal(unname(colnames(ret)), channelsOrMarkers)
@@ -612,11 +613,11 @@ test_that("getChannelSummaryStats works", {
     expect_equal(unname(ret[3,2]), 1.131832378296435)
     expect_equal(unname(ret[4,3]), 1.638696159955064)
     
-    ret <- getChannelSummaryStats(
+    ret <- channelSummaryStats(
         fsAll,
         channels = channelsOrMarkers,
         statFUNs = list("mean" = mean, "std.dev" = stats::sd),
-        verbose = FALSE)
+        verbose = TRUE)
     
     expect_equal(names(ret), c("mean", "std.dev"))
     expect_equal(unname(rownames(ret[[1]])), flowCore::sampleNames(fsAll))
@@ -632,7 +633,7 @@ test_that("getChannelSummaryStats works", {
     expect_equal(unname(ret[[2]][4,3]), 0.8420740225208073)
     
     # test with only one flow frame 
-    ret <- getChannelSummaryStats(
+    ret <- channelSummaryStats(
         fsAll[1],
         channels = channelsOrMarkers,
         statFUNs = list("mean" = mean, "std.dev" = stats::sd),
@@ -651,7 +652,7 @@ test_that("getChannelSummaryStats works", {
     expect_equal(unname(ret[[2]][3]), 0.85498796)
     
     # one flow frame, one stat
-    ret <- getChannelSummaryStats(
+    ret <- channelSummaryStats(
         fsAll[1],
         channels = channelsOrMarkers,
         statFUNs = list("mean" = mean),
@@ -664,7 +665,7 @@ test_that("getChannelSummaryStats works", {
     expect_equal(unname(ret[[1]][1,3]), 1.8544648)
     
     # one flow frame, one stat (bis with direct impact of stat FUN)
-    ret <- getChannelSummaryStats(
+    ret <- channelSummaryStats(
         fsAll[1],
         channels = channelsOrMarkers,
         statFUNs = mean,
@@ -676,6 +677,91 @@ test_that("getChannelSummaryStats works", {
     expect_equal(unname(ret[1,2]), 1.39186533)
     expect_equal(unname(ret[1,3]), 1.8544648)
 })
+
+test_that("channelSummaryStats dynamic memory loading simulation", {
+    datasetPath <- system.file("extdata",
+                               package = "CytoPipeline")
+
+    files <- list.files(datasetPath, pattern = "Donor", recursive = TRUE)
+    if (length(files) != 2) stop("unexpected nb of files!")
+
+    filePaths <- file.path(datasetPath, files)
+    
+    channelsOrMarkers <- c("FSC-A", "SSC-A", "BV785 - CD3")
+
+    nSamples <- 10
+    verbose <- TRUE
+    ret <- CytoMDS::channelSummaryStats(
+        x = nSamples,
+        loadFlowFrameFUN = simulMemoryLoad,
+        loadFlowFrameFUNArgs = list(
+            filePaths = filePaths,
+            nSamples = nSamples,
+            verbose = FALSE
+        ),
+        channels = channelsOrMarkers,
+        statFUNs = list("mean" = mean, "std.dev" = stats::sd),
+        verbose = verbose)
+    
+    expect_equal(names(ret), c("mean", "std.dev"))
+    expect_equal(dim(ret[[1]]), c(10, 3))
+    expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
+    expect_equal(unname(colnames(ret[[2]])), channelsOrMarkers)
+    expect_equal(unname(ret[[1]][1,1]), 1.92190274)
+    expect_equal(unname(ret[[1]][2,2]), 1.4023616)
+    expect_equal(unname(ret[[1]][7,3]), 1.9957383)
+    expect_equal(unname(ret[[2]][1,1]), 0.71007302)
+    expect_equal(unname(ret[[2]][2,2]), 0.72191947)
+    expect_equal(unname(ret[[2]][7,3]), 0.81531185)
+
+    # same with BiocParallel
+
+    logDir <- file.path(outputDir, "BiocParallel", "log")
+
+    suppressWarnings(dir.create(logDir, recursive = TRUE))
+    bp <- BiocParallel::SnowParam(log = TRUE,
+                                  logdir = logDir,
+                                  progressbar = TRUE,
+                                  RNGseed = 0)
+    ret2 <- suppressWarnings(CytoMDS::channelSummaryStats(
+        x = nSamples,
+        loadFlowFrameFUN = simulMemoryLoad,
+        loadFlowFrameFUNArgs = list(
+            filePaths = filePaths,
+            nSamples = nSamples,
+            verbose = FALSE
+        ),
+        channels = channelsOrMarkers,
+        statFUNs = list("mean" = mean, "std.dev" = stats::sd),
+        verbose = verbose,
+        useBiocParallel = TRUE,
+        BPPARAM = bp,
+        BPOPTIONS = BiocParallel::bpoptions(
+            packages = c("flowCore", "CytoPipeline"))))
+    
+    # Note it is normal that the computed stats are different
+    # from the ones obtained when not using BiocParallel.
+    # As described in section 2.4 of technical note:
+    # https://bioconductor.org/packages/release/bioc/vignettes/
+    # BiocParallel/inst/doc/Random_Numbers.html ,
+    # it is not possible to reconcile results from lapply() with
+    # results from bplapply().
+    # However, using 'RNGseed' argument in BiocParallel::bp() insures
+    # results obtained with bplapply() are still reproducible from
+    # one run to another
+    #
+    expect_equal(names(ret2), c("mean", "std.dev"))
+    expect_equal(dim(ret2[[1]]), c(10, 3))
+    expect_equal(unname(colnames(ret2[[1]])), channelsOrMarkers)
+    expect_equal(unname(colnames(ret2[[2]])), channelsOrMarkers)
+    expect_equal(unname(ret2[[1]][1,1]), 1.90567984)
+    expect_equal(unname(ret2[[1]][2,2]), 1.36523328)
+    expect_equal(unname(ret2[[1]][7,3]), 1.99832484)
+    expect_equal(unname(ret2[[2]][1,1]), 0.71358848)
+    expect_equal(unname(ret2[[2]][2,2]), 0.74298778)
+    expect_equal(unname(ret2[[2]][7,3]), 0.82220517)
+})
+
 
 test_that("computeMetricMDS works", {
     ffList <- flowCore::flowSet_to_list(OMIP021Trans)
