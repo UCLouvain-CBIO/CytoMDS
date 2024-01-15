@@ -28,10 +28,10 @@
     <loc>/reference/EMDDist.html</loc>
   </url>
   <url>
-    <loc>/reference/computeMetricMDS.html</loc>
+    <loc>/reference/channelSummaryStats.html</loc>
   </url>
   <url>
-    <loc>/reference/getChannelSummaryStats.html</loc>
+    <loc>/reference/computeMetricMDS.html</loc>
   </url>
   <url>
     <loc>/reference/ggplotSampleMDS.html</loc>

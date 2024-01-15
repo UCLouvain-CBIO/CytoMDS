@@ -86,7 +86,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="cytomds-0-99-0-4">CytoMDS 0.99.5<a class="anchor" aria-label="anchor" href="#cytomds-0-99-0-4"></a></h3>
-<ul><li>renamed <code>getPairwiseEMDDist()</code> into pairwiseEMDDist()</li>
+<ul><li>renamed <code>getPairwiseEMDDist()</code> into <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code>
+</li>
 <li>in <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code>, added support for <code>BiocParallel</code>, and allowed for not loading the whole flowSet in memory at once.</li>
 </ul></div>
 <div class="section level3">
@@ -97,6 +98,9 @@
 <div class="section level3">
 <h3 id="cytomds-0-99-0-6">CytoMDS 0.99.7<a class="anchor" aria-label="anchor" href="#cytomds-0-99-0-6"></a></h3>
 <ul><li>refactored the pairwise distance calculation code, by pre-computing the unidimensional histograms and store them instead of recalculating them each time a distance between 2 samples is calculated. This improves CPU time and memory consumption.</li>
+<li>renamed <code>getChannelSummaryStats()</code> into <code><a href="../reference/channelSummaryStats.html">channelSummaryStats()</a></code>
+</li>
+<li>in <code>channelSummaryStats(), added support for</code>BiocParallel`, and allowed for not loading the whole flowSet in memory at once.</li>
 </ul></div>
 </div>
   </div>
