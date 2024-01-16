@@ -617,7 +617,7 @@ test_that("channelSummaryStats works", {
         fsAll,
         channels = channelsOrMarkers,
         statFUNs = list("mean" = mean, "std.dev" = stats::sd),
-        verbose = TRUE)
+        verbose = FALSE)
     
     expect_equal(names(ret), c("mean", "std.dev"))
     expect_equal(unname(rownames(ret[[1]])), flowCore::sampleNames(fsAll))
@@ -676,6 +676,31 @@ test_that("channelSummaryStats works", {
     expect_equal(unname(ret[1,1]), 1.900298)
     expect_equal(unname(ret[1,2]), 1.39186533)
     expect_equal(unname(ret[1,3]), 1.8544648)
+    
+    # case where no channels is provided
+    ret <- channelSummaryStats(
+        fsAll,
+        statFUNs = list("mean" = mean, "std.dev" = stats::sd),
+        verbose = FALSE
+    )
+    
+    allSignalChannels <- 
+        flowCore::colnames(fsAll)[CytoPipeline::areSignalCols(fsAll)]
+    nSignalCh <- length(allSignalChannels)
+    
+    allSignalChannelNames <- allSignalChannels
+    for (i in seq_along(allSignalChannels)) {
+        channelMarker <- 
+            flowCore::getChannelMarker(fsAll[[1]], allSignalChannels[i])$desc
+        if (!is.null(channelMarker) && !is.na(channelMarker)){
+            allSignalChannelNames[i] <- channelMarker
+        }
+    }
+    
+    expect_equal(unname(rownames(ret[[1]])), 
+                 c("Donor1", "Donor2", "Agg1", "Agg2", "Agg3"))
+    expect_equal(unname(colnames(ret[[1]])), allSignalChannelNames)
+    
 })
 
 test_that("channelSummaryStats dynamic memory loading simulation", {
@@ -690,7 +715,7 @@ test_that("channelSummaryStats dynamic memory loading simulation", {
     channelsOrMarkers <- c("FSC-A", "SSC-A", "BV785 - CD3")
 
     nSamples <- 10
-    verbose <- TRUE
+    verbose <- FALSE
     ret <- CytoMDS::channelSummaryStats(
         x = nSamples,
         loadFlowFrameFUN = simulMemoryLoad,

@@ -1106,6 +1106,10 @@ pairwiseEMDDist <- function(
             packages = c("flowCore"))) {
     #browser()
     
+    if (!is.numeric(nSamples) || nSamples < 1) {
+        stop("nSamples should be a numeric >= 1")
+    }
+    
     nStats <- length(statFUNs)
     if (nStats < 1) {
         stop("At least one stat function should be provided for calculation")
@@ -1241,7 +1245,7 @@ pairwiseEMDDist <- function(
     
     # rearrange outputs
     
-    nCh <- length(channels)
+    nCh <- ncol(statMatBlockList[[1]][[1]])
     chStats <- list()
     for (s in seq_along(statFUNs)){
         chStats[[s]] <- matrix(
@@ -1266,8 +1270,9 @@ pairwiseEMDDist <- function(
     chStats
 }
 
-#' @title Calculate a summary statistic of some channels of 
-#' all flowFrames of a flowSet 
+#' @title Summary statistics per channel computation
+#' @description Computation of summary statistic for selected channels,
+#' for all flowFrames of a flowSet.   
 #' This method provides two different input modes:
 #' - the user provides directly a flowSet loaded in memory (RAM).
 #' - the user provides (1.) a number of samples `nSamples`; (2.) an ad-hoc 
@@ -1377,6 +1382,9 @@ channelSummaryStats <- function(
             return(fs[[ffIndex]])
         }
         nSamples <- length(x)
+        if (nSamples < 1) {
+            stop("empty flowSet passed")
+        }
         chStats <- .channelSummaryStats(
             nSamples = nSamples,
             loadFlowFrameFUN = getFF,

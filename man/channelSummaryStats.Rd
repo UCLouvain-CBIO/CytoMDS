@@ -2,19 +2,7 @@
 % Please edit documentation in R/stats.R
 \name{channelSummaryStats}
 \alias{channelSummaryStats}
-\title{Calculate a summary statistic of some channels of
-all flowFrames of a flowSet
-This method provides two different input modes:
-\itemize{
-\item the user provides directly a flowSet loaded in memory (RAM).
-\item the user provides (1.) a number of samples \code{nSamples}; (2.) an ad-hoc
-function that takes as input an index between 1 and \code{nSamples}, and codes
-the method to load the corresponding flowFrame in memory;
-Optional row and column ranges can be provided to limit the calculation
-to a specific rectangle of the matrix. These i.e. can be specified as a way
-to split heavy calculations of large distance matrices
-on several computation nodes.
-}}
+\title{Summary statistics per channel computation}
 \usage{
 channelSummaryStats(
   x,
@@ -81,8 +69,8 @@ Exception: if only one stat function (and not a list) is passed in
 \code{statFUNs}, the return value is simplified to the stat matrix itself.
 }
 \description{
-Calculate a summary statistic of some channels of
-all flowFrames of a flowSet
+Computation of summary statistic for selected channels,
+for all flowFrames of a flowSet.
 This method provides two different input modes:
 \itemize{
 \item the user provides directly a flowSet loaded in memory (RAM).
