@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.7</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.8</span>
       </span>
     </div>
 
@@ -98,7 +98,10 @@
 <div class="section level3">
 <h3 id="cytomds-0-99-0-6">CytoMDS 0.99.7<a class="anchor" aria-label="anchor" href="#cytomds-0-99-0-6"></a></h3>
 <ul><li>refactored the pairwise distance calculation code, by pre-computing the unidimensional histograms and store them instead of recalculating them each time a distance between 2 samples is calculated. This improves CPU time and memory consumption.</li>
-<li>renamed <code>getChannelSummaryStats()</code> into <code><a href="../reference/channelSummaryStats.html">channelSummaryStats()</a></code>
+</ul></div>
+<div class="section level3">
+<h3 id="cytomds-0-99-0-7">CytoMDS 0.99.8<a class="anchor" aria-label="anchor" href="#cytomds-0-99-0-7"></a></h3>
+<ul><li>renamed <code>getChannelSummaryStats()</code> into <code><a href="../reference/channelSummaryStats.html">channelSummaryStats()</a></code>
 </li>
 <li>in <code>channelSummaryStats(), added support for</code>BiocParallel`, and allowed for not loading the whole flowSet in memory at once.</li>
 </ul></div>
