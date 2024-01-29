@@ -50,4 +50,6 @@ memory consumption.
 - renamed `getChannelSummaryStats()` into `channelSummaryStats()`
 - in `channelSummaryStats(), added support for `BiocParallel`, and allowed
 for not loading the whole flowSet in memory at once.
+- replaced NULL defaulted parameters with optional parameters
+- added `displayPointLabels` argument to `ggplotSampleMDS()`
 

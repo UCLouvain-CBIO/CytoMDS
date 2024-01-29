@@ -45,6 +45,7 @@ fsAll <- as(ffList,"flowSet")
 
 flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
 flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
+flowCore::pData(fsAll)$lbl <- paste0("S", 1:5)
 
 pwDist <- pairwiseEMDDist(fsAll, 
                           channels = c("FSC-A", "SSC-A"),
@@ -54,71 +55,93 @@ test_that("ggplotSampleMDS works", {
     
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
     
+    set.seed(0) # to get same results with ggrepel()
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
                          pDataForColour = "grpId",
-                         pDataForLabel = NULL,
                          pDataForShape = "type")
     
     vdiffr::expect_doppelganger("ggplotSampleMDS with axes 1 and 2",
                                 fig = p)
     
-    # testing with subset
+    # no labels
     
+    p <- ggplotSampleMDS(mdsObj = mdsObj,
+                         pData = flowCore::pData(fsAll),
+                         projectionAxes = c(1,2),
+                         pDataForColour = "grpId",
+                         pDataForShape = "type",
+                         displayPointLabels = FALSE)
+    
+    vdiffr::expect_doppelganger("ggplotSampleMDS with axes 1 and 2 - no labels",
+                                fig = p)
+    
+    # explicit labels
+
+    p <- ggplotSampleMDS(mdsObj = mdsObj,
+                         pData = flowCore::pData(fsAll),
+                         projectionAxes = c(1,2),
+                         pDataForColour = "grpId",
+                         pDataForShape = "type",
+                         pDataForLabel = "lbl")
+
+    vdiffr::expect_doppelganger(
+        "ggplotSampleMDS with axes 1 and 2 - explicit labels",
+        fig = p)
+
+    # testing with subset
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          sampleSubset = (flowCore::pData(fsAll)$type == "real"),
                          projectionAxes = c(1,2),
                          pDataForColour = "grpId",
-                         pDataForLabel = NULL,
                          pDataForShape = "type")
-    
+
     vdiffr::expect_doppelganger("ggplotSampleMDS with axes 1 and 2 - real",
                                 fig = p)
-    
+
     expect_error(ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          sampleSubset = (grpId == "Agg"),
                          projectionAxes = c(1,2),
                          pDataForColour = "grpId",
-                         pDataForLabel = NULL,
-                         pDataForShape = "type"), 
+                         pDataForShape = "type"),
                  regexp = "object 'grpId' not found")
-                              
-    
+
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(3,4),
                          pDataForColour = "grpId",
                          pDataForLabel = "name",
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS with axes 3 and 4",
         fig = p)
-    
+
     extVars <- channelSummaryStats(
         fsAll,
         channels = c("FSC-A", "SSC-A"),
         statFUNs = stats::median,
         verbose = FALSE)
-    
-    
+
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
                          biplot = TRUE,
                          extVariables = extVars,
                          pDataForColour = "grpId",
-                         pDataForLabel = NULL,
                          pDataForShape = "type",
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS with axes 1 and 2 and extVars",
         fig = p)
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
@@ -126,14 +149,13 @@ test_that("ggplotSampleMDS works", {
                          biplotType = "regression",
                          extVariables = extVars,
                          pDataForColour = "grpId",
-                         pDataForLabel = NULL,
                          pDataForShape = "type",
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS axes 1 2 biplot regression",
-        fig = p)    
-    
+        fig = p)
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(3,4),
@@ -142,11 +164,11 @@ test_that("ggplotSampleMDS works", {
                          pDataForColour = "grpId",
                          pDataForLabel = "name",
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS with axes 3 and 4 and extVars",
         fig = p)
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(3,4),
@@ -154,14 +176,13 @@ test_that("ggplotSampleMDS works", {
                          biplotType = "regression",
                          extVariables = extVars,
                          pDataForColour = "grpId",
-                         pDataForLabel = NULL,
                          pDataForShape = "type",
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS axes 3 4 biplot regression",
-        fig = p)    
-    
+        fig = p)
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(3,4),
@@ -171,13 +192,13 @@ test_that("ggplotSampleMDS works", {
                          pDataForLabel = "name",
                          arrowThreshold = 0.,
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS arrowThreshold",
         fig = p)
-    
+
     # testing with subset
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          sampleSubset = (flowCore::pData(fsAll)$grpId == "Agg"),
@@ -188,44 +209,42 @@ test_that("ggplotSampleMDS works", {
                          pDataForLabel = "name",
                          arrowThreshold = 0.,
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS arrowThreshold subset",
         fig = p)
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
                          biplot = TRUE,
                          extVariables = extVars,
                          pDataForColour = "grpId",
-                         pDataForLabel = NULL,
                          pDataForShape = "type",
                          displayArrowLabels = FALSE,
                          seed = 0)
-    
-    
-    
+
+
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS no arrow label",
         fig = p)
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(3,4),
                          biplot = TRUE,
                          extVariables = extVars,
                          pDataForColour = "grpId",
-                         pDataForLabel = NULL,
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS no point labels",
         fig = p)
-    
+
     # use 2 dimensions to make stress per point meaningful
     mdsObj <- computeMetricMDS(pwDist, nDim = 2, seed = 0)
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
@@ -234,20 +253,20 @@ test_that("ggplotSampleMDS works", {
                          pDataForShape = "type",
                          sizeReflectingStress = TRUE,
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger("ggplotSampleMDS with sizeReflectingStress",
                                 fig = p)
-    
-    # use pData for additional labelling 
+
+    # use pData for additional labelling
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
                          pDataForAdditionalLabelling = c("grpId", "type"),
-                         repelPointsLabels = FALSE)
-    
+                         repelPointLabels = FALSE)
+
     expect_equal(p$labels$text, "grpId")
     expect_equal(p$labels$text2, "type")
-    
+
     # test that pData for additional labelling has been well ignored
     # with biplot activated
     p <- ggplotSampleMDS(mdsObj = mdsObj,
@@ -256,11 +275,11 @@ test_that("ggplotSampleMDS works", {
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
                          pDataForAdditionalLabelling = c("grpId", "type"),
-                         repelPointsLabels = FALSE)
-    
+                         repelPointLabels = FALSE)
+
     expect_null(p$labels$text)
     expect_null(p$labels$text2)
-    
+
     # test flipXAxis and flipYAxis
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
@@ -270,10 +289,10 @@ test_that("ggplotSampleMDS works", {
                          pDataForShape = "type",
                          seed = 0,
                          flipXAxis = TRUE)
-    
+
     vdiffr::expect_doppelganger("ggplotSampleMDS with flipX",
                                 fig = p)
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
@@ -283,39 +302,36 @@ test_that("ggplotSampleMDS works", {
                          seed = 0,
                          flipXAxis = TRUE,
                          flipYAxis = TRUE)
-    
+
     vdiffr::expect_doppelganger("ggplotSampleMDS with flipX-Y",
                                 fig = p)
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          biplot = TRUE,
                          extVariables = extVars,
                          projectionAxes = c(1,2),
                          pDataForAdditionalLabelling = c("grpId", "type"),
-                         repelPointsLabels = FALSE,
+                         repelPointLabels = FALSE,
                          flipXAxis = TRUE,
                          flipYAxis = TRUE)
-    
+
     vdiffr::expect_doppelganger("ggplotSampMDS with bipl-flpX-Y",
                                 fig = p)
-    
-    
-    
-    
+
 })
 
 
 test_that("ggplotSampleMDSWrapBiplots works", {
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
-    
+
     # try to associate axes with median or std deviation of each channel
     # => use bi-plots
 
     extVarList <- channelSummaryStats(
         fsAll,
         channels = c("FSC-A", "SSC-A"),
-        statFUNs = c("median" = stats::median, 
+        statFUNs = c("median" = stats::median,
                      "std.dev" = stats::sd))
 
     bpFull <- ggplotSampleMDSWrapBiplots(
@@ -324,14 +340,13 @@ test_that("ggplotSampleMDSWrapBiplots works", {
         pData = flowCore::pData(fsAll),
         projectionAxes = c(1,2),
         pDataForColour = "grpId",
-        pDataForLabel = NULL,
         pDataForShape = "type",
         seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSWrapBiplots default rows and cols",
         fig = bpFull)
-    
+
     # with subset
     bpFull <- ggplotSampleMDSWrapBiplots(
         mdsObj = mdsObj,
@@ -340,15 +355,14 @@ test_that("ggplotSampleMDSWrapBiplots works", {
         sampleSubset = (flowCore::pData(fsAll)$type == "synthetic"),
         projectionAxes = c(1,2),
         pDataForColour = "grpId",
-        pDataForLabel = NULL,
         pDataForShape = "type",
         seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSWrapBiplots default rows and cols - subset",
         fig = bpFull)
 
-    
+
     bpFull2 <- ggplotSampleMDSWrapBiplots(
         mdsObj = mdsObj,
         extVariableList = extVarList,
@@ -356,10 +370,9 @@ test_that("ggplotSampleMDSWrapBiplots works", {
         pData = flowCore::pData(fsAll),
         projectionAxes = c(1,2),
         pDataForColour = "grpId",
-        pDataForLabel = NULL,
         pDataForShape = "type",
         seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSWrapBiplots with 1 col",
         fig = bpFull2)
@@ -367,30 +380,32 @@ test_that("ggplotSampleMDSWrapBiplots works", {
 
 test_that("ggplotSampleMDSShepard works", {
     
+    set.seed(0) # to get same results with ggrepel()
+
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
-    
+
     p <- ggplotSampleMDSShepard(mdsObj,
                                 nDim = 2,
                                 pointSize = 1,
                                 title = "Shepard with 2 dimensions")
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSShepard with 2 dimensions",
         fig = p)
-    
+
     p <- ggplotSampleMDSShepard(mdsObj,
                                 nDim = 3,
-                                title = "Shepard with 3 dimensions") 
-    
+                                title = "Shepard with 3 dimensions")
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSShepard with 3 dimensions",
         fig = p)
-    
+
     p <- ggplotSampleMDSShepard(mdsObj,
-                                title = "Shepard with default nb of dimensions") 
-    
+                                title = "Shepard with default nb of dimensions")
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSShepard with default dim nb",
         fig = p)
-    
+
 })

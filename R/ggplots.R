@@ -21,7 +21,7 @@
 #' and the number of dimensions of the MDS projection are provided in sub-title
 #' @param mdsObj a MDS object calculated by the SMACOF algorithm using
 #' the computeMetricMDS() function
-#' @param pData a data.frame providing user input sample data. 
+#' @param pData (optional) a data.frame providing user input sample data. 
 #' These can be design of experiment variables, phenotype data per sample,...
 #' and will be used to highlight sample categories in the plot 
 #' and/or for subsetting. 
@@ -43,13 +43,15 @@
 #' projection axes as explanatory variables is performed, and the projection
 #' of external variables will be according to regression coefficients
 #' (arrow direction) and R square of regression (arrow size)
-#' @param pDataForColour if not NULL, which `pData` variable
+#' @param pDataForColour (optional) which `pData` variable
 #' will be used as colour aesthetic. Should be a character.
-#' @param pDataForShape if not NULL, which `pData` variable
+#' @param pDataForShape (optional) which `pData` variable
 #' will be used as shape aesthetic. Should be a character.
-#' @param pDataForLabel if not NULL, which `pData` variable 
+#' @param pDataForLabel (optional) which `pData` variable 
 #' will be used as point labels in the plot. Should be a character.
-#' @param pDataForAdditionalLabelling if not NULL, which `pData` variable(s)
+#' If missing, point labels will be set equal to point names defined in 
+#' MDS object (if not NULL, otherwise no labels will be set). 
+#' @param pDataForAdditionalLabelling (optional) which `pData` variable(s)
 #' will be add to the ggplot mapping, as to make them available for 
 #' *plotly* tooltipping. Should be an array of character of maximum length 3.
 #' Note this works only if biplot=FALSE, as biplots contain circle and arrows 
@@ -59,12 +61,14 @@
 #' the less accurate its representation is 
 #' (in terms of distances w.r.t. other points)
 #' @param title title to give to the plot
-#' @param repelPointsLabels if TRUE, uses `ggrepel::geom_text_repel()` 
+#' @param displayPointLabels if TRUE, displays labels attached to points
+#' (see `pDataForLabels` for the setting of the label values)
+#' @param repelPointLabels if TRUE, uses `ggrepel::geom_text_repel()` 
 #' instead of `ggplot2::geom_text()`
 #' (try to split the labels such that they do not overlap) for the points
+#' @param displayArrowLabels if TRUE, displays arrows labels (only with biplot)
 #' @param repelArrowLabels if TRUE, uses `ggrepel::geom_text_repel()` 
 #' instead of `ggplot2::geom_text()` for the arrows (only with biplot)
-#' @param displayArrowLabels if TRUE, displays arrows labels (only with biplot)
 #' @param arrowThreshold (only with biplot), arrows will be made barely visible 
 #' if their length is (in absolute value) less than this threshold.  
 #' @param flipXAxis if TRUE, take the opposite of x values 
@@ -98,7 +102,6 @@
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(1,2),
 #'     pDataForColour = "grpId",
-#'     pDataForLabel = NULL,
 #'     pDataForShape = "type")
 #' 
 #' # plot mds projection on axes 3 and 4,
@@ -141,7 +144,6 @@
 #'     biplot = TRUE,
 #'     extVariables = extVars,
 #'     pDataForColour = "grpId",
-#'     pDataForLabel = NULL,
 #'     pDataForShape = "type",
 #'     seed = 0)
 #' 
@@ -163,17 +165,18 @@ ggplotSampleMDS <- function(
         projectionAxes = c(1,2),
         biplot = FALSE,
         biplotType = c("correlation", "regression"),
-        extVariables = NULL,
-        pDataForColour = NULL,
-        pDataForShape = NULL,
-        pDataForLabel = "name",
-        pDataForAdditionalLabelling = NULL,
+        extVariables,
+        pDataForColour,
+        pDataForShape,
+        pDataForLabel,
+        pDataForAdditionalLabelling,
         sizeReflectingStress = FALSE,
         title = "Multi Dimensional Scaling",
-        repelPointsLabels = TRUE,
+        displayPointLabels = TRUE,
+        repelPointLabels = TRUE,
         displayArrowLabels = TRUE,
-        arrowThreshold = 0.8,
         repelArrowLabels = FALSE,
+        arrowThreshold = 0.8,
         flipXAxis = FALSE,
         flipYAxis = FALSE,
         displayPseudoRSq = TRUE,
@@ -229,8 +232,8 @@ ggplotSampleMDS <- function(
     nSamples <- nrow(mdsObj$proj)
     
     if (biplot) {
-        if (is.null(extVariables)) {
-            stop("biplot requires non null `extVariables`")
+        if (missing(extVariables)) {
+            stop("biplot requires `extVariables`")
         }
         if (!is.numeric(extVariables)) {
             stop("`extVariables` should be a matrix")
@@ -272,11 +275,31 @@ ggplotSampleMDS <- function(
             - proj[, projectionAxes[2]]
     }
     
-    DF <- pData
     
-    DF$x <- proj[, projectionAxes[1]]
-    DF$y <- proj[, projectionAxes[2]]
-    DF$stress <- mdsObj$spp
+    if (missing(pData)) {
+        DF <- data.frame(
+            x = proj[, projectionAxes[1]],
+            y = proj[, projectionAxes[2]],
+            stress = mdsObj$spp
+        )
+    } else {
+        DF <- pData
+        DF$x <- proj[, projectionAxes[1]]
+        DF$y <- proj[, projectionAxes[2]]
+        DF$stress <- mdsObj$spp
+    }
+    
+    if (is.null(DF$sampleId)) {
+        if (is.null(rownames(mdsObj$proj))) {
+            DF$sampleId <- seq_len(nSamples)
+        } else {
+            DF$sampleId <- rownames(mdsObj$proj)
+        }
+    }
+    
+    if (missing(pDataForLabel)) {
+        pDataForLabel <- "sampleId"
+    }
     
     xlabel <- paste0("Coord. ", projectionAxes[1])
     
@@ -318,7 +341,7 @@ ggplotSampleMDS <- function(
         y = .data[["y"]])
     
     maxAdditionalLabellingMapping <- 3
-    if (!is.null(pDataForAdditionalLabelling) && !biplot) {
+    if (!missing(pDataForAdditionalLabelling) && !biplot) {
         if (!is.character(pDataForAdditionalLabelling)) {
             stop("pDataForAdditionalLabelling should be a character")
         }
@@ -363,24 +386,22 @@ ggplotSampleMDS <- function(
         ggplot2::scale_x_continuous(limits = axesLimits) + 
         ggplot2::scale_y_continuous(limits = axesLimits)
     
-    
-    colourVar <- pDataForColour
-    shapeVar <- pDataForShape
-    
     geomPointMapping <- NULL
     
-    if (!is.null(pDataForColour)) {
+    if (!missing(pDataForColour)) {
         if (!is.character(pDataForColour)) {
             stop("pDataForColour should be a character")
         }
+        colourVar <- pDataForColour
         geomPointMapping <- c(
             geomPointMapping,
             ggplot2::aes(colour = .data[[colourVar]]))
     }
-    if (!is.null(pDataForShape)) {
+    if (!missing(pDataForShape)) {
         if (!is.character(pDataForShape)) {
             stop("pDataForShape should be a character")
         }
+        shapeVar <- pDataForShape
         geomPointMapping <- c(
             geomPointMapping,
             ggplot2::aes(shape = .data[[shapeVar]]))
@@ -396,12 +417,12 @@ ggplotSampleMDS <- function(
         attr(geomPointMapping, "class") <- "uneval"
     }
     
-    if (!is.null(pDataForLabel)) {
+    if (displayPointLabels) {
         if (!is.character(pDataForLabel)) {
             stop("pDataForLabel should be a character")
         }
         labelVar <- pDataForLabel
-        if (repelPointsLabels) {
+        if (repelPointLabels) {
             p <- p + ggrepel::geom_text_repel(
                 hjust=0.5, 
                 vjust=1, 
@@ -555,9 +576,9 @@ ggplotSampleMDS <- function(
 #' low dimensional projection
 #' @param mdsObj a MDS object calculated by the SMACOF algorithm using
 #' the computeMetricMDS() function
-#' @param nDim number of dimensions to use when calculating   
-#' Shepard's diagram and Rsquare.  
-#' If `NULL`, it will be set equal to the number of projection dimensions  
+#' @param nDim (optional) number of dimensions to use when calculating   
+#' Shepard's diagram and pseudoRSquare.  
+#' If missing, it will be set equal to the number of projection dimensions  
 #' as calculated in `mdsObj`
 #' @param title title to give to the plot
 #' @param pointSize plot size of points
@@ -595,7 +616,7 @@ ggplotSampleMDS <- function(
 #'
 ggplotSampleMDSShepard <- function(
         mdsObj,
-        nDim = NULL,
+        nDim,
         title = "Multi Dimensional Scaling - Shepard's diagram",
         pointSize = 0.5,
         displayPseudoRSq = TRUE) {
@@ -604,7 +625,7 @@ ggplotSampleMDSShepard <- function(
         stop("mdsObj should be a 'mdsRes' object")
     }
     
-    if (is.null(nDim)) {
+    if (missing(nDim)) {
         nDim <- ncol(mdsObj$proj)
     } else if (!is.numeric(nDim)) {
         stop("nDim should be numeric")
@@ -669,49 +690,16 @@ ggplotSampleMDSShepard <- function(
 #' repeatly to generate biplots with different sets of external variables
 #' and align them in a grid using the `patchwork` package, in a similar fashion 
 #' as `ggplot2::facet_wrap()` does.
-#' @param ncol passed to `patchwork::wrap_plots()`
-#' @param nrow passed to `patchwork::wrap_plots()`
-#' @param byrow passed to `patchwork::wrap_plots()`
 #' @param mdsObj a MDS object calculated by the SMACOF algorithm using
 #' the computeMetricMDS() function
-#' @param pData a data.frame providing user input sample data. 
-#' These can be design of experiment variables, phenotype data per sample,...
-#' and will be used to highlight sample categories in the plot, 
-#' and/or for subsetting. 
-#' @param sampleSubset (optional) a logical vector, of size `nrow(pData)`, 
-#' which is by construction the nb of samples, indicating which samples to keep 
-#' in the plot. Typically it is obtained through the evaluation of 
-#' a logical condition on `pData` rows.  
-#' @param projectionAxes which two axes should be plotted 
-#' (should be a numeric vector of length 2)
 #' @param extVariableList should be a named list of external variable matrices
 #' Each element of the list should be a matrix with named columns 
 #' corresponding to the variables. 
 #' The number of rows should be the same as the number of samples. 
-#' @param biplotType type of biplot used (see `ggplotSampleMDS()`)
-#' @param pDataForColour if not NULL, which `pData` variable
-#' will be used as colour aesthetic. Should be a character.
-#' @param pDataForShape if not NULL, which `pData` variable
-#' will be used as shape aesthetic. Should be a character.
-#' @param pDataForLabel if not NULL, which `pData` variable 
-#' will be used as point labels in the plot. Should be a character.
-#' @param sizeReflectingStress if TRUE, size of points will appear 
-#' proportional to stress by point, i.e. the bigger the sample point appears,
-#' the less accurate its representation is 
-#' (in terms of distances w.r.t. other points)
-#' @param repelPointsLabels if TRUE, uses `ggrepel::geom_text_repel()` 
-#' instead of `ggplot2::geom_text()`
-#' (try to split the labels such that they do not overlap) for the points
-#' @param repelArrowLabels if TRUE, uses `ggrepel::geom_text_repel()` 
-#' instead of `ggplot2::geom_text()` for the arrows
-#' @param displayArrowLabels if TRUE, displays arrows labels
-#' @param arrowThreshold arrows will be made barely visible 
-#' if their length is (in absolute value) less than this threshold.  
-#' @param flipXAxis if TRUE, take the opposite of x values 
-#' (provided as it might ease low dimensional projection comparisons)
-#' @param flipYAxis if TRUE, take the opposite of y values 
-#' (provided as it might ease low dimensional projection comparisons)
-#' @param ... additional parameters passed to `ggrepel::geom_text_repel()` 
+#' @param ncol passed to `patchwork::wrap_plots()`
+#' @param nrow passed to `patchwork::wrap_plots()`
+#' @param byrow passed to `patchwork::wrap_plots()`
+#' @param ... additional parameters passed to `ggplotSampleMDS()` 
 #' (if used)
 #' 
 #' @export
@@ -733,7 +721,6 @@ ggplotSampleMDSShepard <- function(
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(1,2),
 #'     pDataForColour = "grpId",
-#'     pDataForLabel = NULL,
 #'     pDataForShape = "type")
 #' 
 #' # try to associate axes with median or std deviation of each channel
@@ -751,7 +738,6 @@ ggplotSampleMDSShepard <- function(
 #'     pData = flowCore::pData(fsAll),
 #'     projectionAxes = c(1,2),
 #'     pDataForColour = "group",
-#'     pDataForLabel = NULL,
 #'     pDataForShape = "type",
 #'     seed = 0)
 #' 
@@ -761,21 +747,6 @@ ggplotSampleMDSWrapBiplots <- function(
         ncol = NULL,
         nrow = NULL,
         byrow = NULL,
-        pData = data.frame(
-            sampleId = seq_len(nrow(mdsObj$proj))),
-        sampleSubset,
-        projectionAxes = c(1,2),
-        biplotType = c("correlation", "regression"),
-        pDataForColour = NULL,
-        pDataForShape = NULL,
-        pDataForLabel = NULL,
-        sizeReflectingStress = FALSE,
-        repelPointsLabels = TRUE,
-        displayArrowLabels = TRUE,
-        arrowThreshold = 0.8,
-        repelArrowLabels = FALSE,
-        flipXAxis = FALSE,
-        flipYAxis = FALSE,
         ...){
     
     #browser()
@@ -795,24 +766,10 @@ ggplotSampleMDSWrapBiplots <- function(
     for (i in seq_len(nPlots)) {
         p <- ggplotSampleMDS(
             mdsObj = mdsObj,
-            pData = pData,
-            sampleSubset = sampleSubset,
             title = paste0("biplot with ",
                            names(extVariableList)[i]),
             biplot = TRUE,
-            biplotType = biplotType,
             extVariables = extVariableList[[i]],
-            pDataForColour = pDataForColour,
-            pDataForShape = pDataForShape,
-            pDataForLabel = pDataForLabel,
-            pDataForAdditionalLabelling = NULL,
-            sizeReflectingStress = sizeReflectingStress,
-            repelPointsLabels = repelPointsLabels,
-            displayArrowLabels = displayArrowLabels,
-            arrowThreshold = arrowThreshold,
-            repelArrowLabels = repelArrowLabels,
-            flipXAxis = flipXAxis,
-            flipYAxis = flipYAxis,
             ...) 
         pList[[i]] <- p + ggplot2::labs(subtitle = NULL)
     }

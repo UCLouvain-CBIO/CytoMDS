@@ -11,17 +11,18 @@ ggplotSampleMDS(
   projectionAxes = c(1, 2),
   biplot = FALSE,
   biplotType = c("correlation", "regression"),
-  extVariables = NULL,
-  pDataForColour = NULL,
-  pDataForShape = NULL,
-  pDataForLabel = "name",
-  pDataForAdditionalLabelling = NULL,
+  extVariables,
+  pDataForColour,
+  pDataForShape,
+  pDataForLabel,
+  pDataForAdditionalLabelling,
   sizeReflectingStress = FALSE,
   title = "Multi Dimensional Scaling",
-  repelPointsLabels = TRUE,
+  displayPointLabels = TRUE,
+  repelPointLabels = TRUE,
   displayArrowLabels = TRUE,
-  arrowThreshold = 0.8,
   repelArrowLabels = FALSE,
+  arrowThreshold = 0.8,
   flipXAxis = FALSE,
   flipYAxis = FALSE,
   displayPseudoRSq = TRUE,
@@ -32,7 +33,7 @@ ggplotSampleMDS(
 \item{mdsObj}{a MDS object calculated by the SMACOF algorithm using
 the computeMetricMDS() function}
 
-\item{pData}{a data.frame providing user input sample data.
+\item{pData}{(optional) a data.frame providing user input sample data.
 These can be design of experiment variables, phenotype data per sample,...
 and will be used to highlight sample categories in the plot
 and/or for subsetting.}
@@ -62,16 +63,18 @@ these are the external variables that will be used in the biplot.
 They should be provided as a matrix with named columns corresponding to the
 variables. The number of rows should be the same as the number of samples.}
 
-\item{pDataForColour}{if not NULL, which \code{pData} variable
+\item{pDataForColour}{(optional) which \code{pData} variable
 will be used as colour aesthetic. Should be a character.}
 
-\item{pDataForShape}{if not NULL, which \code{pData} variable
+\item{pDataForShape}{(optional) which \code{pData} variable
 will be used as shape aesthetic. Should be a character.}
 
-\item{pDataForLabel}{if not NULL, which \code{pData} variable
-will be used as point labels in the plot. Should be a character.}
+\item{pDataForLabel}{(optional) which \code{pData} variable
+will be used as point labels in the plot. Should be a character.
+If missing, point labels will be set equal to point names defined in
+MDS object (if not NULL, otherwise no labels will be set).}
 
-\item{pDataForAdditionalLabelling}{if not NULL, which \code{pData} variable(s)
+\item{pDataForAdditionalLabelling}{(optional) which \code{pData} variable(s)
 will be add to the ggplot mapping, as to make them available for
 \emph{plotly} tooltipping. Should be an array of character of maximum length 3.
 Note this works only if biplot=FALSE, as biplots contain circle and arrows
@@ -84,17 +87,20 @@ the less accurate its representation is
 
 \item{title}{title to give to the plot}
 
-\item{repelPointsLabels}{if TRUE, uses \code{ggrepel::geom_text_repel()}
+\item{displayPointLabels}{if TRUE, displays labels attached to points
+(see \code{pDataForLabels} for the setting of the label values)}
+
+\item{repelPointLabels}{if TRUE, uses \code{ggrepel::geom_text_repel()}
 instead of \code{ggplot2::geom_text()}
 (try to split the labels such that they do not overlap) for the points}
 
 \item{displayArrowLabels}{if TRUE, displays arrows labels (only with biplot)}
 
-\item{arrowThreshold}{(only with biplot), arrows will be made barely visible
-if their length is (in absolute value) less than this threshold.}
-
 \item{repelArrowLabels}{if TRUE, uses \code{ggrepel::geom_text_repel()}
 instead of \code{ggplot2::geom_text()} for the arrows (only with biplot)}
+
+\item{arrowThreshold}{(only with biplot), arrows will be made barely visible
+if their length is (in absolute value) less than this threshold.}
 
 \item{flipXAxis}{if TRUE, take the opposite of x values
 (provided as it might ease low dimensional projection comparisons)}
@@ -130,7 +136,6 @@ p_12 <- ggplotSampleMDS(
     pData = flowCore::pData(fsAll),
     projectionAxes = c(1,2),
     pDataForColour = "grpId",
-    pDataForLabel = NULL,
     pDataForShape = "type")
 
 # plot mds projection on axes 3 and 4,
@@ -173,7 +178,6 @@ bp_12 <- ggplotSampleMDS(
     biplot = TRUE,
     extVariables = extVars,
     pDataForColour = "grpId",
-    pDataForLabel = NULL,
     pDataForShape = "type",
     seed = 0)
 

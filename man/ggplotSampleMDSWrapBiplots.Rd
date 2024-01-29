@@ -10,20 +10,6 @@ ggplotSampleMDSWrapBiplots(
   ncol = NULL,
   nrow = NULL,
   byrow = NULL,
-  pData = data.frame(sampleId = seq_len(nrow(mdsObj$proj))),
-  sampleSubset,
-  projectionAxes = c(1, 2),
-  biplotType = c("correlation", "regression"),
-  pDataForColour = NULL,
-  pDataForShape = NULL,
-  pDataForLabel = NULL,
-  sizeReflectingStress = FALSE,
-  repelPointsLabels = TRUE,
-  displayArrowLabels = TRUE,
-  arrowThreshold = 0.8,
-  repelArrowLabels = FALSE,
-  flipXAxis = FALSE,
-  flipYAxis = FALSE,
   ...
 )
 }
@@ -42,54 +28,7 @@ The number of rows should be the same as the number of samples.}
 
 \item{byrow}{passed to \code{patchwork::wrap_plots()}}
 
-\item{pData}{a data.frame providing user input sample data.
-These can be design of experiment variables, phenotype data per sample,...
-and will be used to highlight sample categories in the plot,
-and/or for subsetting.}
-
-\item{sampleSubset}{(optional) a logical vector, of size \code{nrow(pData)},
-which is by construction the nb of samples, indicating which samples to keep
-in the plot. Typically it is obtained through the evaluation of
-a logical condition on \code{pData} rows.}
-
-\item{projectionAxes}{which two axes should be plotted
-(should be a numeric vector of length 2)}
-
-\item{biplotType}{type of biplot used (see \code{ggplotSampleMDS()})}
-
-\item{pDataForColour}{if not NULL, which \code{pData} variable
-will be used as colour aesthetic. Should be a character.}
-
-\item{pDataForShape}{if not NULL, which \code{pData} variable
-will be used as shape aesthetic. Should be a character.}
-
-\item{pDataForLabel}{if not NULL, which \code{pData} variable
-will be used as point labels in the plot. Should be a character.}
-
-\item{sizeReflectingStress}{if TRUE, size of points will appear
-proportional to stress by point, i.e. the bigger the sample point appears,
-the less accurate its representation is
-(in terms of distances w.r.t. other points)}
-
-\item{repelPointsLabels}{if TRUE, uses \code{ggrepel::geom_text_repel()}
-instead of \code{ggplot2::geom_text()}
-(try to split the labels such that they do not overlap) for the points}
-
-\item{displayArrowLabels}{if TRUE, displays arrows labels}
-
-\item{arrowThreshold}{arrows will be made barely visible
-if their length is (in absolute value) less than this threshold.}
-
-\item{repelArrowLabels}{if TRUE, uses \code{ggrepel::geom_text_repel()}
-instead of \code{ggplot2::geom_text()} for the arrows}
-
-\item{flipXAxis}{if TRUE, take the opposite of x values
-(provided as it might ease low dimensional projection comparisons)}
-
-\item{flipYAxis}{if TRUE, take the opposite of y values
-(provided as it might ease low dimensional projection comparisons)}
-
-\item{...}{additional parameters passed to \code{ggrepel::geom_text_repel()}
+\item{...}{additional parameters passed to \code{ggplotSampleMDS()}
 (if used)}
 }
 \value{
@@ -114,7 +53,6 @@ p_12 <- ggplotSampleMDS(
     pData = flowCore::pData(fsAll),
     projectionAxes = c(1,2),
     pDataForColour = "grpId",
-    pDataForLabel = NULL,
     pDataForShape = "type")
 
 # try to associate axes with median or std deviation of each channel
@@ -132,7 +70,6 @@ bpFull <- ggplotSampleMDSWrapBiplots(
     pData = flowCore::pData(fsAll),
     projectionAxes = c(1,2),
     pDataForColour = "group",
-    pDataForLabel = NULL,
     pDataForShape = "type",
     seed = 0)
 

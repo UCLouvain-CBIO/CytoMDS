@@ -6,7 +6,7 @@
 \usage{
 ggplotSampleMDSShepard(
   mdsObj,
-  nDim = NULL,
+  nDim,
   title = "Multi Dimensional Scaling - Shepard's diagram",
   pointSize = 0.5,
   displayPseudoRSq = TRUE
@@ -16,9 +16,9 @@ ggplotSampleMDSShepard(
 \item{mdsObj}{a MDS object calculated by the SMACOF algorithm using
 the computeMetricMDS() function}
 
-\item{nDim}{number of dimensions to use when calculating
-Shepard's diagram and Rsquare.
-If \code{NULL}, it will be set equal to the number of projection dimensions
+\item{nDim}{(optional) number of dimensions to use when calculating
+Shepard's diagram and pseudoRSquare.
+If missing, it will be set equal to the number of projection dimensions
 as calculated in \code{mdsObj}}
 
 \item{title}{title to give to the plot}

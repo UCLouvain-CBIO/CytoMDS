@@ -40,18 +40,19 @@ Loading dependent packages for the present vignette...
 ```{r libs}
 library(CytoPipeline)
 library(CytoMDS)
+library(ggplot2)
 ```
 
 # Introduction
 
-TO DO
+What is CytoMDS in a few words
+
+Mathematical ingredients
+
+Present OMIP021 dataset - see CytoPipeline vignette.
 
 
-
-# Simulated datasets
-
-We now simulate 2 datasets by combining events from the two Donor samples of the
-OMIP021 original dataset.
+We start from transformed data... 
 
 ```{r OMIP021Trans}
 data(OMIP021Samples)
@@ -69,9 +70,19 @@ OMIP021Trans <- CytoPipeline::applyScaleTransforms(
     transList)
 ```
 
+# Simulated datasets
+
+We now simulate 2 datasets by combining events from the two Donor samples of the
+OMIP021 original dataset.
+
+Dataset1 is built by subsampling 5 times from each of the two original donor samples 
+(alternatively)
+
+Dataset2 is built by mixing sample 1 and sample 2 with weights varying from 0 to 1
+
 
 ```{r OMIPSim1}
-nSample <- 10
+nSample <- 20
 ffList <- list()
 for (i in seq_len(nSample)) {
     ffList[[i]] <- CytoPipeline::subsample(
@@ -86,7 +97,7 @@ pData1 <- data.frame(name = paste0("S", seq_len(nSample)),
 ```
 
 ```{r OMIPSim2}
-nSample <- 11
+nSample <- 20
 ffList <- list()
 for (i in seq_len(nSample)) {
     if (i==1) {
@@ -121,22 +132,55 @@ pData2 <- data.frame(name = paste0("S", seq_len(nSample)),
 
 ```{r distCalc}
 pwDist1 <- pairwiseEMDDist(
-    OMIP021Sim1, verbose = TRUE)
+    OMIP021Sim1, verbose = FALSE)
+
+pwDist2 <- pairwiseEMDDist(
+    OMIP021Sim2, verbose = FALSE)
 ```
 
-```{r distShow}
-round(pwDist1, 2)
+```{r dist1Show}
+#round(pwDist1, 2)
+distVec1 <- pwDist1[upper.tri(pwDist1)]
+```
+
+```{r dist1ShowHist}
+distVecDF1 <- data.frame(dist = distVec1)
+ggplot(distVecDF1, mapping = aes(x=dist)) + 
+    geom_histogram(fill = "darkgrey", col = "black", bins = 15) + 
+    theme_bw()
+```
+
+```{r dist2Show}
+#round(pwDist2, 2)
+distVec2 <- pwDist2[upper.tri(pwDist2)]
+```
+
+```{r dist12ShowHist}
+distVecDF2 <- data.frame(dist = distVec2)
+ggplot(distVecDF2, mapping = aes(x=dist)) + 
+    geom_histogram(bins = 15, fill = "darkgrey", col = "black") + 
+    theme_bw()
 ```
 
 # calculating MDS projection
 
-```{r MDSCalc}
-
+```{r MDSCalc1}
+mdsObj1 <- CytoMDS::computeMetricMDS(pwDist1)
+ggplotSampleMDSShepard(mdsObj1)
 ```
 
+example 2: nDim = 4. Imposing nDim = 2, targetPseudoRSquare = 0.99
 
 
+```{r MDSCalc2}
+mdsObj2 <- CytoMDS::computeMetricMDS(pwDist2)
+ggplotSampleMDSShepard(mdsObj2)
+```
+# plotting mds projection
 
+```{r plotMDS1}
+ggplotSampleMDS(mdsObj1, pDataForLabel = "sampleId")
+```
 
 
 # Session information {-}
