@@ -116,18 +116,16 @@ document.addEventListener("DOMContentLoaded", function() {
 <p>Loading dependent packages for the present vignette…</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://uclouvain-cbio.github.io/CytoPipeline" class="external-link">CytoPipeline</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://uclouvain-cbio.github.io/CytoMDS" class="external-link">CytoMDS</a></span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://uclouvain-cbio.github.io/CytoMDS" class="external-link">CytoMDS</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>TO DO</p>
-</div>
-<div class="section level2">
-<h2 id="simulated-datasets">Simulated datasets<a class="anchor" aria-label="anchor" href="#simulated-datasets"></a>
-</h2>
-<p>We now simulate 2 datasets by combining events from the two Donor
-samples of the OMIP021 original dataset.</p>
+<p>What is CytoMDS in a few words</p>
+<p>Mathematical ingredients</p>
+<p>Present OMIP021 dataset - see CytoPipeline vignette.</p>
+<p>We start from transformed data…</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">OMIP021Samples</span><span class="op">)</span></span>
 <span></span>
@@ -154,8 +152,18 @@ samples of the OMIP021 original dataset.</p>
 <code class="sourceCode R"><span><span class="va">OMIP021Trans</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/applyScaleTransforms.html" class="external-link">applyScaleTransforms</a></span><span class="op">(</span></span>
 <span>    <span class="va">OMIP021Samples</span>, </span>
 <span>    <span class="va">transList</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="simulated-datasets">Simulated datasets<a class="anchor" aria-label="anchor" href="#simulated-datasets"></a>
+</h2>
+<p>We now simulate 2 datasets by combining events from the two Donor
+samples of the OMIP021 original dataset.</p>
+<p>Dataset1 is built by subsampling 5 times from each of the two
+original donor samples (alternatively)</p>
+<p>Dataset2 is built by mixing sample 1 and sample 2 with weights
+varying from 0 to 1</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
+<code class="sourceCode R"><span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/subsample.html" class="external-link">subsample</a></span><span class="op">(</span></span>
@@ -168,7 +176,7 @@ samples of the OMIP021 original dataset.</p>
 <span><span class="va">pData1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                     clust <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fl">11</span></span>
+<code class="sourceCode R"><span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="kw">if</span> <span class="op">(</span><span class="va">i</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
@@ -202,96 +210,54 @@ samples of the OMIP021 original dataset.</p>
 </h2>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pwDist1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span></span>
-<span>    <span class="va">OMIP021Sim1</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Pre-calculating all histograms...</span></span></code></pre>
-<pre><code><span><span class="co">## Loading file 1...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating histogram for file 1...</span></span></code></pre>
-<pre><code><span><span class="co">## Loading file 2...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating histogram for file 2...</span></span></code></pre>
-<pre><code><span><span class="co">## Loading file 3...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating histogram for file 3...</span></span></code></pre>
-<pre><code><span><span class="co">## Loading file 4...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating histogram for file 4...</span></span></code></pre>
-<pre><code><span><span class="co">## Loading file 5...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating histogram for file 5...</span></span></code></pre>
-<pre><code><span><span class="co">## Loading file 6...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating histogram for file 6...</span></span></code></pre>
-<pre><code><span><span class="co">## Loading file 7...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating histogram for file 7...</span></span></code></pre>
-<pre><code><span><span class="co">## Loading file 8...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating histogram for file 8...</span></span></code></pre>
-<pre><code><span><span class="co">## Loading file 9...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating histogram for file 9...</span></span></code></pre>
-<pre><code><span><span class="co">## Loading file 10...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating histogram for file 10...</span></span></code></pre>
-<pre><code><span><span class="co">## Calculating pairwise distances between histograms...</span></span></code></pre>
-<pre><code><span><span class="co">## i = 1; j = 2; dist = 1.86445</span></span></code></pre>
-<pre><code><span><span class="co">## i = 1; j = 3; dist = 0.59115</span></span></code></pre>
-<pre><code><span><span class="co">## i = 1; j = 4; dist = 1.71465</span></span></code></pre>
-<pre><code><span><span class="co">## i = 1; j = 5; dist = 0.70575</span></span></code></pre>
-<pre><code><span><span class="co">## i = 1; j = 6; dist = 1.77675</span></span></code></pre>
-<pre><code><span><span class="co">## i = 1; j = 7; dist = 0.5349</span></span></code></pre>
-<pre><code><span><span class="co">## i = 1; j = 8; dist = 1.87255</span></span></code></pre>
-<pre><code><span><span class="co">## i = 1; j = 9; dist = 0.4528</span></span></code></pre>
-<pre><code><span><span class="co">## i = 1; j = 10; dist = 1.95485</span></span></code></pre>
-<pre><code><span><span class="co">## i = 2; j = 3; dist = 1.9992</span></span></code></pre>
-<pre><code><span><span class="co">## i = 2; j = 4; dist = 0.5448</span></span></code></pre>
-<pre><code><span><span class="co">## i = 2; j = 5; dist = 2.2985</span></span></code></pre>
-<pre><code><span><span class="co">## i = 2; j = 6; dist = 0.6181</span></span></code></pre>
-<pre><code><span><span class="co">## i = 2; j = 7; dist = 1.72795</span></span></code></pre>
-<pre><code><span><span class="co">## i = 2; j = 8; dist = 0.4823</span></span></code></pre>
-<pre><code><span><span class="co">## i = 2; j = 9; dist = 2.08035</span></span></code></pre>
-<pre><code><span><span class="co">## i = 2; j = 10; dist = 0.4787</span></span></code></pre>
-<pre><code><span><span class="co">## i = 3; j = 4; dist = 1.8807</span></span></code></pre>
-<pre><code><span><span class="co">## i = 3; j = 5; dist = 0.7166</span></span></code></pre>
-<pre><code><span><span class="co">## i = 3; j = 6; dist = 2.0389</span></span></code></pre>
-<pre><code><span><span class="co">## i = 3; j = 7; dist = 0.73895</span></span></code></pre>
-<pre><code><span><span class="co">## i = 3; j = 8; dist = 1.9526</span></span></code></pre>
-<pre><code><span><span class="co">## i = 3; j = 9; dist = 0.61805</span></span></code></pre>
-<pre><code><span><span class="co">## i = 3; j = 10; dist = 2.1447</span></span></code></pre>
-<pre><code><span><span class="co">## i = 4; j = 5; dist = 2.0513</span></span></code></pre>
-<pre><code><span><span class="co">## i = 4; j = 6; dist = 0.6476</span></span></code></pre>
-<pre><code><span><span class="co">## i = 4; j = 7; dist = 1.62775</span></span></code></pre>
-<pre><code><span><span class="co">## i = 4; j = 8; dist = 0.585</span></span></code></pre>
-<pre><code><span><span class="co">## i = 4; j = 9; dist = 1.85405</span></span></code></pre>
-<pre><code><span><span class="co">## i = 4; j = 10; dist = 0.6352</span></span></code></pre>
-<pre><code><span><span class="co">## i = 5; j = 6; dist = 2.1803</span></span></code></pre>
-<pre><code><span><span class="co">## i = 5; j = 7; dist = 1.01775</span></span></code></pre>
-<pre><code><span><span class="co">## i = 5; j = 8; dist = 2.3318</span></span></code></pre>
-<pre><code><span><span class="co">## i = 5; j = 9; dist = 0.48635</span></span></code></pre>
-<pre><code><span><span class="co">## i = 5; j = 10; dist = 2.3687</span></span></code></pre>
-<pre><code><span><span class="co">## i = 6; j = 7; dist = 1.69255</span></span></code></pre>
-<pre><code><span><span class="co">## i = 6; j = 8; dist = 0.7768</span></span></code></pre>
-<pre><code><span><span class="co">## i = 6; j = 9; dist = 1.98485</span></span></code></pre>
-<pre><code><span><span class="co">## i = 6; j = 10; dist = 0.6741</span></span></code></pre>
-<pre><code><span><span class="co">## i = 7; j = 8; dist = 1.68815</span></span></code></pre>
-<pre><code><span><span class="co">## i = 7; j = 9; dist = 0.7329</span></span></code></pre>
-<pre><code><span><span class="co">## i = 7; j = 10; dist = 1.80315</span></span></code></pre>
-<pre><code><span><span class="co">## i = 8; j = 9; dist = 2.08035</span></span></code></pre>
-<pre><code><span><span class="co">## i = 8; j = 10; dist = 0.5381</span></span></code></pre>
-<pre><code><span><span class="co">## i = 9; j = 10; dist = 2.14825</span></span></code></pre>
-<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pwDist1</span>, <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##       1    2    3    4    5    6    7    8    9   10</span></span>
-<span><span class="co">## 1  0.00 1.86 0.59 1.71 0.71 1.78 0.53 1.87 0.45 1.95</span></span>
-<span><span class="co">## 2  1.86 0.00 2.00 0.54 2.30 0.62 1.73 0.48 2.08 0.48</span></span>
-<span><span class="co">## 3  0.59 2.00 0.00 1.88 0.72 2.04 0.74 1.95 0.62 2.14</span></span>
-<span><span class="co">## 4  1.71 0.54 1.88 0.00 2.05 0.65 1.63 0.58 1.85 0.64</span></span>
-<span><span class="co">## 5  0.71 2.30 0.72 2.05 0.00 2.18 1.02 2.33 0.49 2.37</span></span>
-<span><span class="co">## 6  1.78 0.62 2.04 0.65 2.18 0.00 1.69 0.78 1.98 0.67</span></span>
-<span><span class="co">## 7  0.53 1.73 0.74 1.63 1.02 1.69 0.00 1.69 0.73 1.80</span></span>
-<span><span class="co">## 8  1.87 0.48 1.95 0.58 2.33 0.78 1.69 0.00 2.08 0.54</span></span>
-<span><span class="co">## 9  0.45 2.08 0.62 1.85 0.49 1.98 0.73 2.08 0.00 2.15</span></span>
-<span><span class="co">## 10 1.95 0.48 2.14 0.64 2.37 0.67 1.80 0.54 2.15 0.00</span></span></code></pre>
+<span>    <span class="va">OMIP021Sim1</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pwDist2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span></span>
+<span>    <span class="va">OMIP021Sim2</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#round(pwDist1, 2)</span></span>
+<span><span class="va">distVec1</span> <span class="op">&lt;-</span> <span class="va">pwDist1</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDist1</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">distVecDF1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVec1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDF1</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span>, bins <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/dist1ShowHist-1.png" width="700"></p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#round(pwDist2, 2)</span></span>
+<span><span class="va">distVec2</span> <span class="op">&lt;-</span> <span class="va">pwDist2</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDist2</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">distVecDF2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVec2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDF2</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">15</span>, fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/dist12ShowHist-1.png" width="700"></p>
 </div>
 <div class="section level2">
 <h2 id="calculating-mds-projection">calculating MDS projection<a class="anchor" aria-label="anchor" href="#calculating-mds-projection"></a>
 </h2>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mdsObj1</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist1</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in rgl.init(initValue, onlyNULL): RGL: unable to open X11 display</span></span></code></pre>
+<pre><code><span><span class="co">## Warning: 'rgl.init' failed, running with 'rgl.useNULL = TRUE'.</span></span></code></pre>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/MDSCalc1-1.png" width="700"></p>
+<p>example 2: nDim = 4. Imposing nDim = 2, targetPseudoRSquare =
+0.99</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mdsObj2</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj2</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/MDSCalc2-1.png" width="700">
+# plotting mds projection</p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj1</span>, pDataForLabel <span class="op">=</span> <span class="st">"sampleId"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/plotMDS1-1.png" width="700"></p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<pre><code><span><span class="co">## R Under development (unstable) (2024-01-09 r85796)</span></span>
+<pre><code><span><span class="co">## R Under development (unstable) (2024-01-23 r85822)</span></span>
 <span><span class="co">## Platform: x86_64-pc-linux-gnu</span></span>
 <span><span class="co">## Running under: Ubuntu 22.04.3 LTS</span></span>
 <span><span class="co">## </span></span>
@@ -314,34 +280,52 @@ samples of the OMIP021 original dataset.</p>
 <span><span class="co">## [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">## [1] CytoMDS_0.99.8     CytoPipeline_1.3.0 BiocStyle_2.31.0  </span></span>
+<span><span class="co">## [1] ggplot2_3.4.4      CytoMDS_0.99.8     CytoPipeline_1.3.0 BiocStyle_2.31.0  </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
-<span><span class="co">##  [1] transport_0.14-6     gtable_0.3.4         xfun_0.41           </span></span>
-<span><span class="co">##  [4] bslib_0.6.1          ggplot2_3.4.4        Biobase_2.63.0      </span></span>
-<span><span class="co">##  [7] lattice_0.22-5       vctrs_0.6.5          tools_4.4.0         </span></span>
-<span><span class="co">## [10] generics_0.1.3       stats4_4.4.0         tibble_3.2.1        </span></span>
-<span><span class="co">## [13] fansi_1.0.6          flowWorkspace_4.15.2 pkgconfig_2.0.3     </span></span>
-<span><span class="co">## [16] data.table_1.14.10   RColorBrewer_1.1-3   desc_1.4.3          </span></span>
-<span><span class="co">## [19] S4Vectors_0.41.3     graph_1.81.0         lifecycle_1.0.4     </span></span>
-<span><span class="co">## [22] compiler_4.4.0       stringr_1.5.1        textshaping_0.3.7   </span></span>
-<span><span class="co">## [25] munsell_0.5.0        htmltools_0.5.7      sass_0.4.8          </span></span>
-<span><span class="co">## [28] yaml_2.3.8           pracma_2.4.4         flowCore_2.15.1     </span></span>
-<span><span class="co">## [31] pillar_1.9.0         pkgdown_2.0.7.9000   hexbin_1.28.3       </span></span>
-<span><span class="co">## [34] jquerylib_0.1.4      cachem_1.0.8         RProtoBufLib_2.15.0 </span></span>
-<span><span class="co">## [37] tidyselect_1.2.0     digest_0.6.34        stringi_1.8.3       </span></span>
-<span><span class="co">## [40] dplyr_1.1.4          purrr_1.0.2          bookdown_0.37       </span></span>
-<span><span class="co">## [43] fastmap_1.1.1        grid_4.4.0           colorspace_2.1-0    </span></span>
-<span><span class="co">## [46] cli_3.6.2            magrittr_2.0.3       ncdfFlow_2.49.0     </span></span>
-<span><span class="co">## [49] XML_3.99-0.16        utf8_1.2.4           withr_2.5.2         </span></span>
-<span><span class="co">## [52] scales_1.3.0         rmarkdown_2.25       matrixStats_1.2.0   </span></span>
-<span><span class="co">## [55] gridExtra_2.3        cytolib_2.15.1       ragg_1.2.7          </span></span>
-<span><span class="co">## [58] memoise_2.0.1        evaluate_0.23        knitr_1.45          </span></span>
-<span><span class="co">## [61] rlang_1.1.3          Rcpp_1.0.12          glue_1.7.0          </span></span>
-<span><span class="co">## [64] Rgraphviz_2.47.0     BiocManager_1.30.22  BiocGenerics_0.49.1 </span></span>
-<span><span class="co">## [67] jsonlite_1.8.8       R6_2.5.1             plyr_1.8.9          </span></span>
-<span><span class="co">## [70] systemfonts_1.0.5    fs_1.6.3             zlibbioc_1.49.0     </span></span>
-<span><span class="co">## [73] ggcyto_1.31.1</span></span></code></pre>
+<span><span class="co">##   [1] RColorBrewer_1.1-3   rstudioapi_0.15.0    jsonlite_1.8.8      </span></span>
+<span><span class="co">##   [4] shape_1.4.6          magrittr_2.0.3       jomo_2.7-6          </span></span>
+<span><span class="co">##   [7] farver_2.1.1         nloptr_2.0.3         rmarkdown_2.25      </span></span>
+<span><span class="co">##  [10] fs_1.6.3             zlibbioc_1.49.0      ragg_1.2.7          </span></span>
+<span><span class="co">##  [13] vctrs_0.6.5          memoise_2.0.1        minqa_1.2.6         </span></span>
+<span><span class="co">##  [16] heplots_1.6.0        base64enc_0.1-3      htmltools_0.5.7     </span></span>
+<span><span class="co">##  [19] polynom_1.4-1        plotrix_3.8-4        weights_1.0.4       </span></span>
+<span><span class="co">##  [22] broom_1.0.5          Formula_1.2-5        mitml_0.4-5         </span></span>
+<span><span class="co">##  [25] sass_0.4.8           pracma_2.4.4         bslib_0.6.1         </span></span>
+<span><span class="co">##  [28] htmlwidgets_1.6.4    desc_1.4.3           plyr_1.8.9          </span></span>
+<span><span class="co">##  [31] cachem_1.0.8         lifecycle_1.0.4      iterators_1.0.14    </span></span>
+<span><span class="co">##  [34] pkgconfig_2.0.3      Matrix_1.6-5         R6_2.5.1            </span></span>
+<span><span class="co">##  [37] fastmap_1.1.1        digest_0.6.34        colorspace_2.1-0    </span></span>
+<span><span class="co">##  [40] S4Vectors_0.41.3     textshaping_0.3.7    Hmisc_5.1-1         </span></span>
+<span><span class="co">##  [43] ellipse_0.5.0        labeling_0.4.3       cytolib_2.15.2      </span></span>
+<span><span class="co">##  [46] fansi_1.0.6          nnls_1.5             gdata_3.0.0         </span></span>
+<span><span class="co">##  [49] abind_1.4-5          compiler_4.4.0       proxy_0.4-27        </span></span>
+<span><span class="co">##  [52] withr_3.0.0          doParallel_1.0.17    htmlTable_2.4.2     </span></span>
+<span><span class="co">##  [55] backports_1.4.1      carData_3.0-5        hexbin_1.28.3       </span></span>
+<span><span class="co">##  [58] highr_0.10           pan_1.9              MASS_7.3-60.2       </span></span>
+<span><span class="co">##  [61] gtools_3.9.5         tools_4.4.0          foreign_0.8-86      </span></span>
+<span><span class="co">##  [64] nnet_7.3-19          glue_1.7.0           nlme_3.1-164        </span></span>
+<span><span class="co">##  [67] grid_4.4.0           checkmate_2.3.1      cluster_2.1.6       </span></span>
+<span><span class="co">##  [70] generics_0.1.3       gtable_0.3.4         class_7.3-22        </span></span>
+<span><span class="co">##  [73] tidyr_1.3.1          data.table_1.14.10   car_3.1-2           </span></span>
+<span><span class="co">##  [76] utf8_1.2.4           BiocGenerics_0.49.1  ggrepel_0.9.5       </span></span>
+<span><span class="co">##  [79] foreach_1.5.2        pillar_1.9.0         stringr_1.5.1       </span></span>
+<span><span class="co">##  [82] splines_4.4.0        flowCore_2.15.2      dplyr_1.1.4         </span></span>
+<span><span class="co">##  [85] smacof_2.1-5         lattice_0.22-5       survival_3.5-7      </span></span>
+<span><span class="co">##  [88] RProtoBufLib_2.15.0  tidyselect_1.2.0     ggcyto_1.31.1       </span></span>
+<span><span class="co">##  [91] transport_0.14-6     knitr_1.45           gridExtra_2.3       </span></span>
+<span><span class="co">##  [94] bookdown_0.37        flowWorkspace_4.15.4 stats4_4.4.0        </span></span>
+<span><span class="co">##  [97] xfun_0.41            Biobase_2.63.0       matrixStats_1.2.0   </span></span>
+<span><span class="co">## [100] stringi_1.8.3        ncdfFlow_2.49.0      yaml_2.3.8          </span></span>
+<span><span class="co">## [103] boot_1.3-28.1        evaluate_0.23        codetools_0.2-19    </span></span>
+<span><span class="co">## [106] wordcloud_2.6        tibble_3.2.1         Rgraphviz_2.47.0    </span></span>
+<span><span class="co">## [109] BiocManager_1.30.22  graph_1.81.0         cli_3.6.2           </span></span>
+<span><span class="co">## [112] rpart_4.1.23         systemfonts_1.0.5    munsell_0.5.0       </span></span>
+<span><span class="co">## [115] jquerylib_0.1.4      candisc_0.8-6        Rcpp_1.0.12         </span></span>
+<span><span class="co">## [118] XML_3.99-0.16.1      parallel_4.4.0       pkgdown_2.0.7.9000  </span></span>
+<span><span class="co">## [121] rgl_1.2.8            lme4_1.1-35.1        glmnet_4.1-8        </span></span>
+<span><span class="co">## [124] scales_1.3.0         e1071_1.7-14         purrr_1.0.2         </span></span>
+<span><span class="co">## [127] rlang_1.1.3          mice_3.16.0</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

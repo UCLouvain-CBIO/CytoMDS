@@ -69,17 +69,18 @@ and the number of dimensions of the MDS projection are provided in sub-title</p>
 <span>  projectionAxes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,</span>
 <span>  biplot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  biplotType <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"correlation"</span>, <span class="st">"regression"</span><span class="op">)</span>,</span>
-<span>  extVariables <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  pDataForColour <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  pDataForShape <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  pDataForLabel <span class="op">=</span> <span class="st">"name"</span>,</span>
-<span>  pDataForAdditionalLabelling <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">extVariables</span>,</span>
+<span>  <span class="va">pDataForColour</span>,</span>
+<span>  <span class="va">pDataForShape</span>,</span>
+<span>  <span class="va">pDataForLabel</span>,</span>
+<span>  <span class="va">pDataForAdditionalLabelling</span>,</span>
 <span>  sizeReflectingStress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  title <span class="op">=</span> <span class="st">"Multi Dimensional Scaling"</span>,</span>
-<span>  repelPointsLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  displayPointLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  repelPointLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  displayArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  arrowThreshold <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  repelArrowLabels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  arrowThreshold <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  flipXAxis <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  flipYAxis <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  displayPseudoRSq <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -95,7 +96,7 @@ the computeMetricMDS() function</p></dd>
 
 
 <dt>pData</dt>
-<dd><p>a data.frame providing user input sample data.
+<dd><p>(optional) a data.frame providing user input sample data.
 These can be design of experiment variables, phenotype data per sample,...
 and will be used to highlight sample categories in the plot
 and/or for subsetting.</p></dd>
@@ -135,22 +136,24 @@ variables. The number of rows should be the same as the number of samples.</p></
 
 
 <dt>pDataForColour</dt>
-<dd><p>if not NULL, which <code>pData</code> variable
+<dd><p>(optional) which <code>pData</code> variable
 will be used as colour aesthetic. Should be a character.</p></dd>
 
 
 <dt>pDataForShape</dt>
-<dd><p>if not NULL, which <code>pData</code> variable
+<dd><p>(optional) which <code>pData</code> variable
 will be used as shape aesthetic. Should be a character.</p></dd>
 
 
 <dt>pDataForLabel</dt>
-<dd><p>if not NULL, which <code>pData</code> variable
-will be used as point labels in the plot. Should be a character.</p></dd>
+<dd><p>(optional) which <code>pData</code> variable
+will be used as point labels in the plot. Should be a character.
+If missing, point labels will be set equal to point names defined in
+MDS object (if not NULL, otherwise no labels will be set).</p></dd>
 
 
 <dt>pDataForAdditionalLabelling</dt>
-<dd><p>if not NULL, which <code>pData</code> variable(s)
+<dd><p>(optional) which <code>pData</code> variable(s)
 will be add to the ggplot mapping, as to make them available for
 <em>plotly</em> tooltipping. Should be an array of character of maximum length 3.
 Note this works only if biplot=FALSE, as biplots contain circle and arrows
@@ -168,7 +171,12 @@ the less accurate its representation is
 <dd><p>title to give to the plot</p></dd>
 
 
-<dt>repelPointsLabels</dt>
+<dt>displayPointLabels</dt>
+<dd><p>if TRUE, displays labels attached to points
+(see <code>pDataForLabels</code> for the setting of the label values)</p></dd>
+
+
+<dt>repelPointLabels</dt>
 <dd><p>if TRUE, uses <code><a href="https://ggrepel.slowkow.com/reference/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
 instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">ggplot2::geom_text()</a></code>
 (try to split the labels such that they do not overlap) for the points</p></dd>
@@ -178,14 +186,14 @@ instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html
 <dd><p>if TRUE, displays arrows labels (only with biplot)</p></dd>
 
 
-<dt>arrowThreshold</dt>
-<dd><p>(only with biplot), arrows will be made barely visible
-if their length is (in absolute value) less than this threshold.</p></dd>
-
-
 <dt>repelArrowLabels</dt>
 <dd><p>if TRUE, uses <code><a href="https://ggrepel.slowkow.com/reference/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
 instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">ggplot2::geom_text()</a></code> for the arrows (only with biplot)</p></dd>
+
+
+<dt>arrowThreshold</dt>
+<dd><p>(only with biplot), arrows will be made barely visible
+if their length is (in absolute value) less than this threshold.</p></dd>
 
 
 <dt>flipXAxis</dt>
@@ -300,7 +308,6 @@ of nb of dimensions</p></dd>
 <span class="r-in"><span>    pData <span class="op">=</span> <span class="fu">flowCore</span><span class="fu">::</span><span class="fu">pData</span><span class="op">(</span><span class="va">fsAll</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    projectionAxes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    pDataForColour <span class="op">=</span> <span class="st">"grpId"</span>,</span></span>
-<span class="r-in"><span>    pDataForLabel <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>    pDataForShape <span class="op">=</span> <span class="st">"type"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># plot mds projection on axes 3 and 4,</span></span></span>
@@ -343,7 +350,6 @@ of nb of dimensions</p></dd>
 <span class="r-in"><span>    biplot <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>    extVariables <span class="op">=</span> <span class="va">extVars</span>,</span></span>
 <span class="r-in"><span>    pDataForColour <span class="op">=</span> <span class="st">"grpId"</span>,</span></span>
-<span class="r-in"><span>    pDataForLabel <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>    pDataForShape <span class="op">=</span> <span class="st">"type"</span>,</span></span>
 <span class="r-in"><span>    seed <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
