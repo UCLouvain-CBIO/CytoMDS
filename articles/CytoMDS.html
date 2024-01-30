@@ -93,21 +93,10 @@ Gatto</h4>
       under a CC BY-SA 4.0 license.</p>
     </div>
     
-<script type="text/javascript">
-document.addEventListener("DOMContentLoaded", function() {
-  document.querySelector("h1").className = "title";
-});
-</script><script type="text/javascript">
-document.addEventListener("DOMContentLoaded", function() {
-  var links = document.links;  
-  for (var i = 0, linksLength = links.length; i < linksLength; i++)
-    if (links[i].hostname != window.location.hostname)
-      links[i].target = '_blank';
-});
-</script><div class="section level2">
+<div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>To install this package, start R and enter (uncommented):</p>
+<p>To install this package, start R and enter (un-commented):</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># if (!require("BiocManager", quietly = TRUE))</span></span>
 <span><span class="co">#     install.packages("BiocManager")</span></span>
@@ -122,10 +111,46 @@ document.addEventListener("DOMContentLoaded", function() {
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>What is CytoMDS in a few words</p>
-<p>Mathematical ingredients</p>
-<p>Present OMIP021 dataset - see CytoPipeline vignette.</p>
-<p>We start from transformed data…</p>
+<p>The <code>CytoMDS</code> package implements a low dimensional
+visualization of a set of cytometry samples, in order to visually assess
+the ‘distances’ between them. This, in turn, can greatly help the user
+to identify quality issues like batch effects or outlier samples, and/or
+check the presence of potential sample clusters that might align with
+the experimental design.</p>
+<p>The <code>CytoMDS</code> algorithm combines, on the one hand, the
+concept of <em>Earth Mover’s Distance (EMD)</em> <span class="citation">(Orlova et al. 2016)</span>, a.k.a. <em>Wasserstein
+metric</em> and, on the other hand, the metric <em>Multi Dimensional
+Scaling (MDS)</em> algorithm for the low dimensional projection <span class="citation">(Leeuw and Mair 2009)</span>.</p>
+<p>Also, the package provides some diagnostic tools for both checking
+the quality of the MDS projection, as well as tools to help with the
+interpretation of the axes of the projection (see below sections).</p>
+</div>
+<div class="section level2">
+<h2 id="illustrative-datasets">Illustrative datasets<a class="anchor" aria-label="anchor" href="#illustrative-datasets"></a>
+</h2>
+<p>Illustrative data sets that will be used throughout this vignette are
+derived from a reference public dataset accompanying the OMIP-021
+(Optimized Multicolor Immunofluorescence Panel 021) article <span class="citation">(Gherardin et al. 2014)</span>.</p>
+<p>A sub-sample of this public dataset is built-in in the
+<code>CytoPipeline</code> package <span class="citation">(Hauchamps and
+Gatto 2023)</span> as the <code>OMIP021</code> dataset.</p>
+<p>In the <code>CytoMDS</code>package, as in the current vignette,
+matrices of flow cytometry events intensities are stored as
+<code><a href="https://rdrr.io/pkg/flowCore/man/flowFrame-class.html" class="external-link">flowCore::flowFrame</a></code> <span class="citation">(Ellis et al.
+2023)</span> objects.</p>
+<p>Note that the <code>OMIP021</code> dataset only contains two samples,
+from two human donors. Therefore, in order to be able to meaningfully
+illustrate <code>CytoMDS</code> use cases, we will be building data sets
+with more samples, simulated by combining events, sampled from the two
+original <code>OMIP021</code> samples.</p>
+<p>The first step consists in scale transforming the two raw flow
+frames, using estimated scale transformations. Indeed, distances between
+samples make more sense with scaled transformed signal, in which
+distributional differences are much more obvious. In order to transform
+the signal of the different channels, here we use the
+<code><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/estimateScaleTransforms.html" class="external-link">estimateScaleTransforms()</a></code> function from the
+<code>CytoPipeline</code> package. However, this can be done using any
+standard package for flow cytometry data.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">OMIP021Samples</span><span class="op">)</span></span>
 <span></span>
@@ -150,109 +175,768 @@ document.addEventListener("DOMContentLoaded", function() {
 <pre><code><span><span class="co">## applying SSC-A linear transformation for SSC-H channel...</span></span></code></pre>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">OMIP021Trans</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/applyScaleTransforms.html" class="external-link">applyScaleTransforms</a></span><span class="op">(</span></span>
-<span>    <span class="va">OMIP021Samples</span>, </span>
+<span>    <span class="va">OMIP021Samples</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">16</span>,<span class="fl">18</span>,<span class="fl">20</span><span class="op">:</span><span class="fl">22</span><span class="op">)</span><span class="op">]</span>, <span class="co"># removing 'EMPTY' channels</span></span>
 <span>    <span class="va">transList</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="simulated-datasets">Simulated datasets<a class="anchor" aria-label="anchor" href="#simulated-datasets"></a>
-</h2>
-<p>We now simulate 2 datasets by combining events from the two Donor
-samples of the OMIP021 original dataset.</p>
-<p>Dataset1 is built by subsampling 5 times from each of the two
-original donor samples (alternatively)</p>
-<p>Dataset2 is built by mixing sample 1 and sample 2 with weights
-varying from 0 to 1</p>
+<p>We now create two simulated data sets, of 20 samples each, by
+combining events from the two samples of the OMIP021 original data
+set.</p>
+<p>We also attached to each sample, some ‘phenoData’ dataframe,
+describing each sample with some chosen variables.</p>
+<p>The first simulated data set, which is called here
+<code>OMIP021Sim1</code>, is built by sub-sampling 5 times from each of
+the two samples (alternatively).</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># to allow for reproducibility of sample()</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/subsample.html" class="external-link">subsample</a></span><span class="op">(</span></span>
 <span>                <span class="va">OMIP021Trans</span><span class="op">[[</span><span class="op">(</span><span class="va">i</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span><span class="fl">2</span><span class="op">+</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>                nEvents <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>                seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">22</span><span class="op">]</span></span>
+<span>                seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">OMIP021Sim1</span> <span class="op">&lt;-</span> <span class="fu">as</span><span class="op">(</span><span class="va">ffList</span>, <span class="st">"flowSet"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pData1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                     clust <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>                     original_sample <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The second one, <code>OMIP021Sim2</code> is built by mixing events
+from sample 1 and sample 2 with respective proportions varying from 1 to
+0 (resp. 0 to 1).</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">S1prop</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.</span>, <span class="va">nSample</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># to allow for reproducibility of sample()</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="kw">if</span> <span class="op">(</span><span class="va">i</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
 <span>        <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">OMIP021Trans</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span>        <span class="va">S1prop</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span>    <span class="op">}</span> <span class="kw">else</span> <span class="kw">if</span> <span class="op">(</span><span class="va">i</span><span class="op">==</span><span class="va">nSample</span><span class="op">)</span> <span class="op">{</span></span>
 <span>        <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">OMIP021Trans</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span>
+<span>        <span class="va">S1prop</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
 <span>    <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
 <span>        <span class="va">ff1</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/subsample.html" class="external-link">subsample</a></span><span class="op">(</span></span>
 <span>            <span class="va">OMIP021Trans</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>            nEvents <span class="op">=</span> <span class="fl">1000</span> <span class="op">*</span> <span class="op">(</span><span class="va">nSample</span><span class="op">-</span><span class="va">i</span><span class="op">)</span><span class="op">/</span><span class="op">(</span><span class="va">nSample</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>,</span>
-<span>            seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">22</span><span class="op">]</span></span>
+<span>            seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
 <span>        <span class="va">ff2</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/subsample.html" class="external-link">subsample</a></span><span class="op">(</span></span>
 <span>            <span class="va">OMIP021Trans</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>,</span>
-<span>            nEvents <span class="op">=</span> <span class="fl">1000</span> <span class="op">*</span> <span class="op">(</span><span class="va">i</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">/</span><span class="op">(</span><span class="va">nSample</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span></span>
-<span>        <span class="op">)</span></span>
+<span>            nEvents <span class="op">=</span> <span class="fl">1000</span> <span class="op">*</span> <span class="op">(</span><span class="va">i</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">/</span><span class="op">(</span><span class="va">nSample</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>            seed <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
+<span>        <span class="va">S1prop</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">nSample</span><span class="op">-</span><span class="va">i</span><span class="op">)</span><span class="op">/</span><span class="op">(</span><span class="va">nSample</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span></span>
 <span>        </span>
 <span>        <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/aggregateAndSample.html" class="external-link">aggregateAndSample</a></span><span class="op">(</span></span>
 <span>            <span class="fu">flowCore</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/flowCore/man/flowSet-class.html" class="external-link">flowSet</a></span><span class="op">(</span><span class="va">ff1</span>, <span class="va">ff2</span><span class="op">)</span>,</span>
 <span>            nTotalEvents <span class="op">=</span> <span class="fl">1000000</span> <span class="co"># big number to have a simple aggregation</span></span>
-<span>        <span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">22</span><span class="op">]</span></span>
+<span>        <span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span></span>
 <span>    <span class="op">}</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">OMIP021Sim2</span> <span class="op">&lt;-</span> <span class="fu">as</span><span class="op">(</span><span class="va">ffList</span>, <span class="st">"flowSet"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pData2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                     origin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Raw"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Sim"</span>, <span class="va">nSample</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span>, <span class="st">"Raw"</span><span class="op">)</span>,</span>
-<span>                     rawLabel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"D1"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">""</span>, <span class="va">nSample</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span>, <span class="st">"D2"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>                     origin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Raw"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Sim"</span>, <span class="va">nSample</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span>, <span class="st">"Raw"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                     rawLabel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"D1"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">""</span>, <span class="va">nSample</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span>, <span class="st">"D2"</span><span class="op">)</span>,</span>
+<span>                     S1prop <span class="op">=</span> <span class="va">S1prop</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="calculating-distances-between-samples">calculating distances between samples<a class="anchor" aria-label="anchor" href="#calculating-distances-between-samples"></a>
+<h2 id="calculating-distances-between-samples">Calculating distances between samples<a class="anchor" aria-label="anchor" href="#calculating-distances-between-samples"></a>
 </h2>
+<p>We can now calculate pairwise <em>Earth Mover’s Distances (EMD)</em>
+between all samples of our simulated data sets.</p>
+<p>This is done by calling the <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code>
+function.<br>
+The latter function takes here a <code><a href="https://rdrr.io/pkg/flowCore/man/flowSet-class.html" class="external-link">flowCore::flowSet</a></code> as input
+parameter, which is a collection of all samples as
+<code><a href="https://rdrr.io/pkg/flowCore/man/flowFrame-class.html" class="external-link">flowCore::flowFrame</a></code> objects. Note that, for heavy data sets
+that contains a lot of samples, this can create memory issues. In that
+case, there are other ways to call the <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code>
+function (see ‘Handling heavy data sets’ section).</p>
+<p>Using the <code>channels</code> argument, it is possible to restrict
+the EMD calculation to some of the channels. However, by default, all
+<em>signal</em> channels will be incorporated. <em>Signal</em> channels
+means all scatter and fluorescent channels. The known non-relevant
+channels for multivariate distribution distances, like time and other
+usual house-keeping channels, are automatically excluded from the
+calculation.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pwDist1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span></span>
-<span>    <span class="va">OMIP021Sim1</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>    <span class="va">OMIP021Sim1</span>, channels <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pwDist2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span></span>
-<span>    <span class="va">OMIP021Sim2</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="va">OMIP021Sim2</span>, channels <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<p>The calculated distance is a symmetric square matrix, with as many
+rows (columns) as input samples (extract shown here below for
+<code>OMIP021Sim1</code> simulated data set).</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#round(pwDist1, 2)</span></span>
-<span><span class="va">distVec1</span> <span class="op">&lt;-</span> <span class="va">pwDist1</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDist1</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">distVecDF1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVec1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDF1</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span>, bins <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/dist1ShowHist-1.png" width="700"></p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pwDist1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span>, <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##       1    2    3    4    5    6    7    8    9   10</span></span>
+<span><span class="co">## 1  0.00 1.77 0.56 1.63 0.66 1.68 0.50 1.77 0.42 1.86</span></span>
+<span><span class="co">## 2  1.77 0.00 1.90 0.51 2.18 0.58 1.63 0.44 1.96 0.44</span></span>
+<span><span class="co">## 3  0.56 1.90 0.00 1.78 0.67 1.93 0.68 1.84 0.57 2.03</span></span>
+<span><span class="co">## 4  1.63 0.51 1.78 0.00 1.95 0.60 1.55 0.55 1.76 0.60</span></span>
+<span><span class="co">## 5  0.66 2.18 0.67 1.95 0.00 2.06 0.97 2.21 0.46 2.26</span></span>
+<span><span class="co">## 6  1.68 0.58 1.93 0.60 2.06 0.00 1.60 0.74 1.87 0.63</span></span>
+<span><span class="co">## 7  0.50 1.63 0.68 1.55 0.97 1.60 0.00 1.59 0.70 1.72</span></span>
+<span><span class="co">## 8  1.77 0.44 1.84 0.55 2.21 0.74 1.59 0.00 1.96 0.50</span></span>
+<span><span class="co">## 9  0.42 1.96 0.57 1.76 0.46 1.87 0.70 1.96 0.00 2.04</span></span>
+<span><span class="co">## 10 1.86 0.44 2.03 0.60 2.26 0.63 1.72 0.50 2.04 0.00</span></span></code></pre>
+<p>One relevant way to visualize this distance matrix is to draw the
+histogram of pairwise distances, as shown in the below plot, for the
+<code>OMIP021Sim1</code> simulated data set. Notice here the bi-modal
+distribution of the distances, due to the way the data set was generated
+(half of the samples originate from sub-sampling the first original
+sample, and the other half originates from sub-sampling of the second
+original sample.)</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#round(pwDist2, 2)</span></span>
-<span><span class="va">distVec2</span> <span class="op">&lt;-</span> <span class="va">pwDist2</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDist2</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">distVec1</span> <span class="op">&lt;-</span> <span class="va">pwDist1</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDist1</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">distVecDF1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVec1</span><span class="op">)</span></span>
+<span><span class="va">pHist1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDF1</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span>, bins <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"EMD distances for data set 1"</span><span class="op">)</span></span>
+<span><span class="va">pHist1</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/dist1ShowHist-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>The same type of pairwise distance histogram, but this time for the
+<code>OMIP021Sim12</code> simulated data set, looks much different: here
+the distribution is unimodal and more regular, as one can expect from
+the way this second simulated data set was generated.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">distVecDF2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVec2</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">distVec2</span> <span class="op">&lt;-</span> <span class="va">pwDist2</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDist2</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">distVecDF2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVec2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDF2</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">15</span>, fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/dist12ShowHist-1.png" width="700"></p>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"EMD distances for data set 2"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/dist12ShowHist-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="calculating-mds-projection">calculating MDS projection<a class="anchor" aria-label="anchor" href="#calculating-mds-projection"></a>
+<h2 id="metric-multidimensional-scaling">Metric Multidimensional scaling<a class="anchor" aria-label="anchor" href="#metric-multidimensional-scaling"></a>
 </h2>
+<div class="section level3">
+<h3 id="calculating-the-mds-projection">Calculating the MDS projection<a class="anchor" aria-label="anchor" href="#calculating-the-mds-projection"></a>
+</h3>
+<p>Once the pairwise distance matrix has been calculated, computing the
+<em>Multi Dimensional Scaling (MDS)</em> projection is done by calling
+the <code>computMetricMDS()</code> function. In its simplest form, only
+the distance matrix needs to be passed to the function. In that case,
+the number of dimensions to use in the MDS is automatically set in order
+to reach a specific value for a projection quality indicator, i.e. a
+<em>target pseudo R square</em>, which in turn is set by default set to
+0.95 (see Quality of projection - diagnostic tools section).</p>
+<p>Note that the <em>Smacof</em> algorithm <span class="citation">(Leeuw
+and Mair 2009)</span>, used to compute the MDS projection, is
+stochastic, so it is sensitive to the ‘seed’ used. Therefore, in cases
+where reproducible results from one run to another is required , it is
+advised to set the seed argument to a specific value.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mdsObj1</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist1</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">mdsObj1</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist1</span>, seed <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning in rgl.init(initValue, onlyNULL): RGL: unable to open X11 display</span></span></code></pre>
 <pre><code><span><span class="co">## Warning: 'rgl.init' failed, running with 'rgl.useNULL = TRUE'.</span></span></code></pre>
+</div>
+<div class="section level3">
+<h3 id="plotting-the-mds-projection">Plotting the MDS projection<a class="anchor" aria-label="anchor" href="#plotting-the-mds-projection"></a>
+</h3>
+<p>Plotting the obtained MDS projection is done using
+<code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code>. If no phenoData is used, then, by
+default, numbers are used as labels, and the samples are represented as
+black dots.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/MDSCalc1-1.png" width="700"></p>
-<p>example 2: nDim = 4. Imposing nDim = 2, targetPseudoRSquare =
-0.99</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/plotMDS1_simplest-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>However, by providing a ‘phenoData’ dataframe to the
+<code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> function, the corresponding variable can
+be used for highlighting sample points with different colours and/or
+shapes. Here below, the previous plot is enhanced with red and blue
+colours, dot and triangle shapes, distinguishing samples based on the
+value of the <code>original_sample</code> variable. Also, we have here
+added explicit labels to each data point, using the corresponding value
+of the <code>name</code> variable for each sample.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mdsObj2</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist2</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/MDSCalc2-1.png" width="700">
-# plotting mds projection</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj1</span>, </span>
+<span>                pData <span class="op">=</span> <span class="va">pData1</span>, </span>
+<span>                pDataForColour <span class="op">=</span> <span class="st">"original_sample"</span>,</span>
+<span>                pDataForShape <span class="op">=</span> <span class="st">"original_sample"</span>,</span>
+<span>                pDataForLabel <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/plotMDS1_colors_shapes-1.png" width="700" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level3">
+<h3 id="quality-of-projection---diagnostic-tools">Quality of projection - diagnostic tools<a class="anchor" aria-label="anchor" href="#quality-of-projection---diagnostic-tools"></a>
+</h3>
+<p>In order to be able to trust the projected distances obtained on the
+<code>CytoMDS</code> plots, a couple of projection quality indicators
+need to be taken into account: - the <em>pseudo RSquare</em> indicator
+shows what percentage of the variability contained in the pairwise
+distance matrix is actually shown in the projection. It is analog to the
+statistical <em>RSquare</em> for a linear regression model: the closer
+to one the <em>pseudo RSquare</em> is, the better.</p>
+<p>Note that the latter refers to the variability contained in
+<strong>ALL</strong> dimensions of the MDS projection, not only the two
+plotted axes. - <em>nDim</em> is the number of dimensions of the
+projection that was needed to obtain the corresponding <em>pseudo
+RSquare</em> - the percentage of variation that is captured along each
+axis (coordinates), is to be interpreted with respect to the total
+variability <strong>that is captured by the MDS projection</strong>, not
+the total variability. For example, in the plot above, using 2
+dimensions, the MDS projection is able to capture 97.01% (<em>pseudo
+RSquare</em>) of the initial variability contained in the calculated
+pairwise distance matrix. <strong>Of these 97.01%</strong>, 90.96% is in
+turn captured by axis 1, and 9.04% is captured by axis 2.</p>
+<p>Another useful projection quality diagnostic tool is provided by the
+<em>Shepard diagram</em>. On this plot, each dot represents one distance
+between a sample pair, with as x coordinate the original (high
+dimensional) distance between the two samples, and as y coordinate the
+projected low dimensional distance between these two samples, as
+obtained by the MDS projection algorithm. In the <em>Shepard</em>
+diagram, an ideal situation corresponds to all points being located on
+the straight line passing through through the (0,0) and (1,1)
+points.</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj1</span>, pDataForLabel <span class="op">=</span> <span class="st">"sampleId"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDS1-1.png" width="700"></p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/plotMDSShepard-1.png" width="700" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level3">
+<h3 id="additional-options">Additional options<a class="anchor" aria-label="anchor" href="#additional-options"></a>
+</h3>
+<p>In order to show some of the additional options available to the user
+of <code><a href="../reference/computeMetricMDS.html">computeMetricMDS()</a></code> and <code>ggplotSampleMDS</code>(),
+let us project the pairwise sample distances of the
+<code>OMIP021Sim2</code> data set.</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mdsObj2</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj2</span>,</span>
+<span>                pData <span class="op">=</span> <span class="va">pData2</span>, </span>
+<span>                pDataForLabel <span class="op">=</span> <span class="st">"rawLabel"</span>,</span>
+<span>                pDataForShape <span class="op">=</span> <span class="st">"origin"</span>,</span>
+<span>                pDataForColour <span class="op">=</span> <span class="st">"S1prop"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/MDSCalc2.noOption-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>In the subtitle of this latter plot, it is mentioned that the
+obtained R square of 95.41% was obtained thanks when using 3 dimensions
+in the Multi Dimensional Scaling. Therefore, one can visualize the MDS
+projection using any combination of two axes, for example axes 2 and 3,
+as below:</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj2</span>,</span>
+<span>                projectionAxes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>                pData <span class="op">=</span> <span class="va">pData2</span>, </span>
+<span>                pDataForLabel <span class="op">=</span> <span class="st">"rawLabel"</span>,</span>
+<span>                pDataForShape <span class="op">=</span> <span class="st">"origin"</span>,</span>
+<span>                pDataForColour <span class="op">=</span> <span class="st">"S1prop"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/MDSCalc2.axes3.4-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>Now it is also possible to impose the number of dimensions used in
+the MDS projection explicitly, for example to 2, as is shown below:</p>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mdsObj2_2</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist2</span>, nDim <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj2_2</span>,</span>
+<span>                pData <span class="op">=</span> <span class="va">pData2</span>, </span>
+<span>                pDataForLabel <span class="op">=</span> <span class="st">"rawLabel"</span>,</span>
+<span>                pDataForShape <span class="op">=</span> <span class="st">"origin"</span>,</span>
+<span>                pDataForColour <span class="op">=</span> <span class="st">"S1prop"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/MDSCalc2.nDim2-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>Note that the obtained projection on 2 axes, although similar, is not
+exactly the same as the one obtained when visualizing the first two axis
+of the MDS projected before, on 3 dimensions. Actually, this is a
+feature of the Metric MDS projection, although it might appear a bit
+counter-intuitive at first.</p>
+<p>Finally, it is also possible to adjust the number of dimensions
+indirectly, by setting an explicit <em>pseudo Rsquare</em> target. In
+that case the algorithm will increase the number of dimensions until
+reaching the required quality target. The below example shows how to
+obtain a <em>pseudo R Square</em> of at least 0.99. Here the obtained
+number of dimensions is 6, instead of 3.</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mdsObj2_3</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist2</span>, targetPseudoRSq <span class="op">=</span> <span class="fl">0.99</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj2_3</span>,</span>
+<span>                pData <span class="op">=</span> <span class="va">pData2</span>, </span>
+<span>                pDataForLabel <span class="op">=</span> <span class="st">"rawLabel"</span>,</span>
+<span>                pDataForShape <span class="op">=</span> <span class="st">"origin"</span>,</span>
+<span>                pDataForColour <span class="op">=</span> <span class="st">"S1prop"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/MDSCalc2.Rsq99-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>The corresponding Shepard diagram is obtained as below:</p>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj2_3</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/biplot%20median-1.png" width="700" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level3">
+<h3 id="aid-to-interpreting-projection-axes">Aid to interpreting projection axes<a class="anchor" aria-label="anchor" href="#aid-to-interpreting-projection-axes"></a>
+</h3>
+<p>With MDS projections, it is possible to (try to) associate some axis
+directions to specific characteristics of the samples. The idea is to
+calculate the correlation of well chosen sample statistics w.r.t. the
+axes of projection, so that these correlations can be represented on a
+correlation circle, which is in turn overlaid on the projection plot.
+This plot set-up is called a ‘bi-plot’.</p>
+<p>In order to leverage on this functionality, the user first needs to
+calculate some statistics of interest for which they want to assess the
+association with the axis directions. Typically, one chooses channel
+specific statistics, like e.g. the mean, the standard deviation, or any
+quantile that might be of interest. However, any statistics that can be
+calculated for each sample can be used (number of events,…)</p>
+<p>Here below, we provide an example where the user overlays the median
+of the different channels, on a bi-plot for the MDS projection obtained
+for the first data set.</p>
+<p>On the bi-plot, each arrow - here representing a channel median - is
+located at coordinates equal to its Pearson correlation with the
+respective axis.</p>
+<p>Here, one can identify that the x axis has a strong positive
+correlation with the median of markers ‘Viability’, ‘gdTCR’, ‘TCR Va7’,
+‘CD45-RA’, ‘CD8a’ and ‘CD27’, and a strong negative correlation with the
+median of channels ‘FSC-A’, ‘SSC-A’ and marker ‘CD161’. The y axis has a
+strong negative correlation with the medians of markers ‘CD28’, and
+‘CD3’.</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">medians</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/channelSummaryStats.html">channelSummaryStats</a></span><span class="op">(</span><span class="va">OMIP021Sim1</span>, statFUNs <span class="op">=</span> <span class="va">median</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj1</span>, </span>
+<span>                pData <span class="op">=</span> <span class="va">pData1</span>, </span>
+<span>                pDataForColour <span class="op">=</span> <span class="st">"original_sample"</span>,</span>
+<span>                pDataForShape <span class="op">=</span> <span class="st">"original_sample"</span>,</span>
+<span>                displayPointLabels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                displayArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                repelArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                biplot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                extVariables <span class="op">=</span> <span class="va">medians</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/plotMDS1_biplot-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>Note that, on the bi-plots, only the arrows of length greater or
+equal to a specific threshold (by default set at 0.8) are represented,
+in order to not overwhelm the plot with arrows, especially when the data
+sets contains a high dimensional panels.</p>
+<p>It is however possible to adjust this threshold by explicitly setting
+the <code>arrowThreshold</code> argument. For example, in the below
+plot, this threshold is set set to 0.9:</p>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj1</span>, </span>
+<span>                pData <span class="op">=</span> <span class="va">pData1</span>, </span>
+<span>                pDataForColour <span class="op">=</span> <span class="st">"original_sample"</span>,</span>
+<span>                pDataForShape <span class="op">=</span> <span class="st">"original_sample"</span>,</span>
+<span>                displayPointLabels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                displayArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                repelArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                biplot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                extVariables <span class="op">=</span> <span class="va">medians</span>,</span>
+<span>                arrowThreshold <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span> </span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/plotMDS1_biplot_0.9-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>Instead of having one bi-plot related to a specific type of
+statistics, for example channel medians, one can try to associate the
+axes to different types of channel statistics at once. In the next plot,
+we represent such bi-plots for channel medians, 25% and 75% quantiles,
+and standard deviations.</p>
+<p>The ‘faceting-alike’ plot is obtained thanks to the
+<code><a href="../reference/ggplotSampleMDSWrapBiplots.html">ggplotSampleMDSWrapBiplots()</a></code> function, which internally
+calls <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> function several times, and arrange
+the obtained outputs on a single plot.</p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">statFUNs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"median"</span> <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span>,</span>
+<span>             <span class="st">"Q25"</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">na.rm</span><span class="op">)</span> <span class="op">{</span></span>
+<span>                 <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span>, probs <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span>
+<span>             <span class="op">}</span>,</span>
+<span>             <span class="st">"Q75"</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">na.rm</span><span class="op">)</span> <span class="op">{</span></span>
+<span>                 <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span>, probs <span class="op">=</span> <span class="fl">0.75</span><span class="op">)</span></span>
+<span>             <span class="op">}</span>,</span>
+<span>             <span class="st">"standard deviation"</span> <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">)</span></span>
+<span><span class="va">chStats</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/channelSummaryStats.html">channelSummaryStats</a></span><span class="op">(</span><span class="va">OMIP021Sim1</span>, statFUNs <span class="op">=</span> <span class="va">statFUNs</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSWrapBiplots.html">ggplotSampleMDSWrapBiplots</a></span><span class="op">(</span></span>
+<span>    <span class="va">mdsObj1</span>, </span>
+<span>    extVariableList <span class="op">=</span> <span class="va">chStats</span>,</span>
+<span>    ncol <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>    pData <span class="op">=</span> <span class="va">pData1</span>,</span>
+<span>    pDataForColour <span class="op">=</span> <span class="st">"original_sample"</span>,</span>
+<span>    pDataForShape <span class="op">=</span> <span class="st">"original_sample"</span>,</span>
+<span>    displayPointLabels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>    displayArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    repelArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    arrowThreshold <span class="op">=</span> <span class="fl">0.9</span>,</span>
+<span>    displayLegend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> </span></code></pre></div>
+<pre><code><span><span class="co">## Warning: ggrepel: 13 unlabeled data points (too many overlaps). Consider</span></span>
+<span><span class="co">## increasing max.overlaps</span></span></code></pre>
+<p><img src="CytoMDS_files/figure-html/plotMDS1_biplot_facetting-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>Note that the last plot, with arrows corresponding to channel
+standard deviations, ganerates a warning indicating that the arrow
+labels could not be displayed. This is due to the fact that too many
+channel standard deviations are strongly negatively correlated with the
+x axis. When encountering such visual issues, it is advised to generate
+series of bi-plots, with subsets of channel statistics, in order to
+better identify the strongly correlated ones. One example is provided
+below:</p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">stdDevs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">stdDevs</span><span class="op">[[</span><span class="st">"std dev of channels 1 to 6"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> </span>
+<span>    <span class="va">chStats</span><span class="op">[[</span><span class="st">"standard deviation"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span></span>
+<span><span class="va">stdDevs</span><span class="op">[[</span><span class="st">"std dev of channels 7 to 12"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> </span>
+<span>            <span class="va">chStats</span><span class="op">[[</span><span class="st">"standard deviation"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>,<span class="fl">7</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span></span>
+<span><span class="va">stdDevs</span><span class="op">[[</span><span class="st">"std dev of channels 13 to 18"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> </span>
+<span>            <span class="va">chStats</span><span class="op">[[</span><span class="st">"standard deviation"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>,<span class="fl">13</span><span class="op">:</span><span class="fl">18</span><span class="op">]</span></span>
+<span><span class="fu"><a href="../reference/ggplotSampleMDSWrapBiplots.html">ggplotSampleMDSWrapBiplots</a></span><span class="op">(</span></span>
+<span>    <span class="va">mdsObj1</span>, </span>
+<span>    ncol <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    extVariableList <span class="op">=</span> <span class="va">stdDevs</span>,</span>
+<span>    pData <span class="op">=</span> <span class="va">pData1</span>, </span>
+<span>    pDataForColour <span class="op">=</span> <span class="st">"original_sample"</span>,</span>
+<span>    pDataForShape <span class="op">=</span> <span class="st">"original_sample"</span>,</span>
+<span>    displayPointLabels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>    displayArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    repelArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    arrowThreshold <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span> </span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/plotMDS1_biplot_stddev-1.png" width="700" style="display: block; margin: auto;"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="handling-heavy-datasets">Handling heavy datasets<a class="anchor" aria-label="anchor" href="#handling-heavy-datasets"></a>
+</h2>
+<p>Computing Earth Mover’s Distances between all sample pairs of large
+data sets (e.g. with hundreds of samples), is a heavy computational
+task.</p>
+<p>First, loading the whole data set as a
+<code><a href="https://rdrr.io/pkg/flowCore/man/flowSet-class.html" class="external-link">flowCore::flowSet()</a></code> in RAM at once, might not be possible
+due to its size. Second, calculating a matrix of pairwise distances, has
+a computational complexity of O(N2), which can lead to very long
+computation times for large data sets.</p>
+<p>Therefore, the <code>CytoMDS</code> package provides several
+mechanisms allowing to mitigate these issues.</p>
+<div class="section level3">
+<h3 id="loading-flow-frames-dynamically-during-distance-matrix-computation">Loading flow frames dynamically during distance matrix
+computation<a class="anchor" aria-label="anchor" href="#loading-flow-frames-dynamically-during-distance-matrix-computation"></a>
+</h3>
+<p>In order to be able to handle data set of greater size than the
+available computer RAM, the <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code> function
+allows for differential input mode, where: - the input samples are NOT
+provided directly via a <code><a href="https://rdrr.io/pkg/flowCore/man/flowSet-class.html" class="external-link">flowCore::flowSet</a></code>, but - the user
+provides the nb of samples, and a user-written flow frame loading
+function that will be called to dynamically load the <em>i</em>th sample
+upon request, and optionally additional arguments.</p>
+<p>Typically, the flow frame loading function provided by the user shall
+describe how to read the <em>i</em>th sample from disk.</p>
+<p>In the below, an example using data set <code>OMIP021Sim1</code> is
+provided. This is<br>
+for illustrative purpose only, as this data set is light enough to
+reside fully in memory. In such a workflow, it is advised, as a
+preliminary step, to store all scale transformed samples on disk. Here
+we do this in a temporary directory. Note this scale transformation
+could also be done on the fly, as part of the flow frame loading
+function. However, this would then require scale transforming the
+channel intensities a number of times during distance matrix
+calculation, which would be inefficient.</p>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">storageLocation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">OMIP021Sim1</span><span class="op">)</span></span>
+<span><span class="va">fileNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span></span>
+<span>    <span class="va">storageLocation</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"OMIP021Sim1_Sample"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span>, <span class="st">".rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">OMIP021Sim1</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>, </span>
+<span>            file <span class="op">=</span> <span class="va">fileNames</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>Then, we now call the <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code> function, and
+specify a loading function.</p>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pwDist1Again</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span></span>
+<span>    x <span class="op">=</span> <span class="va">nSample</span>,</span>
+<span>    loadFlowFrameFUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">ffIndex</span>, <span class="va">theFiles</span><span class="op">)</span><span class="op">{</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span>file <span class="op">=</span> <span class="va">theFiles</span><span class="op">[</span><span class="va">ffIndex</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="op">}</span>,</span>
+<span>    loadFlowFrameFUNArgs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>theFiles <span class="op">=</span> <span class="va">fileNames</span><span class="op">)</span>,</span>
+<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Pre-calculating all histograms...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 1...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 1...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 2...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 2...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 3...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 3...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 4...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 4...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 5...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 5...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 6...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 6...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 7...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 7...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 8...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 8...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 9...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 9...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 10...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 10...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 11...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 11...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 12...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 12...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 13...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 13...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 14...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 14...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 15...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 15...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 16...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 16...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 17...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 17...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 18...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 18...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 19...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 19...</span></span></code></pre>
+<pre><code><span><span class="co">## Loading file 20...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating histogram for file 20...</span></span></code></pre>
+<pre><code><span><span class="co">## Calculating pairwise distances between histograms...</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 2; dist = 1.76925</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 3; dist = 0.5556</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 4; dist = 1.62995</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 5; dist = 0.6623</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 6; dist = 1.67935</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 7; dist = 0.5003</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 8; dist = 1.76675</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 9; dist = 0.4188</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 10; dist = 1.85695</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 11; dist = 0.59835</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 12; dist = 1.84495</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 13; dist = 0.37195</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 14; dist = 1.90415</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 15; dist = 0.5332</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 16; dist = 1.5768</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 17; dist = 0.46625</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 18; dist = 1.9113</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 19; dist = 0.39265</span></span></code></pre>
+<pre><code><span><span class="co">## i = 1; j = 20; dist = 1.73065</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 3; dist = 1.89565</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 4; dist = 0.5081</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 5; dist = 2.17985</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 6; dist = 0.5827</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 7; dist = 1.63315</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 8; dist = 0.4436</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 9; dist = 1.96395</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 10; dist = 0.4391</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 11; dist = 1.9695</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 12; dist = 0.4181</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 13; dist = 1.7841</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 14; dist = 0.4271</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 15; dist = 2.02115</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 16; dist = 0.50355</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 17; dist = 1.8465</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 18; dist = 0.51935</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 19; dist = 1.6643</span></span></code></pre>
+<pre><code><span><span class="co">## i = 2; j = 20; dist = 0.4097</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 4; dist = 1.78135</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 5; dist = 0.6705</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 6; dist = 1.92735</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 7; dist = 0.6789</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 8; dist = 1.83945</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 9; dist = 0.5709</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 10; dist = 2.02975</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 11; dist = 0.53525</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 12; dist = 1.97165</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 13; dist = 0.57005</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 14; dist = 2.00675</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 15; dist = 0.6302</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 16; dist = 1.7297</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 17; dist = 0.40925</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 18; dist = 1.947</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 19; dist = 0.54205</span></span></code></pre>
+<pre><code><span><span class="co">## i = 3; j = 20; dist = 1.93255</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 5; dist = 1.95135</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 6; dist = 0.6006</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 7; dist = 1.55475</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 8; dist = 0.5472</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 9; dist = 1.75765</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 10; dist = 0.5975</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 11; dist = 1.8457</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 12; dist = 0.4716</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 13; dist = 1.6647</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 14; dist = 0.6292</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 15; dist = 1.91555</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 16; dist = 0.42345</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 17; dist = 1.7772</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 18; dist = 0.67705</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 19; dist = 1.5781</span></span></code></pre>
+<pre><code><span><span class="co">## i = 4; j = 20; dist = 0.4644</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 6; dist = 2.06245</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 7; dist = 0.9733</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 8; dist = 2.20845</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 9; dist = 0.4595</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 10; dist = 2.26375</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 11; dist = 0.58575</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 12; dist = 2.19265</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 13; dist = 0.63315</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 14; dist = 2.33165</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 15; dist = 0.5165</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 16; dist = 1.9022</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 17; dist = 0.76855</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 18; dist = 2.3527</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 19; dist = 0.81135</span></span></code></pre>
+<pre><code><span><span class="co">## i = 5; j = 20; dist = 2.10035</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 7; dist = 1.60175</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 8; dist = 0.7385</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 9; dist = 1.87115</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 10; dist = 0.6313</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 11; dist = 1.8147</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 12; dist = 0.6742</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 13; dist = 1.7136</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 14; dist = 0.7753</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 15; dist = 1.91265</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 16; dist = 0.55255</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 17; dist = 1.8616</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 18; dist = 0.86815</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 19; dist = 1.6282</span></span></code></pre>
+<pre><code><span><span class="co">## i = 6; j = 20; dist = 0.4977</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 8; dist = 1.58885</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 9; dist = 0.6984</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 10; dist = 1.72295</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 11; dist = 0.77395</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 12; dist = 1.73335</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 13; dist = 0.53125</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 14; dist = 1.73185</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 15; dist = 0.7266</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 16; dist = 1.465</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 17; dist = 0.51825</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 18; dist = 1.7288</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 19; dist = 0.44405</span></span></code></pre>
+<pre><code><span><span class="co">## i = 7; j = 20; dist = 1.64745</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 9; dist = 1.95965</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 10; dist = 0.4972</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 11; dist = 2.0653</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 12; dist = 0.4714</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 13; dist = 1.8184</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 14; dist = 0.4517</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 15; dist = 2.07105</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 16; dist = 0.57195</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 17; dist = 1.8139</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 18; dist = 0.39635</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 19; dist = 1.6594</span></span></code></pre>
+<pre><code><span><span class="co">## i = 8; j = 20; dist = 0.5088</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 10; dist = 2.04465</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 11; dist = 0.54995</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 12; dist = 1.98555</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 13; dist = 0.45605</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 14; dist = 2.10725</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 15; dist = 0.4727</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 16; dist = 1.7225</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 17; dist = 0.56655</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 18; dist = 2.1004</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 19; dist = 0.54895</span></span></code></pre>
+<pre><code><span><span class="co">## i = 9; j = 20; dist = 1.89905</span></span></code></pre>
+<pre><code><span><span class="co">## i = 10; j = 11; dist = 2.0588</span></span></code></pre>
+<pre><code><span><span class="co">## i = 10; j = 12; dist = 0.456</span></span></code></pre>
+<pre><code><span><span class="co">## i = 10; j = 13; dist = 1.8845</span></span></code></pre>
+<pre><code><span><span class="co">## i = 10; j = 14; dist = 0.3702</span></span></code></pre>
+<pre><code><span><span class="co">## i = 10; j = 15; dist = 2.11985</span></span></code></pre>
+<pre><code><span><span class="co">## i = 10; j = 16; dist = 0.60155</span></span></code></pre>
+<pre><code><span><span class="co">## i = 10; j = 17; dist = 1.9871</span></span></code></pre>
+<pre><code><span><span class="co">## i = 10; j = 18; dist = 0.50695</span></span></code></pre>
+<pre><code><span><span class="co">## i = 10; j = 19; dist = 1.777</span></span></code></pre>
+<pre><code><span><span class="co">## i = 10; j = 20; dist = 0.4208</span></span></code></pre>
+<pre><code><span><span class="co">## i = 11; j = 12; dist = 2.048</span></span></code></pre>
+<pre><code><span><span class="co">## i = 11; j = 13; dist = 0.5603</span></span></code></pre>
+<pre><code><span><span class="co">## i = 11; j = 14; dist = 2.1403</span></span></code></pre>
+<pre><code><span><span class="co">## i = 11; j = 15; dist = 0.45555</span></span></code></pre>
+<pre><code><span><span class="co">## i = 11; j = 16; dist = 1.76255</span></span></code></pre>
+<pre><code><span><span class="co">## i = 11; j = 17; dist = 0.5428</span></span></code></pre>
+<pre><code><span><span class="co">## i = 11; j = 18; dist = 2.21025</span></span></code></pre>
+<pre><code><span><span class="co">## i = 11; j = 19; dist = 0.6201</span></span></code></pre>
+<pre><code><span><span class="co">## i = 11; j = 20; dist = 1.9024</span></span></code></pre>
+<pre><code><span><span class="co">## i = 12; j = 13; dist = 1.8701</span></span></code></pre>
+<pre><code><span><span class="co">## i = 12; j = 14; dist = 0.4895</span></span></code></pre>
+<pre><code><span><span class="co">## i = 12; j = 15; dist = 2.10775</span></span></code></pre>
+<pre><code><span><span class="co">## i = 12; j = 16; dist = 0.45175</span></span></code></pre>
+<pre><code><span><span class="co">## i = 12; j = 17; dist = 1.9607</span></span></code></pre>
+<pre><code><span><span class="co">## i = 12; j = 18; dist = 0.50495</span></span></code></pre>
+<pre><code><span><span class="co">## i = 12; j = 19; dist = 1.7726</span></span></code></pre>
+<pre><code><span><span class="co">## i = 12; j = 20; dist = 0.4146</span></span></code></pre>
+<pre><code><span><span class="co">## i = 13; j = 14; dist = 1.9214</span></span></code></pre>
+<pre><code><span><span class="co">## i = 13; j = 15; dist = 0.50905</span></span></code></pre>
+<pre><code><span><span class="co">## i = 13; j = 16; dist = 1.58085</span></span></code></pre>
+<pre><code><span><span class="co">## i = 13; j = 17; dist = 0.4638</span></span></code></pre>
+<pre><code><span><span class="co">## i = 13; j = 18; dist = 1.96335</span></span></code></pre>
+<pre><code><span><span class="co">## i = 13; j = 19; dist = 0.4102</span></span></code></pre>
+<pre><code><span><span class="co">## i = 13; j = 20; dist = 1.7461</span></span></code></pre>
+<pre><code><span><span class="co">## i = 14; j = 15; dist = 2.20185</span></span></code></pre>
+<pre><code><span><span class="co">## i = 14; j = 16; dist = 0.64085</span></span></code></pre>
+<pre><code><span><span class="co">## i = 14; j = 17; dist = 1.956</span></span></code></pre>
+<pre><code><span><span class="co">## i = 14; j = 18; dist = 0.41505</span></span></code></pre>
+<pre><code><span><span class="co">## i = 14; j = 19; dist = 1.7949</span></span></code></pre>
+<pre><code><span><span class="co">## i = 14; j = 20; dist = 0.4988</span></span></code></pre>
+<pre><code><span><span class="co">## i = 15; j = 16; dist = 1.8063</span></span></code></pre>
+<pre><code><span><span class="co">## i = 15; j = 17; dist = 0.58645</span></span></code></pre>
+<pre><code><span><span class="co">## i = 15; j = 18; dist = 2.2122</span></span></code></pre>
+<pre><code><span><span class="co">## i = 15; j = 19; dist = 0.59735</span></span></code></pre>
+<pre><code><span><span class="co">## i = 15; j = 20; dist = 1.98965</span></span></code></pre>
+<pre><code><span><span class="co">## i = 16; j = 17; dist = 1.71405</span></span></code></pre>
+<pre><code><span><span class="co">## i = 16; j = 18; dist = 0.7033</span></span></code></pre>
+<pre><code><span><span class="co">## i = 16; j = 19; dist = 1.51255</span></span></code></pre>
+<pre><code><span><span class="co">## i = 16; j = 20; dist = 0.44395</span></span></code></pre>
+<pre><code><span><span class="co">## i = 17; j = 18; dist = 1.94515</span></span></code></pre>
+<pre><code><span><span class="co">## i = 17; j = 19; dist = 0.4321</span></span></code></pre>
+<pre><code><span><span class="co">## i = 17; j = 20; dist = 1.8906</span></span></code></pre>
+<pre><code><span><span class="co">## i = 18; j = 19; dist = 1.80025</span></span></code></pre>
+<pre><code><span><span class="co">## i = 18; j = 20; dist = 0.61825</span></span></code></pre>
+<pre><code><span><span class="co">## i = 19; j = 20; dist = 1.6692</span></span></code></pre>
+</div>
+<div class="section level3">
+<h3 id="using-biocparallel-to-parallelize-distance-matrix-computation">Using BiocParallel to parallelize distance matrix computation<a class="anchor" aria-label="anchor" href="#using-biocparallel-to-parallelize-distance-matrix-computation"></a>
+</h3>
+<p>Finally, <code>CytoMDS</code> pairwise distance calculation supports
+parallelization of distance matrix computation, through the use of
+<code>BiocParallel</code> package.</p>
+<p>When parallelization is used, the calculation engine will
+automatically create worker tasks corresponding to specific blocks of
+the distance matrix to be calculated.</p>
+<p>Here below is an example, using
+<code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">BiocParallel::SnowParam()</a></code> backbone.</p>
+<div class="sourceCode" id="cb276"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bp</span> <span class="op">&lt;-</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam</a></span><span class="op">(</span></span>
+<span>    stop.on.error <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>    progressbar <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">pwDist1Last</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span></span>
+<span>    x <span class="op">=</span> <span class="va">nSample</span>,</span>
+<span>    loadFlowFrameFUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">ffIndex</span>, <span class="va">theFiles</span><span class="op">)</span><span class="op">{</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span>file <span class="op">=</span> <span class="va">theFiles</span><span class="op">[</span><span class="va">ffIndex</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="op">}</span>,</span>
+<span>    loadFlowFrameFUNArgs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>theFiles <span class="op">=</span> <span class="va">fileNames</span><span class="op">)</span>,</span>
+<span>    useBiocParallel <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    BPPARAM <span class="op">=</span> <span class="va">bp</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |==================                                                    |  25%
+  |                                                                            
+  |===================================                                   |  50%
+  |                                                                            
+  |====================================================                  |  75%
+  |                                                                            
+  |======================================================================| 100%
+## 
+## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |============                                                          |  17%
+  |                                                                            
+  |=======================                                               |  33%
+  |                                                                            
+  |===================================                                   |  50%
+  |                                                                            
+  |===============================================                       |  67%
+  |                                                                            
+  |==========================================================            |  83%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<p>The obtained distances - as displayed in the below histogram - are
+exactly the same as before.</p>
+<div class="sourceCode" id="cb278"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">distVec1Last</span> <span class="op">&lt;-</span> <span class="va">pwDist1Last</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDist1Last</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">distVecDF1Last</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVec1Last</span><span class="op">)</span></span>
+<span><span class="va">pHist1Last</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDF1Last</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span>, bins <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"EMD distances for data set 1 - parallel computation"</span><span class="op">)</span></span>
+<span><span class="va">pHist1Last</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/dist1ShowHistAgain-1.png" width="700" style="display: block; margin: auto;"></p>
+</div>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
@@ -296,40 +980,73 @@ varying from 0 to 1</p>
 <span><span class="co">##  [31] cachem_1.0.8         lifecycle_1.0.4      iterators_1.0.14    </span></span>
 <span><span class="co">##  [34] pkgconfig_2.0.3      Matrix_1.6-5         R6_2.5.1            </span></span>
 <span><span class="co">##  [37] fastmap_1.1.1        digest_0.6.34        colorspace_2.1-0    </span></span>
-<span><span class="co">##  [40] S4Vectors_0.41.3     textshaping_0.3.7    Hmisc_5.1-1         </span></span>
-<span><span class="co">##  [43] ellipse_0.5.0        labeling_0.4.3       cytolib_2.15.2      </span></span>
-<span><span class="co">##  [46] fansi_1.0.6          nnls_1.5             gdata_3.0.0         </span></span>
-<span><span class="co">##  [49] abind_1.4-5          compiler_4.4.0       proxy_0.4-27        </span></span>
-<span><span class="co">##  [52] withr_3.0.0          doParallel_1.0.17    htmlTable_2.4.2     </span></span>
-<span><span class="co">##  [55] backports_1.4.1      carData_3.0-5        hexbin_1.28.3       </span></span>
-<span><span class="co">##  [58] highr_0.10           pan_1.9              MASS_7.3-60.2       </span></span>
-<span><span class="co">##  [61] gtools_3.9.5         tools_4.4.0          foreign_0.8-86      </span></span>
-<span><span class="co">##  [64] nnet_7.3-19          glue_1.7.0           nlme_3.1-164        </span></span>
-<span><span class="co">##  [67] grid_4.4.0           checkmate_2.3.1      cluster_2.1.6       </span></span>
-<span><span class="co">##  [70] generics_0.1.3       gtable_0.3.4         class_7.3-22        </span></span>
-<span><span class="co">##  [73] tidyr_1.3.1          data.table_1.14.10   car_3.1-2           </span></span>
-<span><span class="co">##  [76] utf8_1.2.4           BiocGenerics_0.49.1  ggrepel_0.9.5       </span></span>
-<span><span class="co">##  [79] foreach_1.5.2        pillar_1.9.0         stringr_1.5.1       </span></span>
-<span><span class="co">##  [82] splines_4.4.0        flowCore_2.15.2      dplyr_1.1.4         </span></span>
-<span><span class="co">##  [85] smacof_2.1-5         lattice_0.22-5       survival_3.5-7      </span></span>
-<span><span class="co">##  [88] RProtoBufLib_2.15.0  tidyselect_1.2.0     ggcyto_1.31.1       </span></span>
-<span><span class="co">##  [91] transport_0.14-6     knitr_1.45           gridExtra_2.3       </span></span>
-<span><span class="co">##  [94] bookdown_0.37        flowWorkspace_4.15.4 stats4_4.4.0        </span></span>
-<span><span class="co">##  [97] xfun_0.41            Biobase_2.63.0       matrixStats_1.2.0   </span></span>
-<span><span class="co">## [100] stringi_1.8.3        ncdfFlow_2.49.0      yaml_2.3.8          </span></span>
-<span><span class="co">## [103] boot_1.3-28.1        evaluate_0.23        codetools_0.2-19    </span></span>
-<span><span class="co">## [106] wordcloud_2.6        tibble_3.2.1         Rgraphviz_2.47.0    </span></span>
-<span><span class="co">## [109] BiocManager_1.30.22  graph_1.81.0         cli_3.6.2           </span></span>
-<span><span class="co">## [112] rpart_4.1.23         systemfonts_1.0.5    munsell_0.5.0       </span></span>
-<span><span class="co">## [115] jquerylib_0.1.4      candisc_0.8-6        Rcpp_1.0.12         </span></span>
-<span><span class="co">## [118] XML_3.99-0.16.1      parallel_4.4.0       pkgdown_2.0.7.9000  </span></span>
-<span><span class="co">## [121] rgl_1.2.8            lme4_1.1-35.1        glmnet_4.1-8        </span></span>
-<span><span class="co">## [124] scales_1.3.0         e1071_1.7-14         purrr_1.0.2         </span></span>
-<span><span class="co">## [127] rlang_1.1.3          mice_3.16.0</span></span></code></pre>
+<span><span class="co">##  [40] patchwork_1.2.0      S4Vectors_0.41.3     textshaping_0.3.7   </span></span>
+<span><span class="co">##  [43] Hmisc_5.1-1          ellipse_0.5.0        labeling_0.4.3      </span></span>
+<span><span class="co">##  [46] cytolib_2.15.2       fansi_1.0.6          nnls_1.5            </span></span>
+<span><span class="co">##  [49] gdata_3.0.0          polyclip_1.10-6      abind_1.4-5         </span></span>
+<span><span class="co">##  [52] compiler_4.4.0       proxy_0.4-27         withr_3.0.0         </span></span>
+<span><span class="co">##  [55] doParallel_1.0.17    htmlTable_2.4.2      backports_1.4.1     </span></span>
+<span><span class="co">##  [58] BiocParallel_1.37.0  carData_3.0-5        hexbin_1.28.3       </span></span>
+<span><span class="co">##  [61] highr_0.10           ggforce_0.4.1        pan_1.9             </span></span>
+<span><span class="co">##  [64] MASS_7.3-60.2        gtools_3.9.5         tools_4.4.0         </span></span>
+<span><span class="co">##  [67] foreign_0.8-86       nnet_7.3-19          glue_1.7.0          </span></span>
+<span><span class="co">##  [70] nlme_3.1-164         grid_4.4.0           checkmate_2.3.1     </span></span>
+<span><span class="co">##  [73] cluster_2.1.6        snow_0.4-4           generics_0.1.3      </span></span>
+<span><span class="co">##  [76] gtable_0.3.4         class_7.3-22         tidyr_1.3.1         </span></span>
+<span><span class="co">##  [79] data.table_1.15.0    car_3.1-2            utf8_1.2.4          </span></span>
+<span><span class="co">##  [82] BiocGenerics_0.49.1  ggrepel_0.9.5        foreach_1.5.2       </span></span>
+<span><span class="co">##  [85] pillar_1.9.0         stringr_1.5.1        splines_4.4.0       </span></span>
+<span><span class="co">##  [88] flowCore_2.15.2      tweenr_2.0.2         dplyr_1.1.4         </span></span>
+<span><span class="co">##  [91] smacof_2.1-5         lattice_0.22-5       survival_3.5-7      </span></span>
+<span><span class="co">##  [94] RProtoBufLib_2.15.0  tidyselect_1.2.0     ggcyto_1.31.1       </span></span>
+<span><span class="co">##  [97] transport_0.14-6     knitr_1.45           gridExtra_2.3       </span></span>
+<span><span class="co">## [100] bookdown_0.37        flowWorkspace_4.15.4 stats4_4.4.0        </span></span>
+<span><span class="co">## [103] xfun_0.41            Biobase_2.63.0       matrixStats_1.2.0   </span></span>
+<span><span class="co">## [106] stringi_1.8.3        ncdfFlow_2.49.0      yaml_2.3.8          </span></span>
+<span><span class="co">## [109] boot_1.3-28.1        evaluate_0.23        codetools_0.2-19    </span></span>
+<span><span class="co">## [112] wordcloud_2.6        tibble_3.2.1         Rgraphviz_2.47.0    </span></span>
+<span><span class="co">## [115] BiocManager_1.30.22  graph_1.81.0         cli_3.6.2           </span></span>
+<span><span class="co">## [118] rpart_4.1.23         systemfonts_1.0.5    munsell_0.5.0       </span></span>
+<span><span class="co">## [121] jquerylib_0.1.4      candisc_0.8-6        Rcpp_1.0.12         </span></span>
+<span><span class="co">## [124] XML_3.99-0.16.1      parallel_4.4.0       pkgdown_2.0.7.9000  </span></span>
+<span><span class="co">## [127] rgl_1.2.8            lme4_1.1-35.1        glmnet_4.1-8        </span></span>
+<span><span class="co">## [130] scales_1.3.0         e1071_1.7-14         purrr_1.0.2         </span></span>
+<span><span class="co">## [133] rlang_1.1.3          mice_3.16.0</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-flowCore" class="csl-entry">
+Ellis, B, Perry Haaland, Florian Hahne, Nolwenn Le Meur, Nishant
+Gopalakrishnan, Josef Spidlen, Mike Jiang, and Greg Finak. 2023.
+<em>flowCore: flowCore: Basic Structures for Flow Cytometry Data</em>.
+<a href="https://doi.org/10.18129/B9.bioc.flowCore" class="external-link">https://doi.org/10.18129/B9.bioc.flowCore</a>.
+</div>
+<div id="ref-Gherardin2014-pj" class="csl-entry">
+Gherardin, Nicholas A, David S Ritchie, Dale I Godfrey, and Paul J
+Neeson. 2014. <span>“<span>OMIP-021</span>: Simultaneous Quantification
+of Human Conventional and Innate-Like t-Cell Subsets.”</span>
+<em>Cytometry A</em> 85 (7): 573–75.
+</div>
+<div id="ref-CytoPipeline" class="csl-entry">
+Hauchamps, Philippe, and Laurent Gatto. 2023. <em>CytoPipeline:
+Automation and Visualization of Flow Cytometry Data Analysis
+Pipelines</em>. <a href="https://uclouvain-cbio.github.io/CytoPipeline" class="external-link">https://uclouvain-cbio.github.io/CytoPipeline</a>.
+</div>
+<div id="ref-De_Leeuw2009-aw" class="csl-entry">
+Leeuw, Jan de, and Patrick Mair. 2009. <span>“Multidimensional Scaling
+Using Majorization: <span>SMACOF</span> in <span>R</span>.”</span>
+<em>J. Stat. Softw.</em> 31 (August): 1–30.
+</div>
+<div id="ref-Orlova2016-jm" class="csl-entry">
+Orlova, Darya Y, Noah Zimmerman, Stephen Meehan, Connor Meehan, Jeffrey
+Waters, Eliver E B Ghosn, Alexander Filatenkov, et al. 2016.
+<span>“Earth Mover’s Distance (<span>EMD)</span>: A True Metric for
+Comparing Biomarker Expression Levels in Cell Populations.”</span>
+<em>PLOS ONE</em>.
+</div>
+</div>
 </div>
   </div>
 
