@@ -56,6 +56,7 @@ test_that("ggplotSampleMDS works", {
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
     
     set.seed(0) # to get same results with ggrepel()
+    
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
@@ -318,6 +319,12 @@ test_that("ggplotSampleMDS works", {
 
     vdiffr::expect_doppelganger("ggplotSampMDS with bipl-flpX-Y",
                                 fig = p)
+    
+    # test minimal call without pData argument
+    p <- ggplotSampleMDS(mdsObj = mdsObj)
+    
+    vdiffr::expect_doppelganger("ggplotSampleMDS minimal call",
+                                fig = p)
 
 })
 
@@ -345,6 +352,20 @@ test_that("ggplotSampleMDSWrapBiplots works", {
 
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSWrapBiplots default rows and cols",
+        fig = bpFull)
+    
+    bpFull <- ggplotSampleMDSWrapBiplots(
+        mdsObj = mdsObj,
+        extVariableList = extVarList,
+        displayLegend = FALSE,
+        pData = flowCore::pData(fsAll),
+        projectionAxes = c(1,2),
+        pDataForColour = "grpId",
+        pDataForShape = "type",
+        seed = 0)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSampleMDSWrapBiplots no legend",
         fig = bpFull)
 
     # with subset

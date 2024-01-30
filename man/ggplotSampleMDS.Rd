@@ -6,7 +6,7 @@
 \usage{
 ggplotSampleMDS(
   mdsObj,
-  pData = data.frame(sampleId = seq_len(nrow(mdsObj$proj))),
+  pData,
   sampleSubset,
   projectionAxes = c(1, 2),
   biplot = FALSE,

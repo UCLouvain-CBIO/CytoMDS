@@ -10,6 +10,7 @@ ggplotSampleMDSWrapBiplots(
   ncol = NULL,
   nrow = NULL,
   byrow = NULL,
+  displayLegend = TRUE,
   ...
 )
 }
@@ -27,6 +28,8 @@ The number of rows should be the same as the number of samples.}
 \item{nrow}{passed to \code{patchwork::wrap_plots()}}
 
 \item{byrow}{passed to \code{patchwork::wrap_plots()}}
+
+\item{displayLegend}{if FALSE, will de-active the legend display}
 
 \item{...}{additional parameters passed to \code{ggplotSampleMDS()}
 (if used)}

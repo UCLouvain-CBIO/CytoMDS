@@ -49,37 +49,47 @@
 	tags = "reproducible research, software, R, Bioconductor, statistics"
 }
 
-@ARTICLE{Wickham2019-fz,
-  title     = "Welcome to the tidyverse",
-  author    = "Wickham, Hadley and Averick, Mara and Bryan, Jennifer and Chang,
-               Winston and McGowan, Lucy and Fran{\c c}ois, Romain and
-               Grolemund, Garrett and Hayes, Alex and Henry, Lionel and Hester,
-               Jim and Kuhn, Max and Pedersen, Thomas and Miller, Evan and
-               Bache, Stephan and M{\"u}ller, Kirill and Ooms, Jeroen and
-               Robinson, David and Seidel, Dana and Spinu, Vitalie and
-               Takahashi, Kohske and Vaughan, Davis and Wilke, Claus and Woo,
-               Kara and Yutani, Hiroaki",
-  journal   = "J. Open Source Softw.",
-  publisher = "The Open Journal",
-  volume    =  4,
-  number    =  43,
-  pages     = "1686",
-  month     =  nov,
-  year      =  2019,
-  copyright = "http://creativecommons.org/licenses/by/4.0/"
+
+@MISC{Orlova2016-jm,
+  title   = "Earth Mover's Distance ({EMD)}: A True Metric for Comparing
+             Biomarker Expression Levels in Cell Populations",
+  author  = "Orlova, Darya Y and Zimmerman, Noah and Meehan, Stephen and
+             Meehan, Connor and Waters, Jeffrey and Ghosn, Eliver E B and
+             Filatenkov, Alexander and Kolyagin, Gleb A and Gernez, Yael and
+             Tsuda, Shanel and Moore, Wayne and Moss, Richard B and Herzenberg,
+             Leonore A and Walther, Guenther",
+  journal = "PLOS ONE",
+  volume  =  11,
+  number  =  3,
+  pages   = "e0151859",
+  year    =  2016
 }
 
 
 
-@Book{Sievert2020,
-    author = {Carson Sievert},
-    title = {Interactive Web-Based Data Visualization with R, plotly, and shiny},
-    publisher = {Chapman and Hall/CRC},
-    year = {2020},
-    isbn = {9781138331457},
-    url = {https://plotly-r.com},
-  }
-  
+@ARTICLE{De_Leeuw2009-aw,
+  title    = "Multidimensional Scaling Using Majorization: {SMACOF} in {R}",
+  author   = "de Leeuw, Jan and Mair, Patrick",
+  abstract = "In this paper we present the methodology of multidimensional
+              scaling problems (MDS) solved by means of the majorization
+              algorithm. The objective function to be minimized is known as
+              stress and functions which majorize stress are elaborated. This
+              strategy to solve MDS problems is called SMACOF and it is
+              implemented in an R package of the same name which is presented
+              in this article. We extend the basic SMACOF theory in terms of
+              configuration constraints, three-way data, unfolding models, and
+              projection of the resulting configurations onto spheres and other
+              quadratic surfaces. Various examples are presented to show the
+              possibilities of the SMACOF approach offered by the corresponding
+              package.",
+  journal  = "J. Stat. Softw.",
+  volume   =  31,
+  pages    = "1--30",
+  month    =  aug,
+  year     =  2009,
+  language = "en"
+}
+
  
 @ARTICLE{Gherardin2014-pj,
   title    = "{OMIP-021}: Simultaneous quantification of human conventional and
@@ -96,99 +106,21 @@
 }
 
 
-@ARTICLE{Monaco2016-vo,
-  title    = "{flowAI}: automatic and interactive anomaly discerning tools for
-              flow cytometry data",
-  author   = "Monaco, Gianni and Chen, Hao and Poidinger, Michael and Chen,
-              Jinmiao and de Magalh{\~a}es, Jo{\~a}o Pedro and Larbi, Anis",
-  abstract = "MOTIVATION: Flow cytometry (FCM) is widely used in both clinical
-              and basic research to characterize cell phenotypes and functions.
-              The latest FCM instruments analyze up to 20 markers of individual
-              cells, producing high-dimensional data. This requires the use of
-              the latest clustering and dimensionality reduction techniques to
-              automatically segregate cell sub-populations in an unbiased
-              manner. However, automated analyses may lead to false discoveries
-              due to inter-sample differences in quality and properties.
-              RESULTS: We present an R package, flowAI, containing two methods
-              to clean FCM files from unwanted events: (i) an automatic method
-              that adopts algorithms for the detection of anomalies and (ii) an
-              interactive method with a graphical user interface implemented
-              into an R shiny application. The general approach behind the two
-              methods consists of three key steps to check and remove suspected
-              anomalies that derive from (i) abrupt changes in the flow rate,
-              (ii) instability of signal acquisition and (iii) outliers in the
-              lower limit and margin events in the upper limit of the dynamic
-              range. For each file analyzed our software generates a summary of
-              the quality assessment from the aforementioned steps. The
-              software presented is an intuitive solution seeking to improve
-              the results not only of manual but also and in particular of
-              automatic analysis on FCM data. AVAILABILITY AND IMPLEMENTATION:
-              R source code available through Bioconductor:
-              http://bioconductor.org/packages/flowAI/ CONTACTS:
-              mongianni1@gmail.com or Anis\_Larbi@immunol.a-star.edu.sg
-              SUPPLEMENTARY INFORMATION: Supplementary data are available at
-              Bioinformatics online.",
-  journal  = "Bioinformatics",
-  volume   =  32,
-  number   =  16,
-  pages    = "2473--2480",
-  month    =  aug,
-  year     =  2016,
-  language = "en"
-}
-
-
-@ARTICLE{Emmaneel2021-xy,
-  title    = "{PeacoQC}: {Peak-Based} Selection of High Quality Cytometry Data",
-  author   = "Emmaneel, Annelies and Quintelier, Katrien and Sichien, Dorine
-              and Rybakowska, Paulina and Mara{\~n}{\'o}n, Concepci{\'o}n and
-              Alarc{\'o}n-Riquelme, Marta E and Van Isterdael, Gert and Van
-              Gassen, Sofie and Saeys, Yvan",
-  abstract = "In cytometry analysis, a large number of markers is measured for
-              thousands or millions of cells, resulting in high-dimensional
-              datasets. During the measurement of these samples, erroneous
-              events can occur such as clogs, speed changes, slow uptake of the
-              sample etc. which can influence the downstream analysis and can
-              even lead to false discoveries. As these issues can be difficult
-              to detect manually, an automated approach is recommended. In
-              order to filter these erroneous events out, we created a novel
-              quality control algorithm, PeacoQC (Peak Extraction And Cleaning
-              Oriented Quality Control), that allows for automated cleaning of
-              cytometry data. The algorithm will determine density peaks per
-              channel on which it will remove low quality events based on their
-              position in the isolation tree and on their mean absolute
-              deviation distance to these density peaks. To evaluate PeacoQC's
-              cleaning capability, it was compared to three other existing
-              quality control algorithms (flowAI, flowClean and flowCut) on a
-              wide variety of datasets. In comparison to the other algorithms,
-              PeacoQC was able to filter out all different types of anomalies
-              in flow, mass and spectral cytometry data, while the other
-              methods struggled with at least one type. In the quantitative
-              comparison, PeacoQC obtained the highest median balanced accuracy
-              and a similar running time compared to the other algorithms while
-              having a better scalability for large files. To ensure that the
-              parameters chosen in the PeacoQC algorithm are robust, the
-              cleaning tool was run on 16 public datasets. After inspection,
-              only one sample was found where the parameters should be further
-              optimized. The other 15 datasets were analyzed correctly
-              indicating a robust parameter choice. Overall, we present a fast
-              and accurate quality control algorithm that outperforms existing
-              tools and ensures high-quality data that can be used for further
-              downstream analysis. An R implementation is available.",
-  journal  = "Cytometry A",
-  month    =  sep,
-  year     =  2021,
-  keywords = "Anomaly detection; Automated quality control; Data preprocessing;
-              Flow cytometry; Mass cytometry; Spectral cytometry",
-  language = "en"
-}
-
 @Manual{flowCore,
-    title = {{flowCore}: Basic structures for flow cytometry data.},
-    author = {Ellis B, Haaland P, Hahne F, Le Meur N, Gopalakrishnan N, Spidlen J, Jiang M, Finak G},
-    year = {2022},
-    note = {R package version 2.8.0},
-    url = {https://bioconductor.org/packages/flowCore/},
+    title = {flowCore: flowCore: Basic structures for flow cytometry data},
+    author = {B Ellis and Perry Haaland and Florian Hahne and Nolwenn {Le Meur} and Nishant Gopalakrishnan and Josef Spidlen and Mike Jiang and Greg Finak},
+    year = {2023},
+    note = {R package version 2.15.0},
+    url = {https://bioconductor.org/packages/flowCore},
+    doi = {10.18129/B9.bioc.flowCore},
+  }
+
+@Manual{CytoPipeline,
+    title = {CytoPipeline: Automation and visualization of flow cytometry data analysis pipelines},
+    author = {Philippe Hauchamps and Laurent Gatto},
+    year = {2023},
+    note = {R package version 1.3.2},
+    url = {https://uclouvain-cbio.github.io/CytoPipeline},
   }
 
 

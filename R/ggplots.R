@@ -159,8 +159,7 @@
 #' 
 ggplotSampleMDS <- function(
         mdsObj,
-        pData = data.frame(
-            sampleId = seq_len(nrow(mdsObj$proj))),
+        pData,
         sampleSubset,
         projectionAxes = c(1,2),
         biplot = FALSE,
@@ -192,10 +191,12 @@ ggplotSampleMDS <- function(
     # biplot type (if any)
     biplotType <- match.arg(biplotType)
     
-    nSamples <- nrow(pData)
+    nSamples <- nrow(mdsObj$proj)
     
-    if (nrow(mdsObj$proj) != nSamples) {
-        stop("nb samples mismatch between mdsObj and pData")
+    if (!missing(pData)) {
+        if (nrow(pData) != nSamples) {
+            stop("nb samples mismatch between mdsObj and pData")
+        }
     }
     
     # sample subset
@@ -699,6 +700,7 @@ ggplotSampleMDSShepard <- function(
 #' @param ncol passed to `patchwork::wrap_plots()`
 #' @param nrow passed to `patchwork::wrap_plots()`
 #' @param byrow passed to `patchwork::wrap_plots()`
+#' @param displayLegend if FALSE, will de-active the legend display
 #' @param ... additional parameters passed to `ggplotSampleMDS()` 
 #' (if used)
 #' 
@@ -747,6 +749,7 @@ ggplotSampleMDSWrapBiplots <- function(
         ncol = NULL,
         nrow = NULL,
         byrow = NULL,
+        displayLegend = TRUE,
         ...){
     
     #browser()
@@ -772,6 +775,10 @@ ggplotSampleMDSWrapBiplots <- function(
             extVariables = extVariableList[[i]],
             ...) 
         pList[[i]] <- p + ggplot2::labs(subtitle = NULL)
+        if (!displayLegend) {
+            pList[[i]] <- pList[[i]] + 
+                ggplot2:: theme(legend.position="none")
+        }
     }
         
     p <- patchwork::wrap_plots(

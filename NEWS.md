@@ -52,4 +52,6 @@ memory consumption.
 for not loading the whole flowSet in memory at once.
 - replaced NULL defaulted parameters with optional parameters
 - added `displayPointLabels` argument to `ggplotSampleMDS()`
+- added `displayLegend` argument to `ggplotSampleMDSWrapBiplots()`
+- finalized creating vignette
 
