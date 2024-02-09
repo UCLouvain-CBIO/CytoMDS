@@ -418,6 +418,8 @@ ggplotSampleMDS <- function(
         attr(geomPointMapping, "class") <- "uneval"
     }
     
+    p <- p + ggplot2::geom_point(mapping = geomPointMapping)
+    
     if (displayPointLabels) {
         if (!is.character(pDataForLabel)) {
             stop("pDataForLabel should be a character")
@@ -436,8 +438,6 @@ ggplotSampleMDS <- function(
                 mapping = ggplot2::aes(label = .data[[labelVar]]))
         }
     }
-    
-    p <- p + ggplot2::geom_point(mapping = geomPointMapping)
     
     # add biplot if specified
     if (biplot) {

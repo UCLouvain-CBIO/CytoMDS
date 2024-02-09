@@ -55,3 +55,6 @@ for not loading the whole flowSet in memory at once.
 - added `displayLegend` argument to `ggplotSampleMDSWrapBiplots()`
 - finalized creating vignette
 
+### CytoMDS 0.99.9
+- in `ggplotSampleMDS()` : add label layer after `geom_point()` (no more before)
+

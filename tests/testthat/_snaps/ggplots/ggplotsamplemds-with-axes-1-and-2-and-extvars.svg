@@ -27,16 +27,16 @@
 </defs>
 <g clip-path='url(#cpNDMuMDZ8NjQ2LjA3fDM4LjEyfDU0NS4xMQ==)'>
 <rect x='43.06' y='38.12' width='603.00' height='507.00' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<text x='70.49' y='310.57' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='6.14px' lengthAdjust='spacingAndGlyphs'>1</text>
-<text x='618.65' y='311.00' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='6.14px' lengthAdjust='spacingAndGlyphs'>2</text>
-<text x='310.71' y='299.63' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='6.14px' lengthAdjust='spacingAndGlyphs'>3</text>
-<text x='329.78' y='285.88' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='6.14px' lengthAdjust='spacingAndGlyphs'>4</text>
-<text x='360.84' y='267.94' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='6.14px' lengthAdjust='spacingAndGlyphs'>5</text>
 <circle cx='70.47' cy='315.11' r='1.95' style='stroke-width: 0.71; stroke: none; fill: #00BA38;' />
 <circle cx='618.66' cy='315.54' r='1.95' style='stroke-width: 0.71; stroke: none; fill: #619CFF;' />
 <polygon points='318.95,292.31 321.58,296.87 316.32,296.87 ' style='stroke-width: 0.71; stroke: none; fill: #F8766D;' />
 <polygon points='321.79,283.54 324.43,288.10 319.16,288.10 ' style='stroke-width: 0.71; stroke: none; fill: #F8766D;' />
 <polygon points='360.84,269.44 363.47,274.00 358.21,274.00 ' style='stroke-width: 0.71; stroke: none; fill: #F8766D;' />
+<text x='70.49' y='310.57' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='6.14px' lengthAdjust='spacingAndGlyphs'>1</text>
+<text x='618.65' y='311.00' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='6.14px' lengthAdjust='spacingAndGlyphs'>2</text>
+<text x='310.71' y='299.63' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='6.14px' lengthAdjust='spacingAndGlyphs'>3</text>
+<text x='329.78' y='285.88' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='6.14px' lengthAdjust='spacingAndGlyphs'>4</text>
+<text x='360.84' y='267.94' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='6.14px' lengthAdjust='spacingAndGlyphs'>5</text>
 <line x1='338.14' y1='297.01' x2='108.43' y2='316.55' style='stroke-width: 1.07; stroke-dasharray: 1.42,4.27; stroke-linecap: butt;' />
 <polygon points='114.34,312.44 108.43,316.55 114.95,319.61 ' style='stroke-width: 1.07; stroke-dasharray: 1.42,4.27; stroke-linecap: butt; fill: #000000;' />
 <line x1='338.14' y1='297.01' x2='103.74' y2='335.18' style='stroke-width: 1.07; stroke-dasharray: 1.42,4.27; stroke-linecap: butt;' />

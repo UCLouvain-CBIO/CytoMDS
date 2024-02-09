@@ -27,16 +27,16 @@
 </defs>
 <g clip-path='url(#cpNDMuMDZ8NjQ2LjA3fDM4LjEyfDU0NS4xMQ==)'>
 <rect x='43.06' y='38.12' width='603.00' height='507.00' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<text x='70.49' y='310.12' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='36.21px' lengthAdjust='spacingAndGlyphs'>Donor1</text>
-<text x='618.65' y='311.08' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='36.21px' lengthAdjust='spacingAndGlyphs'>Donor2</text>
-<text x='320.51' y='305.81' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='25.79px' lengthAdjust='spacingAndGlyphs'>Agg1</text>
-<text x='315.69' y='269.63' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='25.79px' lengthAdjust='spacingAndGlyphs'>Agg2</text>
-<text x='366.19' y='264.90' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='25.79px' lengthAdjust='spacingAndGlyphs'>Agg3</text>
 <circle cx='70.47' cy='314.75' r='3.82' style='stroke-width: 0.71; stroke: none; fill: #00BA38;' />
 <circle cx='618.66' cy='315.70' r='4.16' style='stroke-width: 0.71; stroke: none; fill: #619CFF;' />
 <polygon points='320.50,308.15 322.41,311.46 318.58,311.46 ' style='stroke-width: 0.71; stroke: none; fill: #F8766D;' />
 <polygon points='315.67,263.67 324.77,279.43 306.57,279.43 ' style='stroke-width: 0.71; stroke: none; fill: #F8766D;' />
 <polygon points='366.18,259.37 374.91,274.48 357.45,274.48 ' style='stroke-width: 0.71; stroke: none; fill: #F8766D;' />
+<text x='70.49' y='310.12' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='36.21px' lengthAdjust='spacingAndGlyphs'>Donor1</text>
+<text x='618.65' y='311.08' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='36.21px' lengthAdjust='spacingAndGlyphs'>Donor2</text>
+<text x='320.51' y='305.81' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='25.79px' lengthAdjust='spacingAndGlyphs'>Agg1</text>
+<text x='315.69' y='269.63' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='25.79px' lengthAdjust='spacingAndGlyphs'>Agg2</text>
+<text x='366.19' y='264.90' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='25.79px' lengthAdjust='spacingAndGlyphs'>Agg3</text>
 <rect x='43.06' y='38.12' width='603.00' height='507.00' style='stroke-width: 1.07; stroke: #333333;' />
 </g>
 <g clip-path='url(#cpMC4wMHw3MjAuMDB8MC4wMHw1NzYuMDA=)'>
