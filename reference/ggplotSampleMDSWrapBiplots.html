@@ -20,7 +20,7 @@ as ggplot2::facet_wrap() does."><!-- mathjax --><script src="https://cdnjs.cloud
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.9</span>
       </span>
     </div>
 
@@ -137,18 +137,6 @@ The number of rows should be the same as the number of samples.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     fluoMethod = "estimateLogicle",</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     scatterMethod = "linearQuantile",</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     scatterRefMarker = "BV785 - CD3")</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> estimating logicle transformations for fluorochrome channels...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Estimating linear transformation for scatter channels : reference marker = BV785 - CD3...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> applying specific linear transformation for FSC-A channel...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> initial quantiles : q5 = 10464.0482 ; q95 = 192509.607</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> target quantiles : q5 = 0.3849 ; q95 = 2.9395</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> a = 1.40e-05 ; b = 2.38e-01</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> applying FSC-A linear transformation for FSC-H channel...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> applying specific linear transformation for SSC-A channel...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> initial quantiles : q5 = 16345.6462 ; q95 = 245485.3555</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> target quantiles : q5 = 0.3849 ; q95 = 2.9395</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> a = 1.11e-05 ; b = 2.03e-01</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> applying SSC-A linear transformation for SSC-H channel...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; OMIP021Trans &lt;- CytoPipeline::applyScaleTransforms(</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     OMIP021Samples, </span>
