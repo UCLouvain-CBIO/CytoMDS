@@ -1731,23 +1731,41 @@ computeMetricMDSBiplot <- function(
     # calculate linear regressions
     rownames(extVariables) <- rownames(mdsObj$proj)
     ext <- scale(extVariables, scale = TRUE)
-    regfit <- lm(ext ~ -1 + X)
+    
+    #browser()
+    nReg <- ncol(extVariables)
     mdsBiplot <- list()
-    mdsBiplot$coefficients <- as.matrix(regfit$coefficients)
-    regsum <- summary(regfit)
-    if (ncol(ext) == 1) 
-        R2vec <- regsum$r.squared
-    else
-        R2vec <- vapply(
-            regsum,
-            FUN = `[[`,
-            FUN.VALUE = 0.,
-            "r.squared")
-    names(R2vec) <- colnames(ext)
-    mdsBiplot$R2vec <- R2vec
+    mdsBiplot$coefficients <- matrix(data = rep(0., 2*nReg),
+                                     ncol = nReg)
+    colnames(mdsBiplot$coefficients) <- colnames(ext)
+    mdsBiplot$R2vec <- rep(0., nReg)
+    names(mdsBiplot$R2vec) <- colnames(ext)
+    #browser()
+    for (j in seq_len(nReg)) {
+        thisExt <- ext[,j]
+        thisX <- X
+        
+        # keep only rows for which extVariable is not NA
+        naIndices <- which(is.na(thisExt))
+        if (length(naIndices) > 0) {
+            thisExt <- thisExt[-naIndices]
+            thisX <- X[-naIndices,]
+        }
+        
+        regfit <- lm(thisExt ~ -1 + thisX)
+        mdsBiplot$coefficients[, j] <- regfit$coefficients
+        
+        regsum <- summary(regfit)
+        mdsBiplot$R2vec[j] <- regsum$r.squared
+    }
     
     # calculate Pearson correlations
-    pearsonCorrelations <- t(stats::cor(ext, X))
+    # when there are NA's, use complete pairs only
+    pearsonCorrelations <- t(stats::cor(
+        ext, X,
+        method = "pearson",
+        use = "pairwise.complete.obs"))
+    
     mdsBiplot$pearsonCorr <- pearsonCorrelations
     
     return(mdsBiplot)

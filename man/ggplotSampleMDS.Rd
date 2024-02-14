@@ -61,7 +61,9 @@ of external variables will be according to regression coefficients
 \item{extVariables}{are used to generate a biplot
 these are the external variables that will be used in the biplot.
 They should be provided as a matrix with named columns corresponding to the
-variables. The number of rows should be the same as the number of samples.}
+variables. The number of rows should be the same as the number of samples.
+The matrix might contain some NA's, in that case only complete rows will
+be used to calculate biplot arrows.}
 
 \item{pDataForColour}{(optional) which \code{pData} variable
 will be used as colour aesthetic. Should be a character.}

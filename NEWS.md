@@ -58,3 +58,6 @@ for not loading the whole flowSet in memory at once.
 ### CytoMDS 0.99.9
 - in `ggplotSampleMDS()` : add label layer after `geom_point()` (no more before)
 
+### CytoMDS 0.99.10
+- biplot now handles extVariables with missing values
+

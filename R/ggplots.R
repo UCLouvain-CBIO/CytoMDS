@@ -35,7 +35,9 @@
 #' @param extVariables are used to generate a biplot
 #' these are the external variables that will be used in the biplot. 
 #' They should be provided as a matrix with named columns corresponding to the 
-#' variables. The number of rows should be the same as the number of samples. 
+#' variables. The number of rows should be the same as the number of samples.
+#' The matrix might contain some NA's, in that case only complete rows will 
+#' be used to calculate biplot arrows. 
 #' @param biplotType type of biplot used:   
 #' - if "correlation", projection of external variables will be according to 
 #' Pearson correlations w.r.t. projection axes (arrow x & y coordinates)
@@ -454,6 +456,7 @@ ggplotSampleMDS <- function(
             projectionAxes = projectionAxes,
             extVariables = extVariables)
         
+        #browser()
         radius <- 0.9*min(-axesLimits[1], axesLimits[2])
         lengthThreshold <- radius * arrowThreshold
         
