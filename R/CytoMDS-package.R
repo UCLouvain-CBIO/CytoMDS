@@ -13,15 +13,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details (<http://www.gnu.org/licenses/>).
 
-# This file is part of the standard setup for testthat.
-# It is recommended that you do not modify it.
-#
-# Where should you do additional test configuration?
-# Learn more about the roles of various files in:
-# * https://r-pkgs.org/tests.html
-# * https://testthat.r-lib.org/reference/test_package.html#special-files
+#' @keywords internal
+"_PACKAGE"
 
-library(testthat)
-library(CytoMDS)
-
-test_check("CytoMDS")
+## usethis namespace: start
+## usethis namespace: end
+NULL

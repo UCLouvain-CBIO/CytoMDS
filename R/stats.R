@@ -1,4 +1,4 @@
-# CytoMDS - Copyright (C) <2023>
+# CytoMDS - Copyright (C) <2023-2024>
 # <Université catholique de Louvain (UCLouvain), Belgique>
 #
 #   Description and complete License: see LICENSE file.

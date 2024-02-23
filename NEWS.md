@@ -1,13 +1,49 @@
-## CytoMDS 0.99.0
+## CytoMDS 0.99
 
-- Prior to Bioconductor submission
+(Prior to Bioconductor submission)
 
-### CytoMDS 0.99.1
-- in `ggplotSamplesMDS()`, added parameter `pDataForAdditionalLabelling`
+### CytoMDS 0.99.11
+- re-factored package documentation file
 
-### CytoMDS 0.99.2
-- use global Rsquare as an indicator of quality of projection
-- use %Var explained per axis
+### CytoMDS 0.99.10
+- biplot now handles extVariables with missing values
+
+### CytoMDS 0.99.9
+- in `ggplotSampleMDS()` : add label layer after `geom_point()` (no more before)
+
+### CytoMDS 0.99.8
+- renamed `getChannelSummaryStats()` into `channelSummaryStats()`
+- in `channelSummaryStats(), added support for `BiocParallel`, and allowed
+for not loading the whole flowSet in memory at once.
+- replaced NULL defaulted parameters with optional parameters
+- added `displayPointLabels` argument to `ggplotSampleMDS()`
+- added `displayLegend` argument to `ggplotSampleMDSWrapBiplots()`
+- finalized creating vignette
+
+### CytoMDS 0.99.7
+- refactored the pairwise distance calculation code, by pre-computing the
+unidimensional histograms and store them instead of recalculating them each
+time a distance between 2 samples is calculated. This improves CPU time and
+memory consumption.
+
+### CytoMDS 0.99.6
+- added `subset` argument in `ggplotSampleMDS()` and 
+`ggplotSampleMDSWrapBiplots`
+
+### CytoMDS 0.99.5
+- renamed `getPairwiseEMDDist()` into `pairwiseEMDDist()`
+- in `pairwiseEMDDist()`, added support for `BiocParallel`, and allowed
+for not loading the whole flowSet in memory at once.
+
+### CytoMDS 0.99.4
+- in `getPairwiseEMDDist()`, added a second flowSet argument. When the two
+flowSet arguments are non-null, distances are calculated for all sample pairs, 
+where the first element comes from `fs`, 
+and the second element comes from `fs2`.
+- renamed `ggplotSamplesMDS` into `ggplotSampleMDS`
+- renamed `ggplotSamplesMDSShepard` into `ggplotSampleMDSShepard`
+- renamed `getChannelsSummaryStat` into `getChannelSummaryStats`
+- new function `ggplotSampleMDSWrapBiplots()`
 
 ### CytoMDS 0.99.3
 - new version of computeMetricMDS() which automatically sets 
@@ -21,43 +57,9 @@ Moved arrow labels toward the end of the arrows.
 - in `ggplotSampleMDS()` and `ggplotSampleMDSShepard()`: added 
 `displayPseudoRSq` parameter.
 
-### CytoMDS 0.99.4
-- in `getPairwiseEMDDist()`, added a second flowSet argument. When the two
-flowSet arguments are non-null, distances are calculated for all sample pairs, 
-where the first element comes from `fs`, 
-and the second element comes from `fs2`.
-- renamed `ggplotSamplesMDS` into `ggplotSampleMDS`
-- renamed `ggplotSamplesMDSShepard` into `ggplotSampleMDSShepard`
-- renamed `getChannelsSummaryStat` into `getChannelSummaryStats`
-- new function `ggplotSampleMDSWrapBiplots()`
+### CytoMDS 0.99.2
+- use global Rsquare as an indicator of quality of projection
+- use %Var explained per axis
 
-### CytoMDS 0.99.5
-- renamed `getPairwiseEMDDist()` into `pairwiseEMDDist()`
-- in `pairwiseEMDDist()`, added support for `BiocParallel`, and allowed
-for not loading the whole flowSet in memory at once.
-
-### CytoMDS 0.99.6
-- added `subset` argument in `ggplotSampleMDS()` and 
-`ggplotSampleMDSWrapBiplots`
-
-### CytoMDS 0.99.7
-- refactored the pairwise distance calculation code, by pre-computing the
-unidimensional histograms and store them instead of recalculating them each
-time a distance between 2 samples is calculated. This improves CPU time and
-memory consumption.
-
-### CytoMDS 0.99.8
-- renamed `getChannelSummaryStats()` into `channelSummaryStats()`
-- in `channelSummaryStats(), added support for `BiocParallel`, and allowed
-for not loading the whole flowSet in memory at once.
-- replaced NULL defaulted parameters with optional parameters
-- added `displayPointLabels` argument to `ggplotSampleMDS()`
-- added `displayLegend` argument to `ggplotSampleMDSWrapBiplots()`
-- finalized creating vignette
-
-### CytoMDS 0.99.9
-- in `ggplotSampleMDS()` : add label layer after `geom_point()` (no more before)
-
-### CytoMDS 0.99.10
-- biplot now handles extVariables with missing values
-
+### CytoMDS 0.99.1
+- in `ggplotSamplesMDS()`, added parameter `pDataForAdditionalLabelling`
