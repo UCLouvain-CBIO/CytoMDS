@@ -29,7 +29,7 @@ on several computation nodes.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.11</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.12</span>
       </span>
     </div>
 
@@ -84,8 +84,7 @@ on several computation nodes.</p></li>
 <span>  channels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  statFUNs <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  useBiocParallel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  BPPARAM <span class="op">=</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/register.html" class="external-link">bpparam</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  BPPARAM <span class="op">=</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SerialParam-class.html" class="external-link">SerialParam</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  BPOPTIONS <span class="op">=</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/bpoptions.html" class="external-link">bpoptions</a></span><span class="op">(</span>packages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"flowCore"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -130,21 +129,14 @@ returned value.</p></dd>
 after each single distance calculation</p></dd>
 
 
-<dt>useBiocParallel</dt>
-<dd><p>if <code>TRUE</code>, use <code>BiocParallel</code> for computation of the
-pairwise distances in parallel - one (i,j) at a time.
-Note the <code>BiocParallel</code> function used internally is <code>bplapply()</code></p></dd>
-
-
 <dt>BPPARAM</dt>
-<dd><p>if <code>useBiocParallel</code> is TRUE, sets the <code>BPPARAM</code> back-end to
-be used for the computation. If not provided, will use the top back-end on
-the <code><a href="https://rdrr.io/pkg/BiocParallel/man/register.html" class="external-link">BiocParallel::registered()</a></code> stack.</p></dd>
+<dd><p>sets the <code>BPPARAM</code> back-end to
+be used for the computation. If not provided, will use
+<code><a href="https://rdrr.io/pkg/BiocParallel/man/SerialParam-class.html" class="external-link">BiocParallel::SerialParam()</a></code> (no task parallelization)</p></dd>
 
 
 <dt>BPOPTIONS</dt>
-<dd><p>if <code>useBiocParallel</code> is TRUE, sets the BPOPTIONS to be
-passed to <code>bplapply()</code> function.
+<dd><p>sets the BPOPTIONS to be passed to <code>bplapply()</code> function.
 Note that if you use a <code>SnowParams</code> back-end, you need to specify all
 the packages that need to be loaded for the different CytoProcessingStep
 to work properly (visibility of functions). As a minimum,
