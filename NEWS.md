@@ -2,6 +2,10 @@
 
 (Prior to Bioconductor submission)
 
+### CytoMDS 0.99.12
+- removed `useBiocParallel` parameters from various stats functions 
+(use BPPARAM = BiocParallel::SerialParam() as a default)
+
 ### CytoMDS 0.99.11
 - re-factored package documentation file
 

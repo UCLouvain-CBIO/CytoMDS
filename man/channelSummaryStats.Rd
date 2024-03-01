@@ -11,8 +11,7 @@ channelSummaryStats(
   channels = NULL,
   statFUNs = stats::median,
   verbose = FALSE,
-  useBiocParallel = FALSE,
-  BPPARAM = BiocParallel::bpparam(),
+  BPPARAM = BiocParallel::SerialParam(),
   BPOPTIONS = BiocParallel::bpoptions(packages = c("flowCore"))
 )
 }
@@ -45,16 +44,11 @@ returned value.}
 \item{verbose}{if \code{TRUE}, output a message
 after each single distance calculation}
 
-\item{useBiocParallel}{if \code{TRUE}, use \code{BiocParallel} for computation of the
-pairwise distances in parallel - one (i,j) at a time.
-Note the \code{BiocParallel} function used internally is \code{bplapply()}}
+\item{BPPARAM}{sets the \code{BPPARAM} back-end to
+be used for the computation. If not provided, will use
+\code{BiocParallel::SerialParam()} (no task parallelization)}
 
-\item{BPPARAM}{if \code{useBiocParallel} is TRUE, sets the \code{BPPARAM} back-end to
-be used for the computation. If not provided, will use the top back-end on
-the \code{BiocParallel::registered()} stack.}
-
-\item{BPOPTIONS}{if \code{useBiocParallel} is TRUE, sets the BPOPTIONS to be
-passed to \code{bplapply()} function.
+\item{BPOPTIONS}{sets the BPOPTIONS to be passed to \code{bplapply()} function.
 Note that if you use a \code{SnowParams} back-end, you need to specify all
 the packages that need to be loaded for the different CytoProcessingStep
 to work properly (visibility of functions). As a minimum,

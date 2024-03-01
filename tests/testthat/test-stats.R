@@ -449,7 +449,6 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
         binSize = 0.05,
         minRange = -10,
         maxRange = 10,
-        useBiocParallel = TRUE,
         BPPARAM = bp))
     
     expect_equal(dim(pwDist), c(2,2))
@@ -481,7 +480,6 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
             binSize = 0.05,
             minRange = -10,
             maxRange = 10,
-            useBiocParallel = TRUE,
             BPPARAM = bp))
     
     expect_equal(dim(pwDist2), c(3,2))
@@ -500,7 +498,6 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
         binSize = 0.05,
         minRange = -10,
         maxRange = 10,
-        useBiocParallel = TRUE,
         BPPARAM = bp))
     
     expect_equal(dim(pwDist3), c(2,2))
@@ -530,13 +527,13 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
             verbose = FALSE
         ),
         channels = c("FSC-A", "SSC-A"),
-        verbose = verbose)
+        verbose = FALSE)
     
     expect_equal(dim(pwDist), c(10,10))
-    expect_equal(pwDist[1,2], 0.04635)
-    expect_equal(pwDist[1,7], 0.16470)
-    expect_equal(pwDist[4,8], 0.15715)
-    expect_equal(pwDist[6,10], 0.05570)
+    expect_equal(pwDist[1,2], 0.07070)
+    expect_equal(pwDist[1,7], 0.14340)
+    expect_equal(pwDist[4,8], 0.16625)
+    expect_equal(pwDist[6,10], 0.05840)
     
     # same with BiocParallel
     
@@ -558,7 +555,6 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
         ),
         channels = c("FSC-A", "SSC-A"),
         verbose = verbose,
-        useBiocParallel = TRUE,
         BPPARAM = bp,
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore", "CytoPipeline"))))
@@ -732,12 +728,12 @@ test_that("channelSummaryStats dynamic memory loading simulation", {
     expect_equal(dim(ret[[1]]), c(10, 3))
     expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
     expect_equal(unname(colnames(ret[[2]])), channelsOrMarkers)
-    expect_equal(unname(ret[[1]][1,1]), 1.92190274)
-    expect_equal(unname(ret[[1]][2,2]), 1.4023616)
-    expect_equal(unname(ret[[1]][7,3]), 1.9957383)
-    expect_equal(unname(ret[[2]][1,1]), 0.71007302)
-    expect_equal(unname(ret[[2]][2,2]), 0.72191947)
-    expect_equal(unname(ret[[2]][7,3]), 0.81531185)
+    expect_equal(unname(ret[[1]][1,1]), 1.90567984)
+    expect_equal(unname(ret[[1]][2,2]), 1.36523328)
+    expect_equal(unname(ret[[1]][7,3]), 1.99832484)
+    expect_equal(unname(ret[[2]][1,1]), 0.71358848)
+    expect_equal(unname(ret[[2]][2,2]), 0.74298778)
+    expect_equal(unname(ret[[2]][7,3]), 0.82220517)
 
     # same with BiocParallel
 
@@ -759,7 +755,6 @@ test_that("channelSummaryStats dynamic memory loading simulation", {
         channels = channelsOrMarkers,
         statFUNs = list("mean" = mean, "std.dev" = stats::sd),
         verbose = verbose,
-        useBiocParallel = TRUE,
         BPPARAM = bp,
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore", "CytoPipeline"))))

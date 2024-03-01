@@ -611,7 +611,6 @@ pwDist1Last <- suppressWarnings(pairwiseEMDDist(
         readRDS(file = theFiles[ffIndex])
     },
     loadFlowFrameFUNArgs = list(theFiles = fileNames),
-    useBiocParallel = TRUE,
     BPPARAM = bp))
 ```
 The obtained distances - as displayed in the below histogram - are exactly 

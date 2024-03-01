@@ -234,86 +234,10 @@ EMDDist <- function(
     
     distrs <- lapply(
         X = ffList,
-        # FUN = function(ff) {
-        #     #browser()
-        #     expr <- flowCore::exprs(ff)[, drop = FALSE]
-        #     
-        #     # discretize all marginal distributions
-        #     # check that the range correctly spans all events
-        #     vapply(
-        #         colnames(expr),
-        #         exprMat = expr,
-        #         FUN = function(colName, exprMat) {
-        #             #browser()
-        #             counts <- graphics::hist(
-        #                 exprMat[, colName], 
-        #                 breaks = c(-Inf, breaks, Inf),
-        #                 plot = FALSE)$counts
-        #             counts <- counts[-c(1,length(counts))]
-        #             if (sum(counts) != nrow(exprMat)) {
-        #                 warning(
-        #                     "for flowFrame: [", 
-        #                     flowCore::identifier(ff), "] : \n",
-        #                     "provided [minRange, maxRange] does not ",
-        #                     "span all events for channel ", colName,
-        #                     ": count(events) = ", sum(counts), 
-        #                     "; nEvents = ", nrow(exprMat))
-        #             }
-        #             return(counts)
-        #         },
-        #         FUN.VALUE = rep(0., length(breaks)-1)
-        #            
-        #     )
-        # }
         FUN = .unidimHistograms,
         breaks = breaks)
     
     #browser()
-    
-    
-    # distances <- rep(0., length(channels))
-    # names(distances) <- channels
-    # 
-    # nA <- flowCore::nrow(ff1)
-    # nB <- flowCore::nrow(ff2)
-    # 
-    # ratioA <- 1
-    # ratioB <- 1
-    # 
-    # nEventsLCM <-  pracma::Lcm(nA, nB)  
-    # ratioA <- nEventsLCM / nA
-    # ratioB <- nEventsLCM / nB
-    # 
-    # for (ch in channels) {
-    #     
-    #     wA <- distrs[[1]][, ch, drop=FALSE]
-    #     wA <- wA * ratioA
-    #     wB <- distrs[[2]][, ch, drop=FALSE]
-    #     wB <- wB * ratioB
-    #     locations <- breaks[-1] - binSize/2
-    #     # distances[ch] <- 
-    #     #   emdist::emdw(A = locations,
-    #     #                wA = wA,
-    #     #                B = locations,
-    #     #                wB = wB)
-    #     distances[ch] <- 
-    #         transport::wasserstein1d(
-    #             a = locations,
-    #             wa = wA,
-    #             b = locations,
-    #             wb = wB)
-    #     
-    #     # make sure distance is a PRECISE multiple 
-    #     # of elementary mass transportation cost
-    #     
-    #     # if (distances[ch] < 1e-12) {
-    #     #   distances[ch] <- 0
-    #     # } else {
-    #     #   elemCost <- binSize / nEventsLCM
-    #     #   distances[ch] <- round(distances[ch]/elemCost) *  elemCost
-    #     # }  
-    #     
-    # }
     
     distances <- .distFromUnidimHistograms(
         breaks = breaks, 
@@ -463,8 +387,7 @@ EMDDist <- function(
         loadFlowFrameFUNArgs = NULL,
         channels = NULL,
         verbose = FALSE,
-        useBiocParallel = FALSE,
-        BPPARAM = BiocParallel::bpparam(),
+        BPPARAM = BiocParallel::SerialParam(),
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore")),
         memSize = Inf,
@@ -523,11 +446,7 @@ EMDDist <- function(
     
     # from nb of available cores and possible memory restriction,
     # generate blocks to be run in one go
-    if (useBiocParallel) {
-        nAvailableCores <- BiocParallel::bpworkers(BPPARAM) 
-    } else {
-        nAvailableCores <- 1
-    }
+    nAvailableCores <- BiocParallel::bpworkers(BPPARAM) 
     
     #browser()
     
@@ -636,27 +555,17 @@ EMDDist <- function(
             distrs
         }
         
-        if (useBiocParallel){
-            distribBlockList <- BiocParallel::bplapply(
-                blocks1D,
-                FUN = loadFFAndCalcHistograms,
-                BPPARAM = BPPARAM,
-                BPOPTIONS = BPOPTIONS,
-                loadFlowFrameFUN = loadFlowFrameFUN,
-                loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
-                channels = channels,
-                breaks = breaks,
-                verbose = verbose)
-        } else {
-            distribBlockList <- lapply(
-                blocks1D,
-                FUN = loadFFAndCalcHistograms,
-                loadFlowFrameFUN = loadFlowFrameFUN,
-                loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
-                channels = channels,
-                breaks = breaks, 
-                verbose = verbose)
-        }
+        
+        distribBlockList <- BiocParallel::bplapply(
+            blocks1D,
+            FUN = loadFFAndCalcHistograms,
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BPOPTIONS,
+            loadFlowFrameFUN = loadFlowFrameFUN,
+            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            channels = channels,
+            breaks = breaks,
+            verbose = verbose)
         
         # reorganize multivariate distributions in a single list
         distrs <- list()
@@ -720,25 +629,16 @@ EMDDist <- function(
             pwDist
         } 
         
-        if (useBiocParallel) {
-            pwDistByBlock <- BiocParallel::bplapply(
-                blocks2D, 
-                BPPARAM = BPPARAM,
-                BPOPTIONS = BPOPTIONS,
-                rowColSeqUnion = rowColSeqUnion,
-                FUN = handleOneBlockWithHistograms,
-                breaks = breaks,
-                distrs = distrs,
-                verbose = verbose)
-        } else {
-            pwDistByBlock <- lapply(
-                blocks2D,
-                rowColSeqUnion = rowColSeqUnion,
-                FUN = handleOneBlockWithHistograms,
-                breaks = breaks,
-                distrs = distrs,
-                verbose = verbose)
-        }
+        pwDistByBlock <- BiocParallel::bplapply(
+            blocks2D, 
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BPOPTIONS,
+            rowColSeqUnion = rowColSeqUnion,
+            FUN = handleOneBlockWithHistograms,
+            breaks = breaks,
+            distrs = distrs,
+            verbose = verbose)
+        
     } else {
         handleOneBlock <- function(
         block,
@@ -834,25 +734,15 @@ EMDDist <- function(
             pwDist
         }
         
-        if (useBiocParallel) {
-            pwDistByBlock <- BiocParallel::bplapply(
-                blocks2D, 
-                BPPARAM = BPPARAM,
-                BPOPTIONS = BPOPTIONS,
-                FUN = handleOneBlock,
-                loadFlowFrameFUN = loadFlowFrameFUN,
-                loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
-                channels = channels,
-                verbose = verbose)
-        } else {
-            pwDistByBlock <- lapply(
-                blocks2D,
-                FUN = handleOneBlock,
-                loadFlowFrameFUN = loadFlowFrameFUN,
-                loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
-                channels = channels,
-                verbose = verbose)
-        }
+        pwDistByBlock <- BiocParallel::bplapply(
+            blocks2D, 
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BPOPTIONS,
+            FUN = handleOneBlock,
+            loadFlowFrameFUN = loadFlowFrameFUN,
+            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            channels = channels,
+            verbose = verbose)
         
     }
     
@@ -915,13 +805,10 @@ EMDDist <- function(
 #' - if NULL all scatter and fluorescent channels of `fs` #' will be selected
 #' @param verbose if `TRUE`, output a message
 #' after each single distance calculation
-#' @param useBiocParallel if `TRUE`, use `BiocParallel` for computation of the
-#' pairwise distances in parallel - one (i,j) at a time.
-#' Note the `BiocParallel` function used internally is `bplapply()`
-#' @param BPPARAM if `useBiocParallel` is TRUE, sets the `BPPARAM` back-end to
-#' be used for the computation. If not provided, will use the top back-end on
-#' the `BiocParallel::registered()` stack.
-#' @param BPOPTIONS if `useBiocParallel` is TRUE, sets the BPOPTIONS to be 
+#' @param BPPARAM sets the `BPPARAM` back-end to
+#' be used for the computation. If not provided, will use 
+#' `BiocParallel::SerialParam()` (no task parallelization)
+#' @param BPOPTIONS sets the BPOPTIONS to be 
 #' passed to `bplapply()` function.   
 #' Note that if you use a `SnowParams` back-end, you need to specify all   
 #' the packages that need to be loaded for the different CytoProcessingStep   
@@ -972,8 +859,7 @@ pairwiseEMDDist <- function(
         loadFlowFrameFUNArgs = NULL,
         channels = NULL,
         verbose = FALSE,
-        useBiocParallel = FALSE,
-        BPPARAM = BiocParallel::bpparam(),
+        BPPARAM = BiocParallel::SerialParam(),
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore")),
         binSize = 0.05,
@@ -997,7 +883,6 @@ pairwiseEMDDist <- function(
             loadFlowFrameFUNArgs = list(fs = x),
             channels = channels,
             verbose = verbose,
-            useBiocParallel = useBiocParallel,
             BPPARAM = BPPARAM,
             BPOPTIONS = BPOPTIONS,
             binSize = binSize,
@@ -1018,7 +903,7 @@ pairwiseEMDDist <- function(
                  "when x is the number of samples")
         }
         
-        if (useBiocParallel) {
+        if (BiocParallel::bpworkers(BPPARAM) > 1) {
             # blocks of maximum (approximately) 50*50 will be used
             memSize <- min(100, nSamples)
         } else {
@@ -1033,7 +918,6 @@ pairwiseEMDDist <- function(
             loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
             channels = channels,
             verbose = verbose,
-            useBiocParallel = useBiocParallel,
             BPPARAM = BPPARAM,
             BPOPTIONS = BPOPTIONS,
             memSize = memSize,
@@ -1100,8 +984,7 @@ pairwiseEMDDist <- function(
         channels = NULL,
         statFUNs = stats::median,
         verbose = FALSE,
-        useBiocParallel = FALSE,
-        BPPARAM = BiocParallel::bpparam(),
+        BPPARAM = BiocParallel::SerialParam(),
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore"))) {
     #browser()
@@ -1124,12 +1007,7 @@ pairwiseEMDDist <- function(
     # set names to the list
     names(statFUNList) <- names(statFUNs)
     
-    
-    if (useBiocParallel) {
-        nAvailableCores <- BiocParallel::bpworkers(BPPARAM) 
-    } else {
-        nAvailableCores <- 1
-    }
+    nAvailableCores <- BiocParallel::bpworkers(BPPARAM) 
     
     #browser()
     
@@ -1219,27 +1097,16 @@ pairwiseEMDDist <- function(
         
     } # end function
     
-    if (useBiocParallel){
-        statMatBlockList <- BiocParallel::bplapply(
-            blocks1D,
-            FUN = loadFFAndCalcStats,
-            BPPARAM = BPPARAM,
-            BPOPTIONS = BPOPTIONS,
-            loadFlowFrameFUN = loadFlowFrameFUN,
-            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
-            channels = channels,
-            statFUNList = statFUNList,
-            verbose = verbose)
-    } else {
-        statMatBlockList <- lapply(
-            blocks1D,
-            FUN = loadFFAndCalcStats,
-            loadFlowFrameFUN = loadFlowFrameFUN,
-            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
-            channels = channels,
-            statFUNList = statFUNList, 
-            verbose = verbose)
-    }
+    statMatBlockList <- BiocParallel::bplapply(
+        blocks1D,
+        FUN = loadFFAndCalcStats,
+        BPPARAM = BPPARAM,
+        BPOPTIONS = BPOPTIONS,
+        loadFlowFrameFUN = loadFlowFrameFUN,
+        loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+        channels = channels,
+        statFUNList = statFUNList,
+        verbose = verbose)
     
     #browser()
     
@@ -1302,14 +1169,10 @@ pairwiseEMDDist <- function(
 #' returned value.
 #' @param verbose if `TRUE`, output a message 
 #' after each single distance calculation
-#' @param useBiocParallel if `TRUE`, use `BiocParallel` for computation of the
-#' pairwise distances in parallel - one (i,j) at a time.
-#' Note the `BiocParallel` function used internally is `bplapply()`
-#' @param BPPARAM if `useBiocParallel` is TRUE, sets the `BPPARAM` back-end to
-#' be used for the computation. If not provided, will use the top back-end on
-#' the `BiocParallel::registered()` stack.
-#' @param BPOPTIONS if `useBiocParallel` is TRUE, sets the BPOPTIONS to be 
-#' passed to `bplapply()` function.   
+#' @param BPPARAM sets the `BPPARAM` back-end to
+#' be used for the computation. If not provided, will use 
+#' `BiocParallel::SerialParam()` (no task parallelization)
+#' @param BPOPTIONS sets the BPOPTIONS to be passed to `bplapply()` function.   
 #' Note that if you use a `SnowParams` back-end, you need to specify all   
 #' the packages that need to be loaded for the different CytoProcessingStep   
 #' to work properly (visibility of functions). As a minimum,    
@@ -1367,8 +1230,7 @@ channelSummaryStats <- function(
         channels = NULL,
         statFUNs = stats::median,
         verbose = FALSE,
-        useBiocParallel = FALSE,
-        BPPARAM = BiocParallel::bpparam(),
+        BPPARAM = BiocParallel::SerialParam(),
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore"))){
     
@@ -1392,7 +1254,6 @@ channelSummaryStats <- function(
             channels = channels,
             statFUNs = statFUNs,
             verbose = verbose,
-            useBiocParallel = useBiocParallel,
             BPPARAM = BPPARAM,
             BPOPTIONS = BPOPTIONS)
         
@@ -1428,7 +1289,6 @@ channelSummaryStats <- function(
             channels = channels,
             statFUNs = statFUNs,
             verbose = verbose,
-            useBiocParallel = useBiocParallel,
             BPPARAM = BPPARAM,
             BPOPTIONS = BPOPTIONS)
     }
