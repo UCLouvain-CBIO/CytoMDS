@@ -5,6 +5,7 @@
 ### CytoMDS 0.99.12
 - removed `useBiocParallel` parameters from various stats functions 
 (use BPPARAM = BiocParallel::SerialParam() as a default)
+- implemented `MDS` class to store MDS projection results
 
 ### CytoMDS 0.99.11
 - re-factored package documentation file

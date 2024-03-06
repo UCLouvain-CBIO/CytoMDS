@@ -13,8 +13,7 @@ ggplotSampleMDSShepard(
 )
 }
 \arguments{
-\item{mdsObj}{a MDS object calculated by the SMACOF algorithm using
-the computeMetricMDS() function}
+\item{mdsObj}{a MDS object, output of the \code{computeMetricMDS()} method.}
 
 \item{nDim}{(optional) number of dimensions to use when calculating
 Shepard's diagram and pseudoRSquare.
@@ -44,8 +43,57 @@ low dimensional projection
 }
 \examples{
 
-# prepare data, build MDS object
-example("computeMetricMDS") 
+
+library(CytoPipeline)
+
+data(OMIP021Samples)
+
+# estimate scale transformations 
+# and transform the whole OMIP021Samples
+
+transList <- estimateScaleTransforms(
+    ff = OMIP021Samples[[1]],
+    fluoMethod = "estimateLogicle",
+    scatterMethod = "linearQuantile",
+    scatterRefMarker = "BV785 - CD3")
+
+OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+    OMIP021Samples, 
+    transList)
+    
+ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+
+# As there are only 2 samples in OMIP021Samples dataset,
+# we create artificial samples that are random combinations of both samples
+
+for(i in 3:5){
+    ffList[[i]] <- 
+        CytoPipeline::aggregateAndSample(
+            OMIP021Trans,
+            seed = 10*i,
+            nTotalEvents = 5000)[,1:22]
+}
+
+fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+names(ffList) <- fsNames
+
+fsAll <- as(ffList,"flowSet")
+flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
+flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
+
+# calculate all pairwise distances
+
+pwDist <- pairwiseEMDDist(fsAll, 
+                             channels = c("FSC-A", "SSC-A"),
+                             verbose = FALSE)
+
+# compute Metric MDS object with explicit number of dimensions
+mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
+
+dim <- nDim(mdsObj) # should be 4
+
+#' # compute Metric MDS object by reaching a target pseudo RSquare
+mdsObj2 <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
 
 # Shepard diagrams 
 

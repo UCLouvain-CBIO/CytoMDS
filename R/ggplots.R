@@ -19,8 +19,7 @@
 #' to provide plots of Metric MDS results.   
 #' By default, a pseudo Rsquare projection quality indicator, 
 #' and the number of dimensions of the MDS projection are provided in sub-title
-#' @param mdsObj a MDS object calculated by the SMACOF algorithm using
-#' the computeMetricMDS() function
+#' @param mdsObj a MDS object, output of the `computeMetricMDS()` method.
 #' @param pData (optional) a data.frame providing user input sample data. 
 #' These can be design of experiment variables, phenotype data per sample,...
 #' and will be used to highlight sample categories in the plot 
@@ -93,8 +92,58 @@
 #' 
 #' @examples
 #' 
-#' # prepare data, build MDS object
-#' example("computeMetricMDS")
+#' library(CytoPipeline)
+#' 
+#' data(OMIP021Samples)
+#' 
+#' # estimate scale transformations 
+#' # and transform the whole OMIP021Samples
+#' 
+#' transList <- estimateScaleTransforms(
+#'     ff = OMIP021Samples[[1]],
+#'     fluoMethod = "estimateLogicle",
+#'     scatterMethod = "linearQuantile",
+#'     scatterRefMarker = "BV785 - CD3")
+#' 
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples, 
+#'     transList)
+#'     
+#' ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+#' 
+#' # As there are only 2 samples in OMIP021Samples dataset,
+#' # we create artificial samples that are random combinations of both samples
+#' 
+#' for(i in 3:5){
+#'     ffList[[i]] <- 
+#'         CytoPipeline::aggregateAndSample(
+#'             OMIP021Trans,
+#'             seed = 10*i,
+#'             nTotalEvents = 5000)[,1:22]
+#' }
+#' 
+#' fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+#' names(ffList) <- fsNames
+#' 
+#' fsAll <- as(ffList,"flowSet")
+#' flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
+#' flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
+#' 
+#' # calculate all pairwise distances
+#' 
+#' pwDist <- pairwiseEMDDist(fsAll, 
+#'                              channels = c("FSC-A", "SSC-A"),
+#'                              verbose = FALSE)
+#' 
+#' # compute Metric MDS object with explicit number of dimensions
+#' mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
+#' 
+#' dim <- nDim(mdsObj) # should be 4
+#' 
+#' #' # compute Metric MDS object by reaching a target pseudo RSquare
+#' mdsObj2 <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
+#' 
+#' 
 #' 
 #' # plot mds projection on axes 1 and 2,
 #' # use 'grpId' for colour, 'type' for shape, and no label 
@@ -185,15 +234,14 @@ ggplotSampleMDS <- function(
     
     #browser()
     
-    if (!inherits(mdsObj, "mdsRes")) {
-        stop("mdsObj should be a 'mdsRes' object")
+    if (!inherits(mdsObj, "MDS")) {
+        stop("mdsObj should be a MDS object")
     }
-    
     
     # biplot type (if any)
     biplotType <- match.arg(biplotType)
     
-    nSamples <- nrow(mdsObj$proj)
+    nSamples <- nPoints(mdsObj)
     
     if (!missing(pData)) {
         if (nrow(pData) != nSamples) {
@@ -203,7 +251,7 @@ ggplotSampleMDS <- function(
     
     # sample subset
     if (missing(sampleSubset)) {
-        sampleSubset <- rep_len(TRUE, nrow(mdsObj$proj))
+        sampleSubset <- rep_len(TRUE, nSamples)
     } else {
         if (!is.logical(sampleSubset) || length(sampleSubset) != nSamples) {
             stop("'sampleSubset' should be a logical vector of length = ",
@@ -221,7 +269,7 @@ ggplotSampleMDS <- function(
     if (!all(projectionAxes>=1)) stop("wrong values for projectionAxes")
     if (length(projectionAxes) != 2) stop("projectionAxes should have length 2")
     
-    nDim <- ncol(mdsObj$proj)
+    nDim <- nDim(mdsObj)
     
     if (nDim < max(projectionAxes)) {
         
@@ -231,8 +279,6 @@ ggplotSampleMDS <- function(
             ") is too low w.r.t. ",
             "requested projection axes")
     }
-    
-    nSamples <- nrow(mdsObj$proj)
     
     if (biplot) {
         if (missing(extVariables)) {
@@ -256,19 +302,12 @@ ggplotSampleMDS <- function(
     
     #browser()
     
-    RSq <- mdsObj$RSq[nDim]
-    GoF <- mdsObj$GoF[nDim]
+    RSq <- RSq(mdsObj)
+    GoF <- GoF(mdsObj)[nDim]
     
-    # margRSq <- rep(0., nDim)
-    # 
-    # for(j in 2:nDim) {
-    #     margRSq[j] <- RSq[j] - RSq[j-1]
-    # }
-    # margRSq[1] <- RSq[1]
+    explVar <- pctvar(mdsObj)
     
-    explVar <- mdsObj$pctvar
-    
-    proj <- mdsObj$proj
+    proj <- projections(mdsObj)
     if (flipXAxis) {
         proj[, projectionAxes[1]] <- 
             - proj[, projectionAxes[1]]
@@ -283,20 +322,20 @@ ggplotSampleMDS <- function(
         DF <- data.frame(
             x = proj[, projectionAxes[1]],
             y = proj[, projectionAxes[2]],
-            stress = mdsObj$spp
+            stress = spp(mdsObj)
         )
     } else {
         DF <- pData
         DF$x <- proj[, projectionAxes[1]]
         DF$y <- proj[, projectionAxes[2]]
-        DF$stress <- mdsObj$spp
+        DF$stress <- spp(mdsObj)
     }
     
     if (is.null(DF$sampleId)) {
-        if (is.null(rownames(mdsObj$proj))) {
+        if (is.null(rownames(proj))) {
             DF$sampleId <- seq_len(nSamples)
         } else {
-            DF$sampleId <- rownames(mdsObj$proj)
+            DF$sampleId <- rownames(proj)
         }
     }
     
@@ -308,8 +347,6 @@ ggplotSampleMDS <- function(
     
     xlabel <- paste0(
         xlabel, 
-        #" (marg. R2 : ", 
-        #round(100*margRSq[projectionAxes[1]], 2), 
         " (% var. : ",
         round(100*explVar[projectionAxes[1]], 2),
         "%)")
@@ -318,8 +355,6 @@ ggplotSampleMDS <- function(
     
     ylabel <- paste0(
         ylabel, 
-        #" (marg. R2 : ",
-        #round(100*margRSq[projectionAxes[2]], 2), 
         " (% var. : ",
         round(100*explVar[projectionAxes[2]], 2),
         "%)")
@@ -578,8 +613,7 @@ ggplotSampleMDS <- function(
 #' between each sample pairs  
 #' - on the y axis, the corresponding pairwise distances in the obtained 
 #' low dimensional projection
-#' @param mdsObj a MDS object calculated by the SMACOF algorithm using
-#' the computeMetricMDS() function
+#' @param mdsObj a MDS object, output of the `computeMetricMDS()` method.
 #' @param nDim (optional) number of dimensions to use when calculating   
 #' Shepard's diagram and pseudoRSquare.  
 #' If missing, it will be set equal to the number of projection dimensions  
@@ -598,8 +632,57 @@ ggplotSampleMDS <- function(
 #' 
 #' @examples
 #' 
-#' # prepare data, build MDS object
-#' example("computeMetricMDS") 
+#' 
+#' library(CytoPipeline)
+#' 
+#' data(OMIP021Samples)
+#' 
+#' # estimate scale transformations 
+#' # and transform the whole OMIP021Samples
+#' 
+#' transList <- estimateScaleTransforms(
+#'     ff = OMIP021Samples[[1]],
+#'     fluoMethod = "estimateLogicle",
+#'     scatterMethod = "linearQuantile",
+#'     scatterRefMarker = "BV785 - CD3")
+#' 
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples, 
+#'     transList)
+#'     
+#' ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+#' 
+#' # As there are only 2 samples in OMIP021Samples dataset,
+#' # we create artificial samples that are random combinations of both samples
+#' 
+#' for(i in 3:5){
+#'     ffList[[i]] <- 
+#'         CytoPipeline::aggregateAndSample(
+#'             OMIP021Trans,
+#'             seed = 10*i,
+#'             nTotalEvents = 5000)[,1:22]
+#' }
+#' 
+#' fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+#' names(ffList) <- fsNames
+#' 
+#' fsAll <- as(ffList,"flowSet")
+#' flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
+#' flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
+#' 
+#' # calculate all pairwise distances
+#' 
+#' pwDist <- pairwiseEMDDist(fsAll, 
+#'                              channels = c("FSC-A", "SSC-A"),
+#'                              verbose = FALSE)
+#' 
+#' # compute Metric MDS object with explicit number of dimensions
+#' mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
+#' 
+#' dim <- nDim(mdsObj) # should be 4
+#' 
+#' #' # compute Metric MDS object by reaching a target pseudo RSquare
+#' mdsObj2 <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
 #' 
 #' # Shepard diagrams 
 #' 
@@ -625,24 +708,24 @@ ggplotSampleMDSShepard <- function(
         pointSize = 0.5,
         displayPseudoRSq = TRUE) {
     
-    if (!inherits(mdsObj,"mdsRes")) {
-        stop("mdsObj should be a 'mdsRes' object")
+    if (!inherits(mdsObj,"MDS")) {
+        stop("mdsObj should be a MDS object")
     }
     
     if (missing(nDim)) {
-        nDim <- ncol(mdsObj$proj)
+        nDim <- CytoMDS::nDim(mdsObj)
     } else if (!is.numeric(nDim)) {
         stop("nDim should be numeric")
     } else if (nDim < 1) {
         stop("nDim should be >=1")
-    } else if (ncol(mdsObj$proj) < nDim) {
+    } else if (nPoints(mdsObj) < nDim) {
         stop(
-            "nDim too high compared to projection stored mdsObj (nDim = ",
-            ncol(mdsObj$proj), ")")
+            "nDim too high compared to MDS object (nDim = ",
+            nDim(mdsObj), ")")
     }
     
-    RSq <- mdsObj$RSq[nDim]
-    GoF <- mdsObj$GoF[nDim]
+    RSq <- RSqVec(mdsObj)[nDim]
+    GoF <- GoF(mdsObj)[nDim]
     
     subtitle <- "("
     if (displayPseudoRSq) {
@@ -662,8 +745,8 @@ ggplotSampleMDSShepard <- function(
     xlabel <- "HD distances"
     ylabel <- "Proj. distances"
     
-    projDist <- as.vector(dist(mdsObj$proj[,seq_len(nDim)]))
-    HDDist <- as.vector(as.dist(mdsObj$pwDist))
+    projDist <- as.vector(dist(projections(mdsObj)[,seq_len(nDim)]))
+    HDDist <- as.vector(as.dist(pwDist(mdsObj)))
     
     DF <- data.frame(
         HDDist = HDDist,
@@ -694,8 +777,7 @@ ggplotSampleMDSShepard <- function(
 #' repeatly to generate biplots with different sets of external variables
 #' and align them in a grid using the `patchwork` package, in a similar fashion 
 #' as `ggplot2::facet_wrap()` does.
-#' @param mdsObj a MDS object calculated by the SMACOF algorithm using
-#' the computeMetricMDS() function
+#' @param mdsObj a MDS object, output of the `computeMetricMDS()` method
 #' @param extVariableList should be a named list of external variable matrices
 #' Each element of the list should be a matrix with named columns 
 #' corresponding to the variables. 
@@ -715,8 +797,57 @@ ggplotSampleMDSShepard <- function(
 #' 
 #' @examples
 #' 
-#' # prepare data, build MDS object
-#' example("computeMetricMDS")
+#' 
+#' library(CytoPipeline)
+#' 
+#' data(OMIP021Samples)
+#' 
+#' # estimate scale transformations 
+#' # and transform the whole OMIP021Samples
+#' 
+#' transList <- estimateScaleTransforms(
+#'     ff = OMIP021Samples[[1]],
+#'     fluoMethod = "estimateLogicle",
+#'     scatterMethod = "linearQuantile",
+#'     scatterRefMarker = "BV785 - CD3")
+#' 
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples, 
+#'     transList)
+#'     
+#' ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+#' 
+#' # As there are only 2 samples in OMIP021Samples dataset,
+#' # we create artificial samples that are random combinations of both samples
+#' 
+#' for(i in 3:5){
+#'     ffList[[i]] <- 
+#'         CytoPipeline::aggregateAndSample(
+#'             OMIP021Trans,
+#'             seed = 10*i,
+#'             nTotalEvents = 5000)[,1:22]
+#' }
+#' 
+#' fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+#' names(ffList) <- fsNames
+#' 
+#' fsAll <- as(ffList,"flowSet")
+#' flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
+#' flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
+#' 
+#' # calculate all pairwise distances
+#' 
+#' pwDist <- pairwiseEMDDist(fsAll, 
+#'                              channels = c("FSC-A", "SSC-A"),
+#'                              verbose = FALSE)
+#' 
+#' # compute Metric MDS object with explicit number of dimensions
+#' mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
+#' 
+#' dim <- nDim(mdsObj) # should be 4
+#' 
+#' #' # compute Metric MDS object by reaching a target pseudo RSquare
+#' mdsObj2 <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
 #' 
 #' # plot mds projection on axes 1 and 2,
 #' # use 'group' for colour, 'type' for shape, and no label 
@@ -767,22 +898,29 @@ ggplotSampleMDSWrapBiplots <- function(
     
     nPlots <- length(extVariableList)
     
-    pList <- list()
-    
-    for (i in seq_len(nPlots)) {
-        p <- ggplotSampleMDS(
-            mdsObj = mdsObj,
-            title = paste0("biplot with ",
-                           names(extVariableList)[i]),
-            biplot = TRUE,
-            extVariables = extVariableList[[i]],
-            ...) 
-        pList[[i]] <- p + ggplot2::labs(subtitle = NULL)
-        if (!displayLegend) {
-            pList[[i]] <- pList[[i]] + 
-                ggplot2:: theme(legend.position="none")
-        }
-    }
+    pList <- lapply(
+        seq_len(nPlots),
+        FUN = function(
+            i, 
+            extVariableList,
+            mdsObj,
+            displayLegend) {
+            p <- ggplotSampleMDS(
+                mdsObj = mdsObj,
+                title = paste0("biplot with ",
+                               names(extVariableList)[i]),
+                biplot = TRUE,
+                extVariables = extVariableList[[i]],
+                ...) + ggplot2::labs(subtitle = NULL)
+            if (!displayLegend) {
+                p <- p + ggplot2:: theme(legend.position="none")
+            }
+            p
+        },
+        extVariableList = extVariableList,
+        mdsObj = mdsObj,
+        displayLegend = displayLegend
+    )
         
     p <- patchwork::wrap_plots(
         pList, 

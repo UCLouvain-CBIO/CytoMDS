@@ -114,17 +114,20 @@ is built by sub-sampling 5 times from each of the two samples (alternatively).
 
 ```{r OMIPSim1}
 nSample <- 20
-ffList <- list()
 
 # to allow for reproducibility of sample()
 set.seed(0)
 
-for (i in seq_len(nSample)) {
-    ffList[[i]] <- CytoPipeline::subsample(
+
+ffList <- lapply(
+    seq_len(nSample),
+    FUN = function(i) {
+           CytoPipeline::subsample(
                 OMIP021Trans[[(i+1)%%2+1]],
                 nEvents = 1000,
                 seed = i)
-}
+       })
+
 OMIP021Sim1 <- as(ffList, "flowSet")
 
 pData1 <- data.frame(name = paste0("S", seq_len(nSample)),
@@ -136,36 +139,50 @@ and sample 2 with respective proportions varying from 1 to 0 (resp. 0 to 1).
 
 ```{r OMIPSim2}
 nSample <- 20
-ffList <- list()
 S1prop <- rep(0., nSample)
 
 # to allow for reproducibility of sample()
 set.seed(0)
 
-for (i in seq_len(nSample)) {
-    if (i==1) {
-        ffList[[i]] <- OMIP021Trans[[1]]
-        S1prop[i] <- 1
-    } else if (i==nSample) {
-        ffList[[i]] <- OMIP021Trans[[2]]
-        S1prop[i] <- 0
-    } else {
-        ff1 <- CytoPipeline::subsample(
-            OMIP021Trans[[1]],
-            nEvents = 1000 * (nSample-i)/(nSample-1),
-            seed = i)
-        ff2 <- CytoPipeline::subsample(
-            OMIP021Trans[[2]],
-            nEvents = 1000 * (i-1)/(nSample-1),
-            seed = i)
-        S1prop[i] <- (nSample-i)/(nSample-1)
-        
-        ffList[[i]] <- CytoPipeline::aggregateAndSample(
-            flowCore::flowSet(ff1, ff2),
-            nTotalEvents = 1000000 # big number to have a simple aggregation
-        )[,1:20]
+ffList <- lapply(
+    seq_len(nSample),
+    FUN = function(i){
+        if (i==1) {
+            ffList[[i]] <- OMIP021Trans[[1]]
+        } else if (i==nSample) {
+            ffList[[i]] <- OMIP021Trans[[2]]
+        } else {
+            ff1 <- CytoPipeline::subsample(
+                OMIP021Trans[[1]],
+                nEvents = 1000 * (nSample-i)/(nSample-1),
+                seed = i)
+            ff2 <- CytoPipeline::subsample(
+                OMIP021Trans[[2]],
+                nEvents = 1000 * (i-1)/(nSample-1),
+                seed = i)
+            
+            ffList[[i]] <- CytoPipeline::aggregateAndSample(
+                flowCore::flowSet(ff1, ff2),
+                nTotalEvents = 1000000 # big number to have a simple aggregation
+            )[,1:20]
+        }
     }
-}
+)
+
+S1prop <- vapply(
+    seq_len(nSample),
+    FUN = function(i){
+        if (i==1) {
+            return(1)
+        } else if (i==nSample) {
+            return(0)
+        } else {
+            return((nSample-i)/(nSample-1))
+        }
+    },
+    FUN.VALUE = 1
+)
+
 OMIP021Sim2 <- as(ffList, "flowSet")
 
 pData2 <- data.frame(name = paste0("S", seq_len(nSample)),
@@ -499,7 +516,7 @@ ggplotSampleMDSWrapBiplots(
 ```
 
 Note that the last plot, with arrows corresponding to 
-channel standard deviations, ganerates a warning indicating that the arrow 
+channel standard deviations, generates a warning indicating that the arrow 
 labels could not be displayed. This is due to the fact that too many channel 
 standard deviations are strongly negatively correlated with the x axis. 
 When encountering such visual issues, it is advised to generate series of 
@@ -507,13 +524,12 @@ bi-plots, with subsets of channel statistics, in order to better identify
 the strongly correlated ones. One example is provided below:
 
 ```{r plotMDS1_biplot_stddev, fig.align='center', fig.asp = 2.5, fig.wide = TRUE}
-stdDevs <- list()
-stdDevs[["std dev of channels 1 to 6"]] <- 
-    chStats[["standard deviation"]][,1:6]
-stdDevs[["std dev of channels 7 to 12"]] <- 
-            chStats[["standard deviation"]][,7:12]
-stdDevs[["std dev of channels 13 to 18"]] <- 
-            chStats[["standard deviation"]][,13:18]
+stdDevs <- list(
+    "std dev of channels 1 to 6" = chStats[["standard deviation"]][,1:6],
+    "std dev of channels 7 to 12" = chStats[["standard deviation"]][,7:12],
+    "std dev of channels 13 to 18" = chStats[["standard deviation"]][,13:18]
+)
+            
 ggplotSampleMDSWrapBiplots(
     mdsObj1, 
     ncol = 1,

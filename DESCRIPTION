@@ -39,14 +39,15 @@ Collate:
     'CytoMDS-package.R'
     'stats.R'
     'ggplots.R'
+    'MDS-class.R'
 Depends:
     R (>= 4.3)
 Imports:
+    methods,
     stats,
     rlang,
     pracma,
     withr,
-    methods,
     flowCore,
     ggplot2,
     ggrepel,

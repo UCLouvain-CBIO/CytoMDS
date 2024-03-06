@@ -1394,7 +1394,7 @@ channelSummaryStats <- function(
 #' # compute Metric MDS object with explicit number of dimensions
 #' mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
 #' 
-#' # mdsObj$nDim should be 4
+#' dim <- nDim(mdsObj) # should be 4
 #' 
 #' #' # compute Metric MDS object by reaching a target pseudo RSquare
 #' mdsObj2 <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
@@ -1410,15 +1410,19 @@ computeMetricMDS <- function(
         
     #browser()
     
-    dimensions <- dim(pwDist)
-    if (length(dimensions) != 2) {
-        stop("pwDist should be a square matrix")
-    }
-    if(dimensions[1] != dimensions[2]) {
-        stop("pwDist should be a square matrix")
-    }
-    if (!is.numeric(pwDist)) {
-        stop("pwDist should be numeric")
+    if (inherits(pwDist, "dist")) {
+        pwDist <- as.matrix(pwDist)
+    } else {
+        dimensions <- dim(pwDist)
+        if (length(dimensions) != 2) {
+            stop("pwDist should be a square matrix")
+        }
+        if(dimensions[1] != dimensions[2]) {
+            stop("pwDist should be a square matrix")
+        }
+        if (!is.numeric(pwDist)) {
+            stop("pwDist should be numeric")
+        }
     }
     
     # handle case when nDim not provided
@@ -1426,8 +1430,8 @@ computeMetricMDS <- function(
     
     if (is.null(nDim)) {
         nDimHigh <- 1
-        currentRsq <- 0.
-        while(currentRsq < targetPseudoRSq) {
+        currentRSq <- 0.
+        while(currentRSq < targetPseudoRSq) {
             nDimHigh <- nDimHigh * 2
             if (nDimHigh > maxDim) {
                 warning("maxDim (=", maxDim, ") reached without ",
@@ -1437,7 +1441,7 @@ computeMetricMDS <- function(
                                     nDim = nDimHigh,
                                     seed = seed,
                                     ...)
-            currentRsq <- obj$RSq[obj$nDim]
+            currentRSq <- RSq(obj)
         }
         
         nDimLow <- 1
@@ -1452,8 +1456,8 @@ computeMetricMDS <- function(
                                     nDim = nDimMid,
                                     seed = seed,
                                     ...)
-            currentRsq <- obj$RSq[obj$nDim]
-            if (currentRsq >= targetPseudoRSq) {
+            currentRSq <- RSq(obj)
+            if (currentRSq >= targetPseudoRSq) {
                 nDimHigh <- nDimMid
             } else {
                 nDimLow <- nDimMid
@@ -1481,20 +1485,20 @@ computeMetricMDS <- function(
     if (!is.null(seed)) {
         withr::with_seed(
             seed,
-            mdsRes <- smacof::smacofSym(
+            smacofRes <- smacof::smacofSym(
                 delta = pwDist,
                 ndim = nDim,
                 principal = FALSE,
                 ...)
         )
     } else {
-        mdsRes <- smacof::smacofSym(
+        smacofRes <- smacof::smacofSym(
             delta = pwDist,
             ndim = nDim,
             principal = FALSE,
             ...)
     }
-    proj <- mdsRes$conf
+    proj <- smacofRes$conf
     
     # apply svd decomposition (principal component analysis) 
     # on the obtained projections
@@ -1503,8 +1507,8 @@ computeMetricMDS <- function(
     proj <- proj %*% proj_svd$v
     
     # store eigenvalues and pct of variance
-    res$eigen <- proj_svd$d * proj_svd$d
-    res$pctvar <- res$eigen/sum(res$eigen)
+    eigen <- proj_svd$d * proj_svd$d
+    pctvar <- eigen/sum(eigen)
     
     delta <- as.dist(pwDist)
     N <- length(delta)
@@ -1550,27 +1554,29 @@ computeMetricMDS <- function(
         projections = proj, 
         asInLinearRegression = FALSE)
     
-    res$pwDist <- as.dist(pwDist)
-    res$proj <- proj
-    res$projDist <- dist(proj)
-    res$stress <- mdsRes$stress
-    res$spp <- mdsRes$spp
-    res$RSq <- RSq
-    res$GoF <- GoF
-    res$nDim <- nDim
-    res$mdsObj <- mdsRes
+    res <- NULL
     
-    class(res) <- "mdsRes"
-
+    res <- methods::new(
+        "MDS",
+        nDim = nDim,
+        pwDist = as.dist(pwDist),
+        proj = proj,
+        projDist = dist(proj),
+        eigen = eigen,
+        pctvar = pctvar,
+        RSq = RSq,
+        GoF = GoF,
+        smacofRes = smacofRes
+    )
     res
 }
 
-# Function to populate a mdsRes object with biplot information
+# Function to extend a MDS with bi-plot information
 # Note this information is specific to the couple of projectionAxes
 # that will be used for the biplot
-# returns a `mdsBiplot` list with 3 entries: 
-# `$R2vec`, `$coefficients` - the 2 latter obtained while regressing 
-# the `extVariables` on the projectionAxes -, and `$correlations`, obtained
+# returns a `MDSBiplot` object with 3 slots: 
+# `@R2vec`, `@coefficients` - the 2 latter obtained while regressing 
+# the `extVariables` on the projectionAxes -, and `@correlations`, obtained
 # by computing the Pearson correlation of the extVariables with the axes -
 # each column being a vector of length nProjAxes corresponding to 
 # the correlations of one ext variables with the projection axes.
@@ -1579,7 +1585,7 @@ computeMetricMDSBiplot <- function(
         projectionAxes,
         extVariables) {
         
-    X <- mdsObj$proj[,c(projectionAxes[1], projectionAxes[2])]
+    X <- projections(mdsObj)[,c(projectionAxes[1], projectionAxes[2])]
     p <- ncol(X)
     extVariables <- as.data.frame(extVariables)
     if (nrow(extVariables) != nrow(X)) {
@@ -1589,7 +1595,7 @@ computeMetricMDSBiplot <- function(
     } 
     
     # calculate linear regressions
-    rownames(extVariables) <- rownames(mdsObj$proj)
+    rownames(extVariables) <- rownames(projections(mdsObj))
     ext <- scale(extVariables, scale = TRUE)
     
     #browser()
