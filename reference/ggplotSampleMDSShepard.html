@@ -81,8 +81,7 @@ low dimensional projection</p></li>
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>mdsObj</dt>
-<dd><p>a MDS object calculated by the SMACOF algorithm using
-the computeMetricMDS() function</p></dd>
+<dd><p>a MDS object, output of the <code><a href="computeMetricMDS.html">computeMetricMDS()</a></code> method.</p></dd>
 
 
 <dt>nDim</dt>
@@ -119,62 +118,57 @@ of nb of dimensions</p></dd>
     <div id="ref-examples">
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># prepare data, build MDS object</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/example.html" class="external-link">example</a></span><span class="op">(</span><span class="st">"computeMetricMDS"</span><span class="op">)</span> </span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; library(CytoPipeline)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; data(OMIP021Samples)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; # estimate scale transformations </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; # and transform the whole OMIP021Samples</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; transList &lt;- estimateScaleTransforms(</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     ff = OMIP021Samples[[1]],</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     fluoMethod = "estimateLogicle",</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     scatterMethod = "linearQuantile",</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     scatterRefMarker = "BV785 - CD3")</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; OMIP021Trans &lt;- CytoPipeline::applyScaleTransforms(</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     OMIP021Samples, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     transList)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; ffList &lt;- flowCore::flowSet_to_list(OMIP021Trans)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; # As there are only 2 samples in OMIP021Samples dataset,</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; # we create artificial samples that are random combinations of both samples</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; for(i in 3:5){</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+     ffList[[i]] &lt;- </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+         CytoPipeline::aggregateAndSample(</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+             OMIP021Trans,</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+             seed = 10*i,</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+             nTotalEvents = 5000)[,1:22]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+ }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; fsNames &lt;- c("Donor1", "Donor2", paste0("Agg",1:3))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; names(ffList) &lt;- fsNames</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; fsAll &lt;- as(ffList,"flowSet")</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; flowCore::pData(fsAll)$type &lt;- factor(c("real", "real", rep("synthetic", 3)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; flowCore::pData(fsAll)$grpId &lt;- factor(c("D1", "D2", rep("Agg", 3)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; # calculate all pairwise distances</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; pwDist &lt;- pairwiseEMDDist(fsAll, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+                              channels = c("FSC-A", "SSC-A"),</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS+                              verbose = FALSE)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; # compute Metric MDS object with explicit number of dimensions</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; mdsObj &lt;- computeMetricMDS(pwDist, nDim = 4, seed = 0)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; # mdsObj$nDim should be 4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; #' # compute Metric MDS object by reaching a target pseudo RSquare</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmMMDS&gt; mdsObj2 &lt;- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://uclouvain-cbio.github.io/CytoPipeline" class="external-link">CytoPipeline</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">OMIP021Samples</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># estimate scale transformations </span></span></span>
+<span class="r-in"><span><span class="co"># and transform the whole OMIP021Samples</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">transList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/estimateScaleTransforms.html" class="external-link">estimateScaleTransforms</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    ff <span class="op">=</span> <span class="va">OMIP021Samples</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>    fluoMethod <span class="op">=</span> <span class="st">"estimateLogicle"</span>,</span></span>
+<span class="r-in"><span>    scatterMethod <span class="op">=</span> <span class="st">"linearQuantile"</span>,</span></span>
+<span class="r-in"><span>    scatterRefMarker <span class="op">=</span> <span class="st">"BV785 - CD3"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">OMIP021Trans</span> <span class="op">&lt;-</span> <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/applyScaleTransforms.html" class="external-link">applyScaleTransforms</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="va">OMIP021Samples</span>, </span></span>
+<span class="r-in"><span>    <span class="va">transList</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    </span></span>
+<span class="r-in"><span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu">flowCore</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/flowCore/man/flowSet_to_list.html" class="external-link">flowSet_to_list</a></span><span class="op">(</span><span class="va">OMIP021Trans</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># As there are only 2 samples in OMIP021Samples dataset,</span></span></span>
+<span class="r-in"><span><span class="co"># we create artificial samples that are random combinations of both samples</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">3</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">{</span></span></span>
+<span class="r-in"><span>    <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> </span></span>
+<span class="r-in"><span>        <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/aggregateAndSample.html" class="external-link">aggregateAndSample</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>            <span class="va">OMIP021Trans</span>,</span></span>
+<span class="r-in"><span>            seed <span class="op">=</span> <span class="fl">10</span><span class="op">*</span><span class="va">i</span>,</span></span>
+<span class="r-in"><span>            nTotalEvents <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">22</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">fsNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Donor1"</span>, <span class="st">"Donor2"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Agg"</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">ffList</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">fsNames</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">fsAll</span> <span class="op">&lt;-</span> <span class="fu">as</span><span class="op">(</span><span class="va">ffList</span>,<span class="st">"flowSet"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">flowCore</span><span class="fu">::</span><span class="fu">pData</span><span class="op">(</span><span class="va">fsAll</span><span class="op">)</span><span class="op">$</span><span class="va">type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"real"</span>, <span class="st">"real"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"synthetic"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">flowCore</span><span class="fu">::</span><span class="fu">pData</span><span class="op">(</span><span class="va">fsAll</span><span class="op">)</span><span class="op">$</span><span class="va">grpId</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"D1"</span>, <span class="st">"D2"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Agg"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># calculate all pairwise distances</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">pwDist</span> <span class="op">&lt;-</span> <span class="fu"><a href="pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span><span class="va">fsAll</span>, </span></span>
+<span class="r-in"><span>                             channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FSC-A"</span>, <span class="st">"SSC-A"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                             verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># compute Metric MDS object with explicit number of dimensions</span></span></span>
+<span class="r-in"><span><span class="va">mdsObj</span> <span class="op">&lt;-</span> <span class="fu"><a href="computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist</span>, nDim <span class="op">=</span> <span class="fl">4</span>, seed <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">dim</span> <span class="op">&lt;-</span> <span class="fu"><a href="MDS.html">nDim</a></span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span> <span class="co"># should be 4</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#' # compute Metric MDS object by reaching a target pseudo RSquare</span></span></span>
+<span class="r-in"><span><span class="va">mdsObj2</span> <span class="op">&lt;-</span> <span class="fu"><a href="computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist</span>, seed <span class="op">=</span> <span class="fl">0</span>, targetPseudoRSq <span class="op">=</span> <span class="fl">0.999</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Shepard diagrams </span></span></span>
 <span class="r-in"><span></span></span>
