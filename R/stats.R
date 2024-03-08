@@ -1596,43 +1596,67 @@ computeMetricMDSBiplot <- function(
     
     # calculate linear regressions
     rownames(extVariables) <- rownames(projections(mdsObj))
+    
+    myFunc <- function(x) {
+        theMean <- mean(x, na.rm = TRUE)
+        theSd <- stats::sd(x, na.rm = TRUE)
+        valid <- theSd > 1E-12 * theMean
+        valid
+    }
+    
+    validExtVar <- apply(
+        extVariables,
+        MARGIN = 2,
+        FUN = myFunc
+    )
+    
+    for (j in which(!validExtVar)) {
+        warning("external variable ", 
+                colnames(extVariables)[j], 
+                " is constant => discarded")
+    }
+    
     ext <- scale(extVariables, scale = TRUE)
     
     #browser()
     nReg <- ncol(extVariables)
     mdsBiplot <- list()
-    mdsBiplot$coefficients <- matrix(data = rep(0., 2*nReg),
+    mdsBiplot$coefficients <- matrix(data = rep(NA_real_, 2*nReg),
                                      ncol = nReg)
     colnames(mdsBiplot$coefficients) <- colnames(ext)
-    mdsBiplot$R2vec <- rep(0., nReg)
+    mdsBiplot$R2vec <- rep(NA_real_, nReg)
     names(mdsBiplot$R2vec) <- colnames(ext)
     #browser()
     for (j in seq_len(nReg)) {
-        thisExt <- ext[,j]
-        thisX <- X
-        
-        # keep only rows for which extVariable is not NA
-        naIndices <- which(is.na(thisExt))
-        if (length(naIndices) > 0) {
-            thisExt <- thisExt[-naIndices]
-            thisX <- X[-naIndices,]
+        if (validExtVar[j]) {
+            thisExt <- ext[,j]
+            thisX <- X
+            
+            # keep only rows for which extVariable is not NA
+            naIndices <- which(is.na(thisExt))
+            if (length(naIndices) > 0) {
+                thisExt <- thisExt[-naIndices]
+                thisX <- X[-naIndices,]
+            }
+            
+            regfit <- lm(thisExt ~ -1 + thisX)
+            mdsBiplot$coefficients[, j] <- regfit$coefficients
+            
+            regsum <- summary(regfit)
+            mdsBiplot$R2vec[j] <- regsum$r.squared
+        } else {
+            
         }
-        
-        regfit <- lm(thisExt ~ -1 + thisX)
-        mdsBiplot$coefficients[, j] <- regfit$coefficients
-        
-        regsum <- summary(regfit)
-        mdsBiplot$R2vec[j] <- regsum$r.squared
     }
     
     # calculate Pearson correlations
     # when there are NA's, use complete pairs only
-    pearsonCorrelations <- t(stats::cor(
-        ext, X,
+    mdsBiplot$pearsonCorr <- matrix(data = rep(NA_real_, 2*nReg),
+                                 ncol = nReg)
+    mdsBiplot$pearsonCorr[, validExtVar] <- t(stats::cor(
+        ext[, validExtVar], X,
         method = "pearson",
         use = "pairwise.complete.obs"))
-    
-    mdsBiplot$pearsonCorr <- pearsonCorrelations
     
     return(mdsBiplot)
 }

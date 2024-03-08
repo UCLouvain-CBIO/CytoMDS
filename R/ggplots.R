@@ -501,22 +501,31 @@ ggplotSampleMDS <- function(
             segmentYs <- rep(0., nExtVar)
             segmentNames <- rep("", nExtVar)
             visible <- rep(FALSE, nExtVar)
+            valid <- rep(FALSE, nExtVar)
             for (j in seq_len(nExtVar)) {
+                segmentLength <- 0
                 if (biplotType == "regression"){
-                    segmentLength <- radius * mdsBiplot$R2vec[j]
-                    segmentAngle <- atan(
-                        mdsBiplot$coefficients[2,j] / 
-                            mdsBiplot$coefficients[1,j])
-                    if(mdsBiplot$coefficients[1,j] < 0){
-                        segmentAngle <- segmentAngle + pi
+                    if (!is.na(mdsBiplot$R2vec[j])) {
+                        valid[j] <- TRUE
+                        segmentLength <- radius * mdsBiplot$R2vec[j]
+                        segmentAngle <- atan(
+                            mdsBiplot$coefficients[2,j] / 
+                                mdsBiplot$coefficients[1,j])
+                        if(mdsBiplot$coefficients[1,j] < 0){
+                            segmentAngle <- segmentAngle + pi
+                        }
+                        segmentXs[j] <- segmentLength * cos(segmentAngle)
+                        segmentYs[j] <- segmentLength * sin(segmentAngle)
                     }
-                    segmentXs[j] <- segmentLength * cos(segmentAngle)
-                    segmentYs[j] <- segmentLength * sin(segmentAngle)
+                    
                 } else {
                     # biplotType == "correlation"
-                    segmentXs[j] <- radius * mdsBiplot$pearsonCorr[1, j]
-                    segmentYs[j] <- radius * mdsBiplot$pearsonCorr[2, j]
-                    segmentLength <- sqrt(segmentXs[j]^2 + segmentYs[j]^2)
+                    if (!is.na(mdsBiplot$pearsonCorr[1, j])) {
+                        valid[j] <- TRUE
+                        segmentXs[j] <- radius * mdsBiplot$pearsonCorr[1, j]
+                        segmentYs[j] <- radius * mdsBiplot$pearsonCorr[2, j]
+                        segmentLength <- sqrt(segmentXs[j]^2 + segmentYs[j]^2)
+                    }
                 }
                 
                 if (segmentLength >= lengthThreshold){
@@ -539,6 +548,9 @@ ggplotSampleMDS <- function(
                 segmentX = segmentXs, 
                 segmentY = segmentYs,
                 visible = visible)
+            
+            # discard non valid ext variables
+            segmentDF <- segmentDF[valid, ]
             
             p <- p + ggplot2::geom_segment(
                 mapping = ggplot2::aes(

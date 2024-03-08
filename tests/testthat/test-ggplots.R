@@ -173,6 +173,23 @@ test_that("ggplotSampleMDS works", {
         "ggplotSampleMDS with axes 1 and 2 and extVars nas",
         fig = p)
     
+    extVarInvalid <-  extVars
+    extVarInvalid[,2] <- rep(5, extVars[1,2])
+    
+    expect_warning(pI <- ggplotSampleMDS(mdsObj = mdsObj,
+                         pData = flowCore::pData(fsAll),
+                         projectionAxes = c(1,2),
+                         biplot = TRUE,
+                         extVariables = extVarInvalid,
+                         pDataForColour = "grpId",
+                         pDataForShape = "type",
+                         seed = 0), 
+                   regexp = "external variable SSC-A is constant => discarded")
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSampleMDS with axes 1 and 2 and extVars invalid",
+        fig = pI)
+    
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),

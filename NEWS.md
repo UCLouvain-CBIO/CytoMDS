@@ -6,6 +6,8 @@
 - removed `useBiocParallel` parameters from various stats functions 
 (use BPPARAM = BiocParallel::SerialParam() as a default)
 - implemented `MDS` class to store MDS projection results
+- bi-plots now explicitly discard constant external variables (+warning) 
+instead of raising an error without producing a plot
 
 ### CytoMDS 0.99.11
 - re-factored package documentation file
