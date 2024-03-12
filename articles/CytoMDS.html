@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Low Dimensional Projection of Cytometry Samples • CytoMDS</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
@@ -920,9 +920,9 @@ exactly the same as before.</p>
 <div class="section level2">
 <h2 class="unnumbered" id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<pre><code><span><span class="co">## R Under development (unstable) (2024-02-28 r85999)</span></span>
+<pre><code><span><span class="co">## R Under development (unstable) (2024-03-06 r86056)</span></span>
 <span><span class="co">## Platform: x86_64-pc-linux-gnu</span></span>
-<span><span class="co">## Running under: Ubuntu 22.04.3 LTS</span></span>
+<span><span class="co">## Running under: Ubuntu 22.04.4 LTS</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Matrix products: default</span></span>
 <span><span class="co">## BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
@@ -959,9 +959,9 @@ exactly the same as before.</p>
 <span><span class="co">##  [28] htmlwidgets_1.6.4    desc_1.4.3           plyr_1.8.9          </span></span>
 <span><span class="co">##  [31] cachem_1.0.8         lifecycle_1.0.4      iterators_1.0.14    </span></span>
 <span><span class="co">##  [34] pkgconfig_2.0.3      Matrix_1.6-5         R6_2.5.1            </span></span>
-<span><span class="co">##  [37] fastmap_1.1.1        digest_0.6.34        colorspace_2.1-0    </span></span>
+<span><span class="co">##  [37] fastmap_1.1.1        digest_0.6.35        colorspace_2.1-0    </span></span>
 <span><span class="co">##  [40] patchwork_1.2.0      S4Vectors_0.41.4     textshaping_0.3.7   </span></span>
-<span><span class="co">##  [43] Hmisc_5.1-1          ellipse_0.5.0        labeling_0.4.3      </span></span>
+<span><span class="co">##  [43] Hmisc_5.1-2          ellipse_0.5.0        labeling_0.4.3      </span></span>
 <span><span class="co">##  [46] cytolib_2.15.2       fansi_1.0.6          nnls_1.5            </span></span>
 <span><span class="co">##  [49] gdata_3.0.0          polyclip_1.10-6      abind_1.4-5         </span></span>
 <span><span class="co">##  [52] compiler_4.4.0       proxy_0.4-27         withr_3.0.0         </span></span>
@@ -978,7 +978,7 @@ exactly the same as before.</p>
 <span><span class="co">##  [85] pillar_1.9.0         stringr_1.5.1        splines_4.4.0       </span></span>
 <span><span class="co">##  [88] tweenr_2.0.3         dplyr_1.1.4          smacof_2.1-6        </span></span>
 <span><span class="co">##  [91] lattice_0.22-5       survival_3.5-8       RProtoBufLib_2.15.0 </span></span>
-<span><span class="co">##  [94] tidyselect_1.2.0     ggcyto_1.31.2        transport_0.14-7    </span></span>
+<span><span class="co">##  [94] tidyselect_1.2.1     ggcyto_1.31.2        transport_0.14-7    </span></span>
 <span><span class="co">##  [97] knitr_1.45           gridExtra_2.3        bookdown_0.38       </span></span>
 <span><span class="co">## [100] flowWorkspace_4.15.4 stats4_4.4.0         xfun_0.42           </span></span>
 <span><span class="co">## [103] Biobase_2.63.0       matrixStats_1.2.0    stringi_1.8.3       </span></span>
