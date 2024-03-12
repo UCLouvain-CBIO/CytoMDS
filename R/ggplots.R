@@ -181,7 +181,7 @@ ggplotMarginalDensities <- function(
                            }
                            label
                        },
-                       FUN.VALUE = character(),
+                       FUN.VALUE = " ",
                        fr = fs[[1]])
     
     nChannels <- length(channels)
