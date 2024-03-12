@@ -13,6 +13,252 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details (<http://www.gnu.org/licenses/>).
 
+#' @title Plot of channel intensity marginal densities
+#' @description `ggplotMarginalDensities` uses ggplot2 
+#' to draw plots of marginal densities of selected channels of a flowSet.
+#' If the flowSet contains several flowFrames, all events are concatenated 
+#' together.    
+#' By default, a pseudo Rsquare projection quality indicator, 
+#' and the number of dimensions of the MDS projection are provided in sub-title
+#' @param x a `flowCore::flowSet` (or a single `flowCore::flowFrame`)
+#' @param sampleSubset (optional) a logical vector, of size `nrow(pData)`, 
+#' which is by construction the nb of samples, indicating which samples to keep 
+#' in the plot. Typically it is obtained through the evaluation of 
+#' a logical condition on `pData` rows.   
+#' @param channels (optional) 
+#' @param pDataForColour (optional) which `phenoData(fs)` variable
+#' will be used as colour aesthetic. Should be a character.
+#' @param pDataForGroup (optional) which `phenoData(fs)` variable
+#' will be used as group aesthetic. Should be a character.
+#' @param nEventInSubsample how many event to take 
+#' (per flowFrame of the flowSet).
+#' @param seed if not null, used in subsampling.
+#' @param transList a `flowCore::transformList` that will be applied 
+#' before plotting.
+#' @export
+#' @import ggplot2
+#' @importFrom rlang .data
+#' @return a ggplot object
+#' 
+#' @examples
+#' 
+#' library(CytoPipeline)
+#' 
+#' data(OMIP021Samples)
+#' 
+#' # estimate scale transformations 
+#' # and transform the whole OMIP021Samples
+#' 
+#' transList <- estimateScaleTransforms(
+#'     ff = OMIP021Samples[[1]],
+#'     fluoMethod = "estimateLogicle",
+#'     scatterMethod = "linearQuantile",
+#'     scatterRefMarker = "BV785 - CD3")
+#' 
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples, 
+#'     transList)
+#'     
+#' ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+#' 
+#' # As there are only 2 samples in OMIP021Samples dataset,
+#' # we create artificial samples that are random combinations of both samples
+#' 
+#' for(i in 3:5){
+#'     ffList[[i]] <- 
+#'         CytoPipeline::aggregateAndSample(
+#'             OMIP021Trans,
+#'             seed = 10*i,
+#'             nTotalEvents = 5000)[,1:22]
+#' }
+#' 
+#' fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+#' names(ffList) <- fsNames
+#' 
+#' fsAll <- as(ffList,"flowSet")
+#' flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
+#' flowCore::pData(fsAll)$lbl <- paste0("S", 1:5)
+#' 
+#' # plot densities, all samples together
+#' p <- ggplotMarginalDensities(fsAll)
+#' 
+#' # plot densities, per sample
+#' p <- ggplotMarginalDensities(fsAll, pDataForGroup = "lbl")
+#' 
+#' # plot densities, per sample and coloured by group
+#' p <- ggplotMarginalDensities(
+#'     fsAll, 
+#'     pDataForGroup = "lbl",
+#'     pDataForColour = "grpId")
+#' 
+ggplotMarginalDensities <- function(
+        x,
+        sampleSubset,
+        channels,
+        pDataForColour, 
+        pDataForGroup,
+        nEventInSubsample = Inf,
+        seed = NULL,
+        transList) {
+    
+    if (inherits(x, "flowSet")){
+        fs <- x
+    } else if (inherits(x, "flowFrame")) {
+        fs <- flowCore::flowSet(x)
+    } else {
+        stop("fs type not recognized, should be a flowSet or a flowFrame")
+    }
+    
+    nSamples <- length(fs)
+    if (nSamples == 0) {
+        warning("empty flowSet passed")
+    }
+    
+    if (missing(channels)) {
+        ffAreSignalCols <- CytoPipeline::areSignalCols(fs[[1]])
+        channels <- flowCore::colnames(fs[[1]])[ffAreSignalCols]
+    }
+    
+    # sample subset
+    if (missing(sampleSubset)) {
+        sampleSubset <- rep_len(TRUE, nSamples)
+    } else {
+        if (!is.logical(sampleSubset) || length(sampleSubset) != nSamples) {
+            stop("'sampleSubset' should be a logical vector of length = ",
+                 "nb of samples")                            
+        }
+    }
+    
+    # transformation
+    if (!missing(transList)) {
+        if (!inherits(transList, "transformList")){
+            stop("transList should be a tranformation list")
+        }
+        fs <- flowCore::transform(
+            fs,
+            transList)
+    }
+    
+    
+    if (nEventInSubsample < 1) 
+        stop("nEventInSubsample should be strictly positive!")
+    
+    #browser()
+    pData <- flowCore::pData(flowCore::phenoData(fs))
+    pData <- pData[sampleSubset,, drop = FALSE]
+    fs <- fs[sampleSubset]
+    nSamples <- length(fs)
+    
+    # check pDataForColour and pDataForGroup
+    if (!missing(pDataForColour)) {
+        if (!is.character(pDataForColour)) {
+            stop("'pDataForColour' should a character()")
+        }
+        if (!pDataForColour %in% flowCore::colnames(pData)) {
+            stop("'pDataForColour' should be in phenoData columns")
+        }
+    } 
+    if (!missing(pDataForGroup)) {
+        if (!is.character(pDataForGroup)) {
+            stop("'pDataForGroup' should a character()")
+        }
+        if (!pDataForGroup %in% flowCore::colnames(pData)) {
+            stop("'pDataForGroup' should be in phenoData columns")
+        }
+    }
+    
+    
+    channelLabels <- vapply(channels,
+                       FUN = function(ch, fr){
+                           chmk <- flowCore::getChannelMarker(fr, ch)
+                           if (is.null(chmk)) {
+                               stop("channel ", ch, " not found in expr matrix")
+                           }
+                           label <- chmk$name
+                           if (!is.na(chmk$desc) && 
+                               !toupper(chmk$desc) == "EMPTY"){
+                               label <- chmk$desc
+                           }
+                           label
+                       },
+                       FUN.VALUE = character(),
+                       fr = fs[[1]])
+    
+    nChannels <- length(channels)
+    
+    #browser()
+    DFList <- mapply(
+        seq_len(nSamples),
+        FUN = function(i, fs, channelLabels, nEventInSubsample, seed){
+            #browser()
+            nEvents <- flowCore::nrow(fs[[i]])
+            chosenEvents <- 0
+            if (nEventInSubsample < nEvents) {
+                if (!is.null(seed)) {
+                    withr::with_seed(
+                        seed,
+                        chosenEvents <- 
+                            sample(nEvents, nEventInSubsample)
+                    )
+                } else {
+                    chosenEvents <- sample(nEvents, nEventInSubsample)
+                }
+                nEvents <- nEventInSubsample
+            } else {
+                chosenEvents <- seq(nEvents)
+            }
+            DF <- data.frame(
+                flowCore::exprs(fs[[i]])[chosenEvents, channels],
+                pData[i,], 
+                row.names = seq(chosenEvents))
+            colnames(DF) <- c(channelLabels, colnames(pData))
+            DF
+        },
+        MoreArgs = list(
+            fs = fs,
+            channelLabels = channelLabels,
+            nEventInSubsample = nEventInSubsample,
+            seed = seed),
+        SIMPLIFY = FALSE)
+    
+    DF <- Reduce(DFList, f = rbind.data.frame)
+    
+    #browser()
+    discardColourLegend <- FALSE
+    if (missing(pDataForColour)) {
+        DF$pDataForColour <- 1
+        pDataForColour <- "pDataForColour"
+        discardColourLegend <- TRUE
+    }
+    
+    if (missing(pDataForGroup)) {
+        DF$pDataForGroup <- 1
+        pDataForGroup <- "pDataForGroup"
+    }
+    
+    DFLong <- reshape2::melt(
+        DF,
+        measure.vars = channelLabels,
+        value.name = "value",
+        variable.name = "channel")
+    
+    p <- ggplot(
+        DFLong, 
+        fill = NULL,
+        aes(x = .data[["value"]],
+            col = .data[[pDataForColour]],
+            group = .data[[pDataForGroup]],
+            y = after_stat(.data[["ndensity"]]))) + 
+        facet_wrap(~channel, scales = "free_x") + 
+        geom_density() + 
+        ylab("normalized density")
+    
+    if (discardColourLegend){
+        p <- p + guides(col = "none")
+    }
+    
+    p 
+} 
 
 #' @title Plot of Metric MDS object
 #' @description `ggplotSampleMDS` uses ggplot2 

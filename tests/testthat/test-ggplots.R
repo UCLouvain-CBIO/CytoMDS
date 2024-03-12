@@ -51,33 +51,146 @@ pwDist <- pairwiseEMDDist(fsAll,
                           channels = c("FSC-A", "SSC-A"),
                           verbose = FALSE)
 
+test_that("ggplotMarginalDensities works", {
+    
+    p <- ggplotMarginalDensities(
+        OMIP021Samples,
+        pDataForGroup = "Donor",
+        pDataForColour = "Donor",
+        transList = transList
+    )
+    vdiffr::expect_doppelganger(
+        "ggplotMarginalDensities no channels with transList",
+        fig = p)
+    
+    selChannels <- c("FSC-A", "SSC-A", "670/30Violet-A", "525/50Violet-A")
+    p <- ggplotMarginalDensities(
+        OMIP021Samples,
+        channels = selChannels,
+        pDataForGroup = "Donor",
+        pDataForColour = "Donor",
+        transList = transList
+    )
+    vdiffr::expect_doppelganger(
+        "ggplotMarginalDensities with channels with transList",
+        fig = p)
+    
+    p <- ggplotMarginalDensities(
+        fsAll
+    )
+    vdiffr::expect_doppelganger(
+        "ggplotMarginalDensities nothing",
+        fig = p)
+    
+    
+    p <- ggplotMarginalDensities(
+        fsAll,
+        pDataForGroup = "lbl"
+    )
+    vdiffr::expect_doppelganger(
+        "ggplotMarginalDensities with groupBy",
+        fig = p)
+    
+    p <- ggplotMarginalDensities(
+        fsAll,
+        pDataForGroup = "lbl",
+        pDataForColour = "grpId"
+    )
+    vdiffr::expect_doppelganger(
+        "ggplotMarginalDensities with groupBy and colourBy",
+        fig = p)
+    
+    p <- ggplotMarginalDensities(
+        fsAll,
+        pDataForGroup = "lbl",
+        pDataForColour = "lbl"
+    )
+    vdiffr::expect_doppelganger(
+        "ggplotMarginalDensities with groupBy and same colourBy",
+        fig = p)
+    
+    # sample subset
+    
+    p <- ggplotMarginalDensities(
+        fsAll,
+        sampleSubset = pData(phenoData(fsAll))[, "type"] == "synthetic",
+        pDataForGroup = "lbl",
+        pDataForColour = "lbl"
+    )
+    
+    vdiffr::expect_doppelganger(
+        "ggplotMarginalDensities with sample subset",
+        fig = p)
+    
+    # subsampling
+    
+    p <- ggplotMarginalDensities(
+        fsAll,
+        nEventInSubsample = 100,
+        seed = 0,
+        pDataForGroup = "lbl",
+        pDataForColour = "lbl"
+    )
+    
+    vdiffr::expect_doppelganger(
+        "ggplotMarginalDensities with subsampling",
+        fig = p)
+    
+    # wrong input class
+    expect_error(ggplotMarginalDensities("hello"),
+                 regexp = "should be a flowSet or a flowFrame")
+    
+    # wrong pDataForColour
+    expect_error(ggplotMarginalDensities(
+        fsAll,
+        pDataForColour = "labbbbbbel"),
+        regexp = "'pDataForColour' should be in phenoData columns"
+    )
+    
+    # wrong pDataForGroup
+    expect_error(ggplotMarginalDensities(
+        fsAll,
+        pDataForGroup = "grrrrroup"),
+        regexp = "'pDataForGroup' should be in phenoData columns"
+    )
+    
+    # with flowFrame
+    p <- ggplotMarginalDensities(
+        OMIP021Trans[[1]]
+    )
+    
+    vdiffr::expect_doppelganger(
+        "ggplotMarginalDensities with flowFrame",
+        fig = p)
+})
+
 test_that("ggplotSampleMDS works", {
-    
+
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
-    
+
     set.seed(0) # to get same results with ggrepel()
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
                          pDataForColour = "grpId",
                          pDataForShape = "type")
-    
+
     vdiffr::expect_doppelganger("ggplotSampleMDS with axes 1 and 2",
                                 fig = p)
-    
+
     # no labels
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
                          pDataForColour = "grpId",
                          pDataForShape = "type",
                          displayPointLabels = FALSE)
-    
+
     vdiffr::expect_doppelganger("ggplotSampleMDS with axes 1 and 2 - no labels",
                                 fig = p)
-    
+
     # explicit labels
 
     p <- ggplotSampleMDS(mdsObj = mdsObj,
@@ -156,10 +269,10 @@ test_that("ggplotSampleMDS works", {
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS axes 1 2 biplot regression",
         fig = p)
-    
+
     extVarNAs <-  extVars
     extVarNAs[3,1] <- NA
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
@@ -168,14 +281,14 @@ test_that("ggplotSampleMDS works", {
                          pDataForColour = "grpId",
                          pDataForShape = "type",
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS with axes 1 and 2 and extVars nas",
         fig = p)
-    
+
     extVarInvalid <-  extVars
     extVarInvalid[,2] <- rep(5, extVars[1,2])
-    
+
     expect_warning(pI <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
@@ -183,13 +296,13 @@ test_that("ggplotSampleMDS works", {
                          extVariables = extVarInvalid,
                          pDataForColour = "grpId",
                          pDataForShape = "type",
-                         seed = 0), 
+                         seed = 0),
                    regexp = "external variable SSC-A is constant => discarded")
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS with axes 1 and 2 and extVars invalid",
         fig = pI)
-    
+
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
                          projectionAxes = c(1,2),
@@ -199,7 +312,7 @@ test_that("ggplotSampleMDS works", {
                          pDataForColour = "grpId",
                          pDataForShape = "type",
                          seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS axes 1 2 biplot regression nas",
         fig = p)
@@ -366,10 +479,10 @@ test_that("ggplotSampleMDS works", {
 
     vdiffr::expect_doppelganger("ggplotSampMDS with bipl-flpX-Y",
                                 fig = p)
-    
+
     # test minimal call without pData argument
     p <- ggplotSampleMDS(mdsObj = mdsObj)
-    
+
     vdiffr::expect_doppelganger("ggplotSampleMDS minimal call",
                                 fig = p)
 
@@ -400,7 +513,7 @@ test_that("ggplotSampleMDSWrapBiplots works", {
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSWrapBiplots default rows and cols",
         fig = bpFull)
-    
+
     bpFull <- ggplotSampleMDSWrapBiplots(
         mdsObj = mdsObj,
         extVariableList = extVarList,
@@ -410,7 +523,7 @@ test_that("ggplotSampleMDSWrapBiplots works", {
         pDataForColour = "grpId",
         pDataForShape = "type",
         seed = 0)
-    
+
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSWrapBiplots no legend",
         fig = bpFull)
@@ -447,7 +560,7 @@ test_that("ggplotSampleMDSWrapBiplots works", {
 })
 
 test_that("ggplotSampleMDSShepard works", {
-    
+
     set.seed(0) # to get same results with ggrepel()
 
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)

@@ -8,6 +8,7 @@
 - implemented `MDS` class to store MDS projection results
 - bi-plots now explicitly discard constant external variables (+warning) 
 instead of raising an error without producing a plot
+- implemented `ggplotMarginalDensities()`
 
 ### CytoMDS 0.99.11
 - re-factored package documentation file

@@ -49,6 +49,7 @@ Imports:
     pracma,
     withr,
     flowCore,
+    reshape2,
     ggplot2,
     ggrepel,
     ggforce,
