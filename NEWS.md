@@ -9,6 +9,8 @@
 - bi-plots now explicitly discard constant external variables (+warning) 
 instead of raising an error without producing a plot
 - implemented `ggplotMarginalDensities()`
+- updated vignette with *Bodenmiller2012* dataset and more biological 
+interpretation.
 
 ### CytoMDS 0.99.11
 - re-factored package documentation file

@@ -24,7 +24,7 @@ vignette: >
 ```{r style, echo = FALSE, results = 'hide'}
 BiocStyle::markdown()
 ```
-# Installation
+# Installation and loading dependencies
 
 To install this package, start R and enter (un-commented):
 
@@ -35,225 +35,156 @@ To install this package, start R and enter (un-commented):
 # BiocManager::install("CytoMDS")
 ```
 
-Loading dependent packages for the present vignette...
+We now load the packages needed in the current vignette:
 
-```{r libs, results = FALSE}
-library(CytoPipeline)
+```{r rlibs, results=FALSE}
+suppressPackageStartupMessages(library(HDCytoData))
 library(CytoMDS)
 library(ggplot2)
+library(patchwork)
 ```
 
 # Introduction
 
-The `CytoMDS` package  implements a low dimensional visualization of a set
-of cytometry samples, in order to visually assess the 'distances' between them.
-This, in turn, can greatly help the user to identify quality issues 
-like batch effects or outlier samples, and/or check the presence of potential 
-sample clusters that might align with the experimental design.  
+The `CytoMDS` package implements low dimensional visualization of cytometry 
+samples, in order to visually assess distances between them. This, in turn, 
+can greatly help the user to identify quality issues like batch effects 
+or outlier samples, and/or check the presence of potential sample clusters 
+that might align with the experimental design.  
 
 The `CytoMDS` algorithm combines, on the one hand, the concept of 
-*Earth Mover's Distance (EMD)* [@Orlova2016-jm], a.k.a. *Wasserstein metric* and, 
-on the other hand, the metric *Multi Dimensional Scaling (MDS)* algorithm 
+*Earth Mover's Distance (EMD)* [@Orlova2016-jm], a.k.a. *Wasserstein metric* 
+and, on the other hand, the metric *Multi Dimensional Scaling (MDS)* algorithm 
 for the low dimensional projection [@De_Leeuw2009-aw]. 
 
-Also, the package provides some diagnostic tools for both checking the quality 
-of the MDS projection, as well as tools to help with the interpretation of 
+Besides projection itself, the package also provides some diagnostic tools 
+for both checking the quality of the MDS projection, as well as interpreting 
 the axes of the projection (see below sections).
 
-# Illustrative datasets
+# Illustrative dataset
 
-Illustrative data sets that will be used throughout this vignette are derived 
-from a reference public dataset accompanying the OMIP-021 
-(Optimized Multicolor Immunofluorescence Panel 021) article [@Gherardin2014-pj].  
+The illustrative dataset that is used throughout this vignette is a mass
+cytometry (*CyTOF*) dataset from [@Bodenmiller2012-re], and provided in the 
+Bioconductor *HDCytoData* data package (@Weber2019-qp).   
 
-A sub-sample of this public dataset is built-in in the `CytoPipeline` package 
-[@CytoPipeline] as the `OMIP021` dataset.
+This dataset consists of 16 paired samples (8 times 2) of peripheral blood 
+cells from healthy individuals. Among each sample pair, one sample 
+- the reference - was left un-stimulated, while the other sample was 
+stimulated with B cell receptor / Fc receptor cross-linker (BCR-XL).  
+
+This public dataset is known to contain a strong differential expression signal 
+between the two conditions (stimulated vs un-stimulated) and as been used in 
+recent work to benchmark differential analysis algorithms ([@Weber2019-pz]) 
+and to design mass cytometry data analysis pipelines ([@Nowicka2017-dh]).
 
 In the `CytoMDS`package, as in the current vignette, 
-matrices of flow cytometry events intensities are stored as 
-`flowCore::flowFrame` [@flowCore] objects. 
+matrices of cytometry events intensities, corresponding to one sample, 
+are stored as `flowCore::flowFrame` [@flowCore] objects. 
+Samples of a particular cytometry dataset are then stored 
+as a `flowCore::flowSet` object, which is a collection of flowFrame's, 
+i.e. one flowFrame per sample. Therefore, we load the flowSet version 
+of the *BodenMiller2012* dataset, obtained from the `HDCytoData` package.
 
-Note that the `OMIP021` dataset only contains two samples, 
-from two human donors. Therefore, in order to be able to meaningfully illustrate 
- `CytoMDS` use cases, we will be building data sets with more samples, 
- simulated by combining events, sampled from the two original 
- `OMIP021` samples.  
-
-The first step consists in scale transforming the two raw flow frames, using 
-estimated scale transformations. Indeed, distances between samples make more 
-sense with scaled transformed signal, in which distributional differences are 
-much more obvious. In order to transform the signal of the different channels, 
-here we use the `estimateScaleTransforms()` function from the `CytoPipeline` 
-package. However, this can be done using any standard package for flow 
-cytometry data.
-
-```{r OMIP021Trans}
-data(OMIP021Samples)
-
-#outputDir <- base::tempdir()
-
-transList <- estimateScaleTransforms(
-    ff = OMIP021Samples[[1]],
-    fluoMethod = "estimateLogicle",
-    scatterMethod = "linearQuantile",
-    scatterRefMarker = "BV785 - CD3")
-
-OMIP021Trans <- CytoPipeline::applyScaleTransforms(
-    OMIP021Samples[,c(1:16,18,20:22)], # removing 'EMPTY' channels
-    transList)
+```{r loadDataSet}
+BCRXL_fs <- HDCytoData::Bodenmiller_BCR_XL_flowSet()
+BCRXL_fs
 ```
 
-We now create two simulated data sets, of 20 samples each, by combining events 
-from the two samples of the OMIP021 original data set. 
+In regular flowSet's, the experimental design information is typically  
+stored in the `phenoData` slot, and this is also the way `CytoMDS` expects to 
+get its input. However, `HDCytoData` has chosen to store the experimental 
+design information in a slightly different way, hence the need to convert 
+the data as follows:
 
-We also attached to each sample, some 'phenoData' dataframe, 
-describing each sample with some chosen variables.
+```{r convertPhenoData}
+phenoData <- flowCore::pData(BCRXL_fs)
+additionalPhenoData <- 
+    keyword(BCRXL_fs[[1]], "EXPERIMENT_INFO")$EXPERIMENT_INFO
+phenoData <- cbind(phenoData, additionalPhenoData)
 
-The first simulated data set, which is called here `OMIP021Sim1`, 
-is built by sub-sampling 5 times from each of the two samples (alternatively). 
-
-```{r OMIPSim1}
-nSample <- 20
-
-# to allow for reproducibility of sample()
-set.seed(0)
-
-
-ffList <- lapply(
-    seq_len(nSample),
-    FUN = function(i) {
-           CytoPipeline::subsample(
-                OMIP021Trans[[(i+1)%%2+1]],
-                nEvents = 1000,
-                seed = i)
-       })
-
-OMIP021Sim1 <- as(ffList, "flowSet")
-
-pData1 <- data.frame(name = paste0("S", seq_len(nSample)),
-                     original_sample = factor(rep(c(1,2), 5)))
+flowCore::pData(BCRXL_fs) <- phenoData
 ```
 
-The second one, `OMIP021Sim2` is built by mixing events from sample 1 
-and sample 2 with respective proportions varying from 1 to 0 (resp. 0 to 1).
+We also select channels/markers that are biologically relevant, i.e. both the 
+cell type and cell state markers, and store them for further use. We discard 
+the typical housekeeping markers that are founds in flowFrames like *time* and 
+Cell_length, etc. In total, these mass cytometry samples contain intensities 
+for 24 biologically relevant markers.
 
-```{r OMIPSim2}
-nSample <- 20
-S1prop <- rep(0., nSample)
+```{r selectMarkers}
+markerInfo <- keyword(BCRXL_fs[[1]], "MARKER_INFO")$MARKER_INFO
+chClass <- markerInfo$marker_class
 
-# to allow for reproducibility of sample()
-set.seed(0)
+table(chClass)
 
-ffList <- lapply(
-    seq_len(nSample),
-    FUN = function(i){
-        if (i==1) {
-            ffList[[i]] <- OMIP021Trans[[1]]
-        } else if (i==nSample) {
-            ffList[[i]] <- OMIP021Trans[[2]]
-        } else {
-            ff1 <- CytoPipeline::subsample(
-                OMIP021Trans[[1]],
-                nEvents = 1000 * (nSample-i)/(nSample-1),
-                seed = i)
-            ff2 <- CytoPipeline::subsample(
-                OMIP021Trans[[2]],
-                nEvents = 1000 * (i-1)/(nSample-1),
-                seed = i)
-            
-            ffList[[i]] <- CytoPipeline::aggregateAndSample(
-                flowCore::flowSet(ff1, ff2),
-                nTotalEvents = 1000000 # big number to have a simple aggregation
-            )[,1:20]
-        }
-    }
-)
-
-S1prop <- vapply(
-    seq_len(nSample),
-    FUN = function(i){
-        if (i==1) {
-            return(1)
-        } else if (i==nSample) {
-            return(0)
-        } else {
-            return((nSample-i)/(nSample-1))
-        }
-    },
-    FUN.VALUE = 1
-)
-
-OMIP021Sim2 <- as(ffList, "flowSet")
-
-pData2 <- data.frame(name = paste0("S", seq_len(nSample)),
-                     origin = factor(c("Raw", rep("Sim", nSample-2), "Raw")),
-                     rawLabel = c("D1", rep("", nSample-2), "D2"),
-                     S1prop = S1prop)
-
+chLabels <- markerInfo$channel_name[chClass != "none"]
+(chMarkers <- markerInfo$marker_name[chClass != "none"])
 ```
+
+The first step consists in scale transforming the raw data. Indeed, 
+distances between samples make more sense with scaled transformed signal, 
+in which distributional differences are more readable and usable for 
+downstream analysis.
+
+Here, since we are dealing with mass cytometry samples, we use the classical 
+`arcsinh()` transformation with 5 as *co-factor*, as described elsewhere
+([@Nowicka2017-dh]). 
+
+```{r scaleTransform}
+trans <- arcsinhTransform(
+    transformationId="ArcsinhTransform", 
+    a = 0, 
+    b = 1/5, 
+    c = 0)
+
+BCRXL_fs_trans <- transform(
+    BCRXL_fs,
+    transformList(chLabels, trans))
+```
+
 
 # Calculating distances between samples
 
 We can now calculate pairwise *Earth Mover's Distances (EMD)* 
-between all samples of our simulated data sets.   
+between all samples of our dataset.   
 
-This is done by calling the `pairwiseEMDDist()` function.  
-The latter function takes here a `flowCore::flowSet` as input parameter, 
-which is a collection of all samples as `flowCore::flowFrame` objects. 
-Note that, for heavy data sets that contains a lot of samples, this can create 
-memory issues. In that case, there are other ways to call the 
-`pairwiseEMDDist()` function (see 'Handling heavy data sets' section).
+This is done by calling the `pairwiseEMDDist()` method The simplest way to  
+use this method is by providing directly a `flowCore::flowSet`, containing all
+samples, as input parameter. Note that, for heavy datasets that include 
+a lot of samples, this can create memory issues. To handle this case, `CytoMDS` 
+provides other ways to call the `pairwiseEMDDist()` function 
+(see 'Handling heavy datasets' section).
 
 Using the `channels` argument, it is possible to restrict the EMD calculation 
-to some of the channels. However, by default, all *signal* channels 
-will be incorporated. *Signal* channels means all scatter and fluorescent 
-channels. The known non-relevant channels for multivariate distribution 
-distances, like time and other usual house-keeping channels, are automatically 
-excluded from the calculation.
+to some of the channels. Here we simply pass as input the biologically 
+relevant markers selected in the previous section.
 
 ```{r distCalc}
-pwDist1 <- pairwiseEMDDist(
-    OMIP021Sim1, channels = NULL)
-
-pwDist2 <- pairwiseEMDDist(
-    OMIP021Sim2, channels = NULL)
+pwDist <- pairwiseEMDDist(
+    BCRXL_fs_trans,
+    channels = chMarkers,
+    verbose = FALSE
+)
 ```
 
 The calculated distance is a symmetric square matrix, with as many rows 
 (columns) as input samples 
-(extract shown here below for `OMIP021Sim1` simulated data set).
+(extract shown here below for the scale-transformed *Bodenmiller2012* dataset).
 
-```{r dist1Show}
-round(pwDist1[1:10, 1:10], 2)
+```{r distShow}
+round(pwDist[1:10, 1:10], 2)
 ```
 
 One relevant way to visualize this distance matrix is to draw the histogram 
-of pairwise distances, as shown in the below plot, for the `OMIP021Sim1` 
-simulated data set. Notice here the bi-modal distribution of the distances, due 
-to the way the data set was generated (half of the samples originate from 
-sub-sampling the first original sample, and the other half originates from 
-sub-sampling of the second original sample.)
+of pairwise distances, as shown in the below plot. 
 
-```{r dist1ShowHist, fig.align='center', fig.wide = TRUE}
-distVec1 <- pwDist1[upper.tri(pwDist1)]
-distVecDF1 <- data.frame(dist = distVec1)
-pHist1 <- ggplot(distVecDF1, mapping = aes(x=dist)) + 
+```{r distShowHist, fig.align='center', fig.wide = TRUE}
+distVec <- pwDist[upper.tri(pwDist)]
+distVecDF <- data.frame(dist = distVec)
+pHist <- ggplot(distVecDF, mapping = aes(x=dist)) + 
     geom_histogram(fill = "darkgrey", col = "black", bins = 15) + 
-    theme_bw() + ggtitle("EMD distances for data set 1")
-pHist1
-```
-
-The same type of pairwise distance histogram, but this time for the 
-`OMIP021Sim12` simulated data set, looks much different: here the distribution 
-is unimodal and more regular, as one can expect from the way this second 
-simulated data set was generated.
-
-```{r dist12ShowHist, fig.align='center', fig.wide = TRUE}
-distVec2 <- pwDist2[upper.tri(pwDist2)]
-distVecDF2 <- data.frame(dist = distVec2)
-ggplot(distVecDF2, mapping = aes(x=dist)) + 
-    geom_histogram(bins = 15, fill = "darkgrey", col = "black") + 
-    theme_bw() + ggtitle("EMD distances for data set 2")
+    theme_bw() + ggtitle("EMD distances for Bodenmiller2012 dataset")
+pHist
 ```
 
 # Metric Multidimensional scaling
@@ -262,193 +193,225 @@ ggplot(distVecDF2, mapping = aes(x=dist)) +
 
 Once the pairwise distance matrix has been calculated, computing the *Multi 
 Dimensional Scaling (MDS)* projection is done 
-by calling the `computMetricMDS()` function. In its simplest form, only 
+by calling the `computeMetricMDS()` function. In its simplest form, only 
 the distance matrix needs to be passed to the function. 
 In that case, the number of dimensions to use in the MDS is automatically 
 set in order to reach a specific value for a projection quality indicator, 
-i.e. a *target pseudo R square*, which in turn is set by default set to 0.95 
+i.e. the *target pseudo R square*, which in turn is set by default to 0.95 
 (see Quality of projection - diagnostic tools section).  
 
 Note that the *Smacof* algorithm [@De_Leeuw2009-aw], 
 used to compute the MDS projection, is stochastic, so it is sensitive 
 to the 'seed' used. Therefore, in cases where reproducible results from 
-one run to another is required , it is advised to set the seed argument 
-to a specific value.
+one run to another is required, it is advised to set the `seed` argument 
+to a fixed value.
 
-```{r MDSCalc1}
-mdsObj1 <- CytoMDS::computeMetricMDS(pwDist1, seed = 0)
+The returned value of the `computeMetricMDS()` function is an object of the 
+*MDS* class. This object can  be queried to get e.g. the number of dimensions 
+that was effectively used, or the obtained pseudo RSquare, as shown 
+in the following code chunk:
+
+```{r MDSCalc}
+mdsObj <- computeMetricMDS(pwDist, seed = 0)
+(nDimensions <- nDim(mdsObj))
+(pseudoRSquare <- RSq(mdsObj))
 ```
 
 ## Plotting the MDS projection
 
 Plotting the obtained MDS projection is done using `ggplotSampleMDS()`. 
-If no phenoData is used, then, by default, numbers are used as labels, and 
-the samples are represented as black dots.
+If no `phenoData` parameter is passed, then, by default, 
+numbers are used as labels, and samples are represented as black dots.
 
 ```{r plotMDS1_simplest, fig.align='center', fig.asp = 1, fig.wide = TRUE}
-ggplotSampleMDS(mdsObj1)
+ggplotSampleMDS(mdsObj)
 ```
 
 However, by providing a 'phenoData' dataframe to the `ggplotSampleMDS()` 
-function, the corresponding variable can be used for highlighting sample points 
-with different colours and/or shapes. Here below, the previous plot is enhanced 
-with red and blue colours, dot and triangle shapes, distinguishing samples 
-based on the value of the `original_sample` variable. Also, we have 
-here added explicit labels to each data point, using the corresponding value 
-of the `name` variable for each sample.
+function, the corresponding variables can be used 
+for highlighting sample points with different colours and/or shapes. 
+Here below, the previous plot is enhanced with red and blue colours, 
+distinguishing samples from the two conditions. Also, we have added 
+more meaningful labels to each data point, corresponding to patient id's.  
 
+On this plot, one can clearly see a clear separation between samples of the 
+two different conditions. These 2 sample groups are different along the x 
+axis, which corresponds to the first projection direction, explaining 46.69 % 
+of the variability contained in the MDS projection with 4 dimensions 
+(as indicated in the subtitle). This clear separation between 2 condition 
+clusters highlights the strong biological signal differentiating these two 
+groups of samples. Further in this vignette, we shall try to assign a user 
+interpretation to this x axis direction (see 'Aid to interpreting projection 
+axes' section).
 
-```{r plotMDS1_colors_shapes, fig.align='center', fig.asp = 0.8, fig.wide = TRUE}
-ggplotSampleMDS(mdsObj1, 
-                pData = pData1, 
-                pDataForColour = "original_sample",
-                pDataForShape = "original_sample",
-                pDataForLabel = "name")
+```{r plotMDS_colours_shapes_1_2, fig.align='center', fig.asp = 0.9, fig.wide = TRUE}
+p12 <- ggplotSampleMDS(
+    mdsObj,
+    pData = phenoData,
+    projectionAxes = c(1,2),
+    pDataForColour = "group_id",
+    pDataForLabel = "patient_id"
+)
+p12
 ```
+
+Given that 4 dimensions were used in the metric MDS algorithm, the user can 
+visualize the MDS projection using any combination of two axes, 
+for example axes 2 and 3n or 3 and 4, as below:
+
+```{r plotMDS_colours_shapes_2_3_4, fig.align='center', fig.width = 9, fig.height = 12}
+p23 <- ggplotSampleMDS(
+    mdsObj,
+    pData = phenoData,
+    projectionAxes = c(2,3),
+    pDataForColour = "group_id",
+    pDataForLabel = "patient_id"
+)
+
+p34 <- ggplotSampleMDS(
+    mdsObj,
+    pData = phenoData,
+    projectionAxes = c(3,4),
+    pDataForColour = "group_id",
+    pDataForLabel = "patient_id"
+)
+p23 / p34
+```
+
+These plots reveal two important findings: 
+1. Dots of the 2 samples groups are well-mixed in both views, showing that 
+the biological difference between the two sample groups is mainly concentrated 
+along the first projection axis.
+2. Dots corresponding to samples from the same patient id are most of the time 
+very close to each other. We could conclude that the variability contained in 
+axes 2, 3 and 4 mostly represent biological variation between different 
+individuals, and not (or much less) the effect of stimulation. 
 
 ## Quality of projection - diagnostic tools
 
 In order to be able to trust the projected distances obtained on the `CytoMDS` 
-plots, a couple of projection quality indicators need to be taken into account: 
+plots, a couple of projection quality indicators can be verified : 
 - the *pseudo RSquare* indicator shows what percentage of the variability 
-contained in the pairwise distance matrix is actually shown in the projection. 
-It is analog to the statistical *RSquare* for a linear regression model: 
-the closer to one the *pseudo RSquare* is, the better.  
-
-Note that the latter refers to the variability contained in __ALL__ 
-dimensions of the MDS projection, not only the two plotted axes.
+contained in the pairwise distance matrix is actually contained in the 
+low dimensional MDS projection. It is analog to the statistical *RSquare* 
+for a linear regression model, i.e. the closer to one the *pseudo RSquare* is, 
+the better. Note that the *pseudo RSquare* refers to the variability contained 
+in __ALL__ dimensions of the MDS projection, not only the two plotted axes.
 - *nDim* is the number of dimensions of the projection that was needed 
-to obtain the corresponding *pseudo RSquare*
+to obtain the corresponding *pseudo RSquare* (here 4 dimensions).
 - the percentage of variation that is captured along each axis (coordinates), 
 is to be interpreted with respect to the total variability __that is 
-captured by the MDS projection__, not the total variability. 
-For example, in the plot above, using 2 dimensions, the MDS projection is able 
-to capture 97.01% (*pseudo RSquare*) of the initial variability contained 
-in the calculated pairwise distance matrix. __Of these 97.01%__, 
-90.96% is in turn captured by axis 1, and 9.04% is captured by axis 2.  
+captured by the MDS projection__, not the total variability.  
 
-Another useful projection quality diagnostic tool is provided by the 
-*Shepard diagram*. On this plot, each dot represents one distance 
-between a sample pair, with as x coordinate the original (high dimensional) 
-distance between the two samples, and as y coordinate the projected 
-low dimensional distance between these two samples, as obtained by the MDS 
-projection algorithm. In the *Shepard* diagram, an ideal situation corresponds 
-to all points being located on the straight line passing through through 
-the (0,0) and (1,1) points.  
+For example, in the previous section, the MDS projection using 4 dimensions is 
+able to capture 98.15% (*pseudo RSquare*) of the initial variability contained 
+in the calculated pairwise distance matrix. __Of these 98.15%__, 
+46.69% is in turn captured by axis 1, 29.95% is captured by axis 2, 15.38% is 
+captured by axis 3 and 7.99% is captured by axis 4.
+
+Another useful projection quality diagnostic tool is the *Shepard diagram*. 
+On this diagram, each dot represents a single distance between a sample pair, 
+with as x coordinate the original (high dimensional) distance between 
+the two samples, and as y coordinate the projected low dimensional distance, 
+as obtained by the MDS projection algorithm.  
+
+In the *Shepard* diagram, the ideal situation is when all dots are located 
+on a straight line passing through the (0,0) and (1,1) points. 
+In the below diagram, one can notice that all points are very near 
+the ideal straight line, hence the distance projections can be trusted.
 
 ```{r plotMDSShepard, fig.align='center', fig.wide = TRUE, fig.asp = 1}
-ggplotSampleMDSShepard(mdsObj1)
+ggplotSampleMDSShepard(mdsObj)
 ```
 
+## Additional options for the MDS projection
 
-## Additional options 
+In this section, we describe a couple of additional options available 
+to the user when calculating the MDS projection using `computeMetricMDS()`.
 
-In order to show some of the additional options available to the user of 
-`computeMetricMDS()` and `ggplotSampleMDS`(), let us project the pairwise 
-sample distances of the `OMIP021Sim2` data set.
+First, instead of letting the algorithm choose itself the number of dimensions, 
+it is also possible to assign it explicitly, for example to 2, as in below:
 
-```{r MDSCalc2.noOption, fig.align='center', fig.asp = 0.85, fig.wide = TRUE}
-mdsObj2 <- CytoMDS::computeMetricMDS(pwDist2)
-ggplotSampleMDS(mdsObj2,
-                pData = pData2, 
-                pDataForLabel = "rawLabel",
-                pDataForShape = "origin",
-                pDataForColour = "S1prop")
-```
-
-In the subtitle of this latter plot, it is mentioned that the obtained R square 
-of 95.41% was obtained thanks when using 3 dimensions 
-in the Multi Dimensional Scaling. Therefore, one can visualize the MDS 
-projection using any combination of two axes, 
-for example axes 2 and 3, as below:
-
-```{r MDSCalc2.axes3.4, fig.align='center', fig.asp = 0.85, fig.wide = TRUE}
-ggplotSampleMDS(mdsObj2,
-                projectionAxes = c(2, 3),
-                pData = pData2, 
-                pDataForLabel = "rawLabel",
-                pDataForShape = "origin",
-                pDataForColour = "S1prop")
-```
-
-Now it is also possible to impose the number of dimensions used in the MDS 
-projection explicitly, for example to 2, as is shown below:
-
-```{r MDSCalc2.nDim2, fig.align='center', fig.asp = 0.85, fig.wide = TRUE}
-mdsObj2_2 <- CytoMDS::computeMetricMDS(pwDist2, nDim = 2)
-ggplotSampleMDS(mdsObj2_2,
-                pData = pData2, 
-                pDataForLabel = "rawLabel",
-                pDataForShape = "origin",
-                pDataForColour = "S1prop")
+```{r MDSCalc.nDim2, fig.align='center', fig.asp = 0.85, fig.wide = TRUE}
+ mdsObj2 <- CytoMDS::computeMetricMDS(pwDist, seed = 0, nDim = 2)
+ ggplotSampleMDS(mdsObj2,
+                 pData = phenoData,
+                 projectionAxes = c(1,2),
+                 pDataForColour = "group_id",
+                 pDataForLabel = "patient_id",
+                 flipYAxis = TRUE)
 ```
 
 Note that the obtained projection on 2 axes, although similar, is not exactly 
 the same as the one obtained when visualizing the first two axis of the 
-MDS projected before, on 3 dimensions. Actually, this is a feature of the 
-Metric MDS projection, although it might appear a bit counter-intuitive 
+MDS projection obtained before, with 4 dimensions. Actually, this is a feature 
+of the Metric MDS projection, although it might appear a bit counter-intuitive 
 at first.  
 
-Finally, it is also possible to adjust the number of dimensions indirectly, 
+Second, it is also possible to adjust the number of dimensions indirectly, 
 by setting an explicit *pseudo Rsquare* target. In that case the algorithm will
-increase the number of dimensions until reaching the required quality target.
+increase the number of dimensions until reaching the required quality target, 
+instead of the by default 0.95 target.  
+
 The below example shows how to obtain a *pseudo R Square* of at least 0.99. 
-Here the obtained number of dimensions is 6, instead of 3.
+As a result, the needed number of dimensions is now 6, instead of 4.
 
-```{r MDSCalc2.Rsq99, fig.align='center', fig.asp = 0.85, fig.wide = TRUE}
-mdsObj2_3 <- CytoMDS::computeMetricMDS(pwDist2, targetPseudoRSq = 0.99)
-ggplotSampleMDS(mdsObj2_3,
-                pData = pData2, 
-                pDataForLabel = "rawLabel",
-                pDataForShape = "origin",
-                pDataForColour = "S1prop")
+```{r MDSCalc.Rsq99, fig.align='center', fig.asp = 0.85, fig.wide = TRUE}
+mdsObj3 <- CytoMDS::computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.99)
+ggplotSampleMDS(mdsObj3,
+                 pData = phenoData,
+                 projectionAxes = c(1,2),
+                 pDataForColour = "group_id",
+                 pDataForLabel = "patient_id")
 ```
 
-The corresponding Shepard diagram is obtained as below:
+The corresponding Shepard diagram is obtained as below, showing that the dots 
+are even more concentrated around the ideal straight line, than before:
 
-```{r biplot median, fig.align='center', fig.wide = TRUE, fig.asp = 1}
-ggplotSampleMDSShepard(mdsObj2_3)
+```{r plotMDSShepard.Rsq99, fig.align='center', fig.wide = TRUE, fig.asp = 1}
+ggplotSampleMDSShepard(mdsObj3)
 ```
-
-
 
 ## Aid to interpreting projection axes
 
-With MDS projections, it is possible to (try to) associate some axis directions 
-to specific characteristics of the samples. The idea is to calculate the 
-correlation of well chosen sample statistics w.r.t. the axes of projection, so 
-that these correlations can be represented on a correlation circle, which is in 
-turn overlaid on the projection plot. This plot set-up is called a 'bi-plot'.
+### Bi-plots
 
-In order to leverage on this functionality, the user first needs to calculate 
-some statistics of interest for which they want to assess the association 
-with the axis directions. Typically, one chooses channel specific statistics, 
+With MDS projections, it is possible to (try to) associate some axis directions 
+to specific sample characteristics. The idea is to calculate the 
+correlation of well chosen sample statistics w.r.t. the axes of projection, so 
+that these correlations can be represented on a correlation circle, which is 
+overlaid on the projection plot. This plot set-up is called a 'bi-plot'.
+
+In order produce a bi=plot, the user first needs to calculate chosen statistics 
+of interest for which they want to assess the association with the axis 
+directions. Typically, one chooses channel specific statistics, 
 like e.g. the mean, the standard deviation, or any quantile that might be 
 of interest. However, any statistics that can be calculated for each sample 
 can be used (number of events,...)
 
 Here below, we provide an example where the user overlays the median of 
-the different channels, on a bi-plot for the MDS projection obtained for
-the first data set.  
+the different channels, on a bi-plot with MDS projection axes 1 and 2.  
 
 On the bi-plot, each arrow - here representing a channel median - is located 
-at coordinates equal to its Pearson correlation with the respective axis. 
+at coordinates equal to its respective Pearson correlation w.r.t. the two axis. 
 
 Here, one can identify that the x axis has a strong positive correlation with 
-the median of markers 'Viability', 'gdTCR', 'TCR Va7', 'CD45-RA', 'CD8a' and 
-'CD27', and a strong negative correlation with the median of channels 'FSC-A', 
-'SSC-A' and marker 'CD161'. The y axis has a strong negative correlation with 
-the medians of markers 'CD28', and 'CD3'.
+the median of markers 'CD4', 'CD33', 'CD20', 'pNFkB', 'pp38', 'pBtk' 
+and 'pSlp76', and a strong negative correlation with the median of marker 
+'HLA-DR'. The y axis has a strong negative correlation with the median 
+of a number of markers: 'CD123', 'pStat1', 'pStat5', 'pSHP2', 'pAkt', 'pZap70' 
+and 'pPlcg2'.
 
-```{r plotMDS1_medians}
-medians <- channelSummaryStats(OMIP021Sim1, statFUNs = median)
+```{r plotMDS_medians}
+medians <- channelSummaryStats(BCRXL_fs_trans, 
+                               channels = chLabels, 
+                               statFUNs = median)
 ```
 
-```{r plotMDS1_biplot, fig.align='center', fig.asp = 0.8, fig.wide = TRUE}
-ggplotSampleMDS(mdsObj1, 
-                pData = pData1, 
-                pDataForColour = "original_sample",
-                pDataForShape = "original_sample",
+```{r plotMDS_biplot, fig.align='center', fig.asp = 0.8, fig.wide = TRUE}
+ggplotSampleMDS(mdsObj,
+                pData = phenoData,
+                pDataForColour = "group_id",
                 displayPointLabels = FALSE,
                 displayArrowLabels = TRUE,
                 repelArrowLabels = TRUE,
@@ -458,37 +421,62 @@ ggplotSampleMDS(mdsObj1,
 
 Note that, on the bi-plots, only the arrows of length greater or equal to 
 a specific threshold (by default set at 0.8) are represented, in order to not 
-overwhelm the plot with arrows, especially when the data sets contains a high 
-dimensional panels.  
+overwhelm the plot with arrows, especially when the dataset uses a high 
+dimensional panel.  
 
 It is however possible to adjust this threshold by explicitly setting 
-the `arrowThreshold` argument. For example, in the below plot, this threshold 
-is set set to 0.9:
+the `arrowThreshold` argument. For example, in the below plot, the threshold 
+is set set to 0.6, showing, for example, that x axis is also strongly 
+negatively correlated with the median of 'pS6' and 'CD7' markers.
 
-```{r plotMDS1_biplot_0.9, fig.align='center', fig.asp = 0.8, fig.wide = TRUE}
-ggplotSampleMDS(mdsObj1, 
-                pData = pData1, 
-                pDataForColour = "original_sample",
-                pDataForShape = "original_sample",
+```{r plotMDS_biplot_0.6, fig.align='center', fig.asp = 0.8, fig.wide = TRUE}
+ggplotSampleMDS(mdsObj,
+                pData = phenoData,
+                pDataForColour = "group_id",
                 displayPointLabels = FALSE,
                 displayArrowLabels = TRUE,
                 repelArrowLabels = TRUE,
                 biplot = TRUE,
                 extVariables = medians,
-                arrowThreshold = 0.9) 
+                arrowThreshold = 0.6)
 ```
 
-Instead of having one bi-plot related to a specific type of statistics, for 
-example channel medians, one can try to associate the axes to different types 
-of channel statistics at once. In the next plot, we represent such bi-plots 
-for channel medians, 25% and 75% quantiles, and standard deviations. 
+In terms of biological interpretation, since the x axis is the direction along 
+which there is a clear separation between stimulated and (reference) 
+un-stimulated samples, the biplot suggests that channels for which 
+the median appears as strongly correlated with the x axis, should also show 
+visible distributional difference between the two sample groups.  
 
-The 'faceting-alike' plot is obtained thanks to the 
+In order to check this, we can use the `ggplotMarginalDensities` method 
+provided in the `CytoMDS` package, as follows: 
+
+```{r plotMarginalDensities, fig.align='center', fig.asp = 1.2, fig.wide = TRUE}
+ggplotMarginalDensities(
+    BCRXL_fs_trans, 
+    channels = chLabels,
+    pDataForColour = "group_id",
+    pDataForGroup = "sample_id")
+```
+And indeed, we can notice that the Reference samples (in red) tend to 
+show higher intensity values for markers 'pNFkB', 'pp38', 'CD4', 'CD20', 
+'CD33', 'pSlp76', 'pBtk', while BCR-XL stimulated samples (in blue) tend to 
+show higher internsity valeus for markers 'pS6', 'HLA-DR' and 'CD7'. All these 
+markers where identified as strongly (resp. positively and negatively) 
+correlated with the x axis on the bi-plot.  
+
+### Bi-plot wrapping
+
+Instead of drawing one single bi-plot related to a specific type of statistics, 
+for example channel medians as before, we can also try to associate the axes 
+to different channel statistics at once. In the next plot, we draw bi-plots 
+for channel medians, 25% and 75% quantiles, and standard deviations at once. 
+
+The 'facets-alike' bi-plot, or *bi-plot wrapping*, is obtained thanks to the 
 `ggplotSampleMDSWrapBiplots()` function, which internally calls 
 `ggplotSampleMDS()` function several times, and arrange the obtained outputs 
 on a single plot.   
 
-```{r plotMDS1_stats}
+```{r plotMDS_stats}
 statFUNs = c("median" = stats::median,
              "Q25" = function(x, na.rm) {
                  stats::quantile(x, probs = 0.25)
@@ -497,69 +485,69 @@ statFUNs = c("median" = stats::median,
                  stats::quantile(x, probs = 0.75)
              },
              "standard deviation" = stats::sd)
-chStats <- channelSummaryStats(OMIP021Sim1, statFUNs = statFUNs)
+chStats <- channelSummaryStats(BCRXL_fs_trans,
+                               channels = chLabels, 
+                               statFUNs = statFUNs)
 ```
 
-```{r plotMDS1_biplot_facetting, fig.align='center', fig.asp = 1, fig.wide = TRUE}
+```{r plotMDS_biplot_facetting, fig.align='center', fig.asp = 1, fig.wide = TRUE}
 ggplotSampleMDSWrapBiplots(
-    mdsObj1, 
+    mdsObj,
     extVariableList = chStats,
     ncol = 2,
-    pData = pData1,
-    pDataForColour = "original_sample",
-    pDataForShape = "original_sample",
+    pData = phenoData,
+    pDataForColour = "group_id",
     displayPointLabels = FALSE,
     displayArrowLabels = TRUE,
     repelArrowLabels = TRUE,
-    arrowThreshold = 0.9,
-    displayLegend = FALSE) 
+    displayLegend = FALSE)
 ```
 
-Note that the last plot, with arrows corresponding to 
-channel standard deviations, generates a warning indicating that the arrow 
-labels could not be displayed. This is due to the fact that too many channel 
-standard deviations are strongly negatively correlated with the x axis. 
-When encountering such visual issues, it is advised to generate series of 
-bi-plots, with subsets of channel statistics, in order to better identify 
-the strongly correlated ones. One example is provided below:
+Sometimes, as is the case on the plots below, a high number of channel 
+statistics are strongly correlated with the bi-plot axes, so that the plot 
+is hardly readable, due to too many arrows displayed.  
 
-```{r plotMDS1_biplot_stddev, fig.align='center', fig.asp = 2.5, fig.wide = TRUE}
+In that case, it is advised to generate series of bi-plots, part of the 
+channel statistics, in order to better identify the strongly correlated ones. 
+One example is provided below, showing the correlation between the axes and the 
+standard deviation of each channel:
+
+```{r plotMDS_biplot_stddev, fig.align='center', fig.asp = 1.0, fig.wide = TRUE}
 stdDevs <- list(
     "std dev of channels 1 to 6" = chStats[["standard deviation"]][,1:6],
     "std dev of channels 7 to 12" = chStats[["standard deviation"]][,7:12],
-    "std dev of channels 13 to 18" = chStats[["standard deviation"]][,13:18]
+    "std dev of channels 13 to 18" = chStats[["standard deviation"]][,13:18],
+    "std dev of channels 19 to 24" = chStats[["standard deviation"]][,19:24]
 )
-            
+
 ggplotSampleMDSWrapBiplots(
-    mdsObj1, 
-    ncol = 1,
+    mdsObj,
+    ncol = 2,
     extVariableList = stdDevs,
-    pData = pData1, 
-    pDataForColour = "original_sample",
-    pDataForShape = "original_sample",
+    pData = phenoData,
+    pDataForColour = "group_id",
     displayPointLabels = FALSE,
     displayArrowLabels = TRUE,
-    repelArrowLabels = TRUE,
-    arrowThreshold = 0.9) 
+    repelArrowLabels = TRUE)
 ```
 
-# Handling heavy datasets
+# Handling large datasets
 
-Computing Earth Mover's Distances between all sample pairs of large data sets 
+Computing Earth Mover's Distances between all sample pairs of large datasets 
 (e.g. with hundreds of samples), is a heavy computational task.  
 
 First, loading the whole data set as a `flowCore::flowSet()` in RAM at once, 
 might not be possible due to its size. Second, calculating a matrix of 
 pairwise distances, has a computational complexity of O(N2), which can lead to 
-very long computation times for large data sets.  
+very long computation times for large datasets.  
 
 Therefore, the `CytoMDS` package provides several mechanisms allowing to
 mitigate these issues.
 
 ## Loading flow frames dynamically during distance matrix computation
 
-In order to be able to handle data set of greater size than the available 
-computer RAM, the `pairwiseEMDDist()` function allows for differential input 
+In order to be able to handle datasets of greater size than the available 
+computer RAM, the `pairwiseEMDDist()` function allows for an alternative input 
 mode, where:
 - the input samples are NOT provided directly via a `flowCore::flowSet`, but
 - the user provides the nb of samples, and a user-written flow frame loading 
@@ -569,84 +557,75 @@ and optionally additional arguments.
 Typically, the flow frame loading function provided by the user shall describe 
 how to read the *i*th sample from disk. 
 
-In the below, an example using data set `OMIP021Sim1` is provided. This is  
-for illustrative purpose only, as this data set is light enough to reside fully 
-in memory. In such a workflow, it is advised, as a preliminary step, to store 
-all scale transformed samples on disk. Here we do this in a temporary directory. 
-Note this scale transformation could also be done on the fly, as part 
-of the flow frame loading function. However, this would then require 
-scale transforming the channel intensities a number of times 
-during distance matrix calculation, which would be inefficient.
+## Using BiocParallel to parallelize distance matrix computation
+
+Also, `CytoMDS` pairwise distance calculation supports parallelization of 
+distance matrix computation, through the use of `BiocParallel` package.  
+
+When parallelization is used, the calculation engine will automatically 
+create worker tasks corresponding to the calculation of blocks 
+of the distance matrix.  
+
+In the below, we provide an example with the BodenMiller2012 dataset. 
+Note that this example has illustrative purpose only, as in fact this dataset 
+is small enough to fully reside in memory and to not require parallelization 
+of distance calculation. 
+
+In case where 'on-the-fly' flowFrame in-memory loading is required, 
+we advise, as a preliminary step, to store the samples, previously scale 
+transformed, on disk. Here we do it in a temporary directory. 
 
 ```{r temporary_store}
 storageLocation <- suppressMessages(base::tempdir())
 
-nSample <- length(OMIP021Sim1)
+nSample <- length(BCRXL_fs_trans)
 fileNames <- file.path(
     storageLocation,
-    paste0("OMIP021Sim1_Sample", seq_len(nSample), ".rds"))
+    paste0("BodenMiller2012_TransformedSample", 
+           sprintf("%02d.rds", seq_len(nSample))))
 
 for (i in seq_len(nSample)) {
-    saveRDS(OMIP021Sim1[[i]], 
+    saveRDS(BCRXL_fs_trans[[i]],
             file = fileNames[i])
 }
 ```
 
-Then, we now call the `pairwiseEMDDist()` function, and specify a loading 
-function.
-
-```{r distance_calc_loading_otf}
-pwDist1Again <- pairwiseEMDDist(
-    x = nSample,
-    loadFlowFrameFUN = function(ffIndex, theFiles){
-        readRDS(file = theFiles[ffIndex])
-    },
-    loadFlowFrameFUNArgs = list(theFiles = fileNames),
-    verbose = TRUE
-)
-```
-
-## Using BiocParallel to parallelize distance matrix computation
-
-Finally, `CytoMDS` pairwise distance calculation supports parallelization of 
-distance matrix computation, through the use of `BiocParallel` package.  
-
-When parallelization is used, the calculation engine will automatically 
-create worker tasks corresponding to specific blocks of the distance matrix 
-to be calculated.  
-
-Here below is an example, using `BiocParallel::SnowParam()` backbone. 
+Then, the `pairwiseEMDDist()` method can be called, now specifying a number of 
+samples, a flowFrame loading function, and a `BiocParallel::SnowParam()` 
+backbone for parallelization of the computations. 
 
 ```{r distance_calc_loading_otf_parallel}
 bp <- BiocParallel::SnowParam(
     stop.on.error = FALSE,
     progressbar = TRUE)
-pwDist1Last <- suppressWarnings(pairwiseEMDDist(
+pwDistLast <- suppressWarnings(pairwiseEMDDist(
     x = nSample,
+    channels = chMarkers,
     loadFlowFrameFUN = function(ffIndex, theFiles){
         readRDS(file = theFiles[ffIndex])
     },
     loadFlowFrameFUNArgs = list(theFiles = fileNames),
     BPPARAM = bp))
 ```
-The obtained distances - as displayed in the below histogram - are exactly 
+The obtained distances - as shown in the below histogram - are exactly 
 the same as before.
 
 ```{r dist1ShowHistAgain, fig.align='center', fig.wide = TRUE}
-distVec1Last <- pwDist1Last[upper.tri(pwDist1Last)]
-distVecDF1Last <- data.frame(dist = distVec1Last)
-pHist1Last <- ggplot(distVecDF1Last, mapping = aes(x=dist)) + 
-    geom_histogram(fill = "darkgrey", col = "black", bins = 15) + 
-    theme_bw() + ggtitle("EMD distances for data set 1 - parallel computation")
-pHist1Last
+distVecLast <- pwDistLast[upper.tri(pwDistLast)]
+distVecDFLast <- data.frame(dist = distVecLast)
+pHistLast <- ggplot(distVecDFLast, mapping = aes(x=dist)) +
+    geom_histogram(fill = "darkgrey", col = "black", bins = 15) +
+    theme_bw() + 
+    ggtitle(
+        "EMD distances for Bodenmiller2012 dataset", 
+        subtitle =  "on the fly memory loading and parallel computation")
+pHistLast
 ```
-
 
 # Session information {-}
 
 ```{r sessioninfo, echo=FALSE}
 sessionInfo()
 ```
-
 
 # References {-}

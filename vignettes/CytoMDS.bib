@@ -106,6 +106,143 @@
 }
 
 
+@ARTICLE{Bodenmiller2012-re,
+  title    = "Multiplexed mass cytometry profiling of cellular states perturbed
+              by small-molecule regulators",
+  author   = "Bodenmiller, Bernd and Zunder, Eli R and Finck, Rachel and Chen,
+              Tiffany J and Savig, Erica S and Bruggner, Robert V and Simonds,
+              Erin F and Bendall, Sean C and Sachs, Karen and Krutzik, Peter O
+              and Nolan, Garry P",
+  abstract = "Mass cytometry facilitates high-dimensional, quantitative
+              analysis of the effects of bioactive molecules on human samples
+              at single-cell resolution, but instruments process only one
+              sample at a time. Here we describe mass-tag cellular barcoding
+              (MCB), which increases mass cytometry throughput by using n metal
+              ion tags to multiplex up to 2n samples. We used seven tags to
+              multiplex an entire 96-well plate, and applied MCB to
+              characterize human peripheral blood mononuclear cell (PBMC)
+              signaling dynamics and cell-to-cell communication, signaling
+              variability between PBMCs from eight human donors, and the
+              effects of 27 inhibitors on this system. For each inhibitor, we
+              measured 14 phosphorylation sites in 14 PBMC types at 96
+              conditions, resulting in 18,816 quantified phosphorylation levels
+              from each multiplexed sample. This high-dimensional,
+              systems-level inquiry allowed analysis across cell-type and
+              signaling space, reclassified inhibitors and revealed off-target
+              effects. High-content, high-throughput screening with MCB should
+              be useful for drug discovery, preclinical testing and mechanistic
+              investigation of human disease.",
+  journal  = "Nat. Biotechnol.",
+  volume   =  30,
+  number   =  9,
+  pages    = "858--867",
+  month    =  sep,
+  year     =  2012,
+  language = "en"
+}
+
+
+@ARTICLE{Weber2019-qp,
+  title    = "{HDCytoData}: Collection of high-dimensional cytometry benchmark
+              datasets in Bioconductor object formats",
+  author   = "Weber, Lukas M and Soneson, Charlotte",
+  abstract = "Benchmarking is a crucial step during computational analysis and
+              method development. Recently, a number of new methods have been
+              developed for analyzing high-dimensional cytometry data. However,
+              it can be difficult for analysts and developers to find and
+              access well-characterized benchmark datasets. Here, we present
+              HDCytoData, a Bioconductor package providing streamlined access
+              to several publicly available high-dimensional cytometry
+              benchmark datasets. The package is designed to be extensible,
+              allowing new datasets to be contributed by ourselves or other
+              researchers in the future. Currently, the package includes a set
+              of experimental and semi-simulated datasets, which have been used
+              in our previous work to evaluate methods for clustering and
+              differential analyses. Datasets are formatted into standard
+              SummarizedExperiment and flowSet Bioconductor object formats,
+              which include complete metadata within the objects. Access is
+              provided through Bioconductor's ExperimentHub interface. The
+              package is freely available from
+              http://bioconductor.org/packages/HDCytoData.",
+  journal  = "F1000Res.",
+  volume   =  8,
+  pages    = "1459",
+  month    =  aug,
+  year     =  2019,
+  keywords = "Bioconductor; ExperimentHub; benchmarking; clustering;
+              differential analyses; high-dimensional cytometry",
+  language = "en"
+}
+
+@ARTICLE{Weber2019-pz,
+  title    = "diffcyt: Differential discovery in high-dimensional cytometry via
+              high-resolution clustering",
+  author   = "Weber, Lukas M and Nowicka, Malgorzata and Soneson, Charlotte and
+              Robinson, Mark D",
+  abstract = "High-dimensional flow and mass cytometry allow cell types and
+              states to be characterized in great detail by measuring
+              expression levels of more than 40 targeted protein markers per
+              cell at the single-cell level. However, data analysis can be
+              difficult, due to the large size and dimensionality of datasets
+              as well as limitations of existing computational methods. Here,
+              we present diffcyt, a new computational framework for
+              differential discovery analyses in high-dimensional cytometry
+              data, based on a combination of high-resolution clustering and
+              empirical Bayes moderated tests adapted from transcriptomics. Our
+              approach provides improved statistical performance, including for
+              rare cell populations, along with flexible experimental designs
+              and fast runtimes in an open-source framework.",
+  journal  = "Commun Biol",
+  volume   =  2,
+  pages    = "183",
+  month    =  may,
+  year     =  2019,
+  keywords = "Cell signalling; Software; Statistical methods",
+  language = "en"
+}
+
+
+@ARTICLE{Nowicka2017-dh,
+  title    = "{CyTOF} workflow: differential discovery in high-throughput
+              high-dimensional cytometry datasets",
+  author   = "Nowicka, Malgorzata and Krieg, Carsten and Crowell, Helena L and
+              Weber, Lukas M and Hartmann, Felix J and Guglietta, Silvia and
+              Becher, Burkhard and Levesque, Mitchell P and Robinson, Mark D",
+  abstract = "High-dimensional mass and flow cytometry (HDCyto) experiments
+              have become a method of choice for high-throughput interrogation
+              and characterization of cell populations. Here, we present an
+              updated R-based pipeline for differential analyses of HDCyto
+              data, largely based on Bioconductor packages. We computationally
+              define cell populations using FlowSOM clustering, and facilitate
+              an optional but reproducible strategy for manual merging of
+              algorithm-generated clusters. Our workflow offers different
+              analysis paths, including association of cell type abundance with
+              a phenotype or changes in signalling markers within specific
+              subpopulations, or differential analyses of aggregated signals.
+              Importantly, the differential analyses we show are based on
+              regression frameworks where the HDCyto data is the response;
+              thus, we are able to model arbitrary experimental designs, such
+              as those with batch effects, paired designs and so on. In
+              particular, we apply generalized linear mixed models or linear
+              mixed models to analyses of cell population abundance or
+              cell-population-specific analyses of signaling markers, allowing
+              overdispersion in cell count or aggregated signals across samples
+              to be appropriately modeled. To support the formal statistical
+              analyses, we encourage exploratory data analysis at every step,
+              including quality control (e.g., multi-dimensional scaling
+              plots), reporting of clustering results (dimensionality
+              reduction, heatmaps with dendrograms) and differential analyses
+              (e.g., plots of aggregated signals).",
+  journal  = "F1000Res.",
+  volume   =  6,
+  pages    = "748",
+  month    =  may,
+  year     =  2017,
+  keywords = "CyTOF; differential analysis; flow cytometry",
+  language = "en"
+}
+
+
 @Manual{flowCore,
     title = {flowCore: flowCore: Basic structures for flow cytometry data},
     author = {B Ellis and Perry Haaland and Florian Hahne and Nolwenn {Le Meur} and Nishant Gopalakrishnan and Josef Spidlen and Mike Jiang and Greg Finak},

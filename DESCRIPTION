@@ -64,6 +64,7 @@ Suggests:
     diffviewer,
     knitr,
     rmarkdown,
-    BiocStyle
+    BiocStyle,
+    HDCytoData
 VignetteBuilder: knitr
 Config/testthat/edition: 3
