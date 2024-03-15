@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.12</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.13</span>
       </span>
     </div>
 
@@ -290,11 +290,13 @@ pseudo RSquare, as shown in the following code chunk:</p>
 <pre><code><span><span class="co">## Warning in rgl.init(initValue, onlyNULL): RGL: unable to open X11 display</span></span></code></pre>
 <pre><code><span><span class="co">## Warning: 'rgl.init' failed, running with 'rgl.useNULL = TRUE'.</span></span></code></pre>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="op">(</span><span class="va">nDimensions</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MDS.html">nDim</a></span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 4</span></span></code></pre>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="op">(</span><span class="va">pseudoRSquare</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MDS.html">RSq</a></span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.9814891</span></span></code></pre>
+<code class="sourceCode R"><span><span class="fu">show</span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## MDS object containing MDS projection (using Smacof algorithm)  data:</span></span>
+<span><span class="co">## Nb of dimensions:  4 </span></span>
+<span><span class="co">## Nb of points:  16 </span></span>
+<span><span class="co">## Stress:  0.040668 </span></span>
+<span><span class="co">## Pseudo RSquare:  0.981489 </span></span>
+<span><span class="co">## Goodness of fit:  0.998346</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="plotting-the-mds-projection">Plotting the MDS projection<a class="anchor" aria-label="anchor" href="#plotting-the-mds-projection"></a>
@@ -303,7 +305,7 @@ pseudo RSquare, as shown in the following code chunk:</p>
 <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code>. If no <code>phenoData</code> parameter
 is passed, then, by default, numbers are used as labels, and samples are
 represented as black dots.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CytoMDS_files/figure-html/plotMDS1_simplest-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>However, by providing a ‘phenoData’ dataframe to the
@@ -322,7 +324,7 @@ between 2 condition clusters highlights the strong biological signal
 differentiating these two groups of samples. Further in this vignette,
 we shall try to assign a user interpretation to this x axis direction
 (see ‘Aid to interpreting projection axes’ section).</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p12</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span></span>
 <span>    <span class="va">mdsObj</span>,</span>
 <span>    pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
@@ -335,7 +337,7 @@ we shall try to assign a user interpretation to this x axis direction
 <p>Given that 4 dimensions were used in the metric MDS algorithm, the
 user can visualize the MDS projection using any combination of two axes,
 for example axes 2 and 3n or 3 and 4, as below:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p23</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span></span>
 <span>    <span class="va">mdsObj</span>,</span>
 <span>    pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
@@ -397,7 +399,7 @@ are located on a straight line passing through the (0,0) and (1,1)
 points. In the below diagram, one can notice that all points are very
 near the ideal straight line, hence the distance projections can be
 trusted.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CytoMDS_files/figure-html/plotMDSShepard-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
@@ -410,7 +412,7 @@ to the user when calculating the MDS projection using
 <p>First, instead of letting the algorithm choose itself the number of
 dimensions, it is also possible to assign it explicitly, for example to
 2, as in below:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">mdsObj2</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist</span>, seed <span class="op">=</span> <span class="fl">0</span>, nDim <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span> <span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj2</span>,</span>
 <span>                 pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
@@ -432,7 +434,7 @@ target.</p>
 <p>The below example shows how to obtain a <em>pseudo R Square</em> of
 at least 0.99. As a result, the needed number of dimensions is now 6,
 instead of 4.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mdsObj3</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist</span>, seed <span class="op">=</span> <span class="fl">0</span>, targetPseudoRSq <span class="op">=</span> <span class="fl">0.99</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj3</span>,</span>
 <span>                 pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
@@ -443,7 +445,7 @@ instead of 4.</p>
 <p>The corresponding Shepard diagram is obtained as below, showing that
 the dots are even more concentrated around the ideal straight line, than
 before:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj3</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CytoMDS_files/figure-html/plotMDSShepard.Rsq99-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
@@ -477,11 +479,11 @@ correlation with the median of markers ‘CD4’, ‘CD33’, ‘CD20’, ‘pNF
 median of marker ‘HLA-DR’. The y axis has a strong negative correlation
 with the median of a number of markers: ‘CD123’, ‘pStat1’, ‘pStat5’,
 ‘pSHP2’, ‘pAkt’, ‘pZap70’ and ‘pPlcg2’.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">medians</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/channelSummaryStats.html">channelSummaryStats</a></span><span class="op">(</span><span class="va">BCRXL_fs_trans</span>, </span>
 <span>                               channels <span class="op">=</span> <span class="va">chLabels</span>, </span>
 <span>                               statFUNs <span class="op">=</span> <span class="va">median</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj</span>,</span>
 <span>                pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
 <span>                pDataForColour <span class="op">=</span> <span class="st">"group_id"</span>,</span>
@@ -500,7 +502,7 @@ the <code>arrowThreshold</code> argument. For example, in the below
 plot, the threshold is set set to 0.6, showing, for example, that x axis
 is also strongly negatively correlated with the median of ‘pS6’ and
 ‘CD7’ markers.</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj</span>,</span>
 <span>                pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
 <span>                pDataForColour <span class="op">=</span> <span class="st">"group_id"</span>,</span>
@@ -520,7 +522,7 @@ groups.</p>
 <p>In order to check this, we can use the
 <code>ggplotMarginalDensities</code> method provided in the
 <code>CytoMDS</code> package, as follows:</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotMarginalDensities.html">ggplotMarginalDensities</a></span><span class="op">(</span></span>
 <span>    <span class="va">BCRXL_fs_trans</span>, </span>
 <span>    channels <span class="op">=</span> <span class="va">chLabels</span>,</span>
@@ -546,7 +548,7 @@ standard deviations at once.</p>
 thanks to the <code><a href="../reference/ggplotSampleMDSWrapBiplots.html">ggplotSampleMDSWrapBiplots()</a></code> function, which
 internally calls <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> function several times,
 and arrange the obtained outputs on a single plot.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">statFUNs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"median"</span> <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span>,</span>
 <span>             <span class="st">"Q25"</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">na.rm</span><span class="op">)</span> <span class="op">{</span></span>
 <span>                 <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span>, probs <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span>
@@ -558,7 +560,7 @@ and arrange the obtained outputs on a single plot.</p>
 <span><span class="va">chStats</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/channelSummaryStats.html">channelSummaryStats</a></span><span class="op">(</span><span class="va">BCRXL_fs_trans</span>,</span>
 <span>                               channels <span class="op">=</span> <span class="va">chLabels</span>, </span>
 <span>                               statFUNs <span class="op">=</span> <span class="va">statFUNs</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSWrapBiplots.html">ggplotSampleMDSWrapBiplots</a></span><span class="op">(</span></span>
 <span>    <span class="va">mdsObj</span>,</span>
 <span>    extVariableList <span class="op">=</span> <span class="va">chStats</span>,</span>
@@ -577,7 +579,7 @@ that the plot is hardly readable, due to too many arrows displayed.</p>
 the channel statistics, in order to better identify the strongly
 correlated ones. One example is provided below, showing the correlation
 between the axes and the standard deviation of each channel:</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stdDevs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"std dev of channels 1 to 6"</span> <span class="op">=</span> <span class="va">chStats</span><span class="op">[[</span><span class="st">"standard deviation"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>,</span>
 <span>    <span class="st">"std dev of channels 7 to 12"</span> <span class="op">=</span> <span class="va">chStats</span><span class="op">[[</span><span class="st">"standard deviation"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>,<span class="fl">7</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span>,</span>
@@ -641,7 +643,7 @@ parallelization of distance calculation.</p>
 <p>In case where ‘on-the-fly’ flowFrame in-memory loading is required,
 we advise, as a preliminary step, to store the samples, previously scale
 transformed, on disk. Here we do it in a temporary directory.</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">storageLocation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">BCRXL_fs_trans</span><span class="op">)</span></span>
@@ -658,7 +660,7 @@ transformed, on disk. Here we do it in a temporary directory.</p>
 specifying a number of samples, a flowFrame loading function, and a
 <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">BiocParallel::SnowParam()</a></code> backbone for parallelization of
 the computations.</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bp</span> <span class="op">&lt;-</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam</a></span><span class="op">(</span></span>
 <span>    stop.on.error <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    progressbar <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -675,7 +677,7 @@ the computations.</p>
 <span><span class="co">##   |                                                                              |                                                                      |   0%  |                                                                              |============                                                          |  17%  |                                                                              |=======================                                               |  33%  |                                                                              |===================================                                   |  50%  |                                                                              |===============================================                       |  67%  |                                                                              |==========================================================            |  83%  |                                                                              |======================================================================| 100%</span></span></code></pre>
 <p>The obtained distances - as shown in the below histogram - are
 exactly the same as before.</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">distVecLast</span> <span class="op">&lt;-</span> <span class="va">pwDistLast</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDistLast</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">distVecDFLast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVecLast</span><span class="op">)</span></span>
 <span><span class="va">pHistLast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDFLast</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -716,7 +718,7 @@ exactly the same as before.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
 <span><span class="co">##  [1] patchwork_1.2.0             ggplot2_3.5.0              </span></span>
-<span><span class="co">##  [3] CytoMDS_0.99.12             HDCytoData_1.23.0          </span></span>
+<span><span class="co">##  [3] CytoMDS_0.99.13             HDCytoData_1.23.0          </span></span>
 <span><span class="co">##  [5] flowCore_2.15.2             SummarizedExperiment_1.33.3</span></span>
 <span><span class="co">##  [7] Biobase_2.63.0              GenomicRanges_1.55.3       </span></span>
 <span><span class="co">##  [9] GenomeInfoDb_1.39.9         IRanges_2.37.1             </span></span>
