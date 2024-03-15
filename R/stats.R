@@ -267,8 +267,7 @@ EMDDist <- function(
     nCols <- colRange[2] - colRange[1] + 1
     
     if (nRowBlock == 1) {
-        blocks1DRows <- list()
-        blocks1DRows[[1]] <- seq(rowRange[1], rowRange[2])
+        blocks1DRows <- list(seq(rowRange[1], rowRange[2]))
     } else {
         blocks1DRows <- split(seq(rowRange[1], rowRange[2]), 
                               cut(seq(rowRange[1], rowRange[2]), 
@@ -279,8 +278,7 @@ EMDDist <- function(
     nColBlock <- ceiling(nRowBlock * nCols/nRows)
     
     if (nColBlock == 1) {
-        blocks1DCols <- list()
-        blocks1DCols[[1]] <- seq(colRange[1], colRange[2])
+        blocks1DCols <- list(seq(colRange[1], colRange[2]))
     } else {
         blocks1DCols <- split(seq(colRange[1], colRange[2]), 
                               cut(seq(colRange[1], colRange[2]), 
@@ -288,7 +286,16 @@ EMDDist <- function(
                                   labels = FALSE))
     }
     
-    blocks2D <- list()
+    nBlocks2D <- 0
+    for (j in seq_along(blocks1DRows)) {
+        for (k in seq_along(blocks1DCols)) {
+            if (blocks1DRows[[j]][1] < max(blocks1DCols[[k]])) {
+                nBlocks2D <- nBlocks2D+1
+            }
+        }
+    }
+    
+    blocks2D <- vector("list", length = nBlocks2D)
     iBlocks2D <- 0
     for (j in seq_along(blocks1DRows)) {
         for (k in seq_along(blocks1DCols)) {
@@ -498,23 +505,27 @@ EMDDist <- function(
             
             #browser()
             
-            distrs <- list()
-            ind <- 0
-            for (ffIndex in block){
-                if (verbose) {
-                    message("Loading file ", ffIndex, "...")
-                }
-                ind <- ind + 1
-                ff <- do.call(
-                    loadFlowFrameFUN,
-                    args = c(list(ffIndex = ffIndex),
-                             loadFlowFrameFUNArgs))
-                invisible(gc()) # clean memory for ff stored in previous loop
-                if(!inherits(ff, "flowFrame")) {
-                    stop("object returned by loadFlowFrameFUN function ",
-                         "should inherit from flowCore::flowFrame")
-                }
-                if (ind == 1) {
+            distrs <- lapply(
+                block,
+                FUN = function(ffIndex, 
+                               loadFlowFrameFUN,
+                               loadFlowFrameFUNArgs,
+                               channels, 
+                               breaks, 
+                               verbose) {
+                    if (verbose) {
+                        message("Loading file ", ffIndex, "...")
+                    }
+                    ff <- do.call(
+                        loadFlowFrameFUN,
+                        args = c(list(ffIndex = ffIndex),
+                                 loadFlowFrameFUNArgs))
+                    ## clean memory for ff stored in previous loop
+                    invisible(gc()) 
+                    if(!inherits(ff, "flowFrame")) {
+                        stop("object returned by loadFlowFrameFUN function ",
+                             "should inherit from flowCore::flowFrame")
+                    }
                     # check channels
                     if (is.null(channels)) {
                         channels <- 
@@ -530,28 +541,27 @@ EMDDist <- function(
                             },
                             FUN.VALUE = "c")
                     }
-                } else {
-                    wrongCh <- which(! channels%in% flowCore::colnames(ff))
-                    if (length(wrongCh) > 0) {
-                        stop(
-                            "found some channels that are non existent in flowframe #",
-                            ffIndex, ": ",
-                            channels[wrongCh])
-                    } 
-                }
-                
-                # take only the channels of interest for the following,
-                # for performance
-                ff <- ff[,channels]
-                
-                if (verbose) {
-                    message("Calculating histogram for file ", ffIndex, "...")
-                }
-                distrs[[ind]] <- .unidimHistograms(
-                    ff,
-                    breaks = breaks
-                )
-            }
+                    # take only the channels of interest for the following,
+                    # for performance
+                    ff <- ff[,channels]
+                    
+                    if (verbose) {
+                        message("Calculating histogram for file ", ffIndex, "...")
+                    }
+                    
+                    distr <- .unidimHistograms(
+                        ff,
+                        breaks = breaks
+                    )
+                    
+                    distr
+                },
+                loadFlowFrameFUN = loadFlowFrameFUN,
+                loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+                channels = channels, 
+                breaks = breaks, 
+                verbose = verbose
+            )
             distrs
         }
         
@@ -568,14 +578,7 @@ EMDDist <- function(
             verbose = verbose)
         
         # reorganize multivariate distributions in a single list
-        distrs <- list()
-        ind <- 0
-        for (b in seq_along(blocks1D)) {
-            for(i in seq_along(blocks1D[[b]])) {
-                ind <- ind+1    
-                distrs[[ind]] <- distribBlockList[[b]][[i]]
-            }
-        }
+        distrs <- unlist(distribBlockList, recursive = FALSE)
         
         if (verbose){
             message("Calculating pairwise distances between histograms...")
@@ -653,24 +656,28 @@ EMDDist <- function(
             nCols <- length(colSeq)
             ffIndexes <- union(rowSeq, colSeq)
             
-            ffList <- list()
-            
-            ind <- 0
-            for (ffIndex in ffIndexes){
-                if (verbose) {
-                    message("Loading file ", ffIndex, "...")
-                }
-                ind <- ind+1
-                ff <- do.call(
-                    loadFlowFrameFUN,
-                    args = c(list(ffIndex = ffIndex),
-                             loadFlowFrameFUNArgs))
-                invisible(gc()) # clean memory for ff stored in previous loop
-                if(!inherits(ff, "flowFrame")) {
-                    stop("object returned by loadFlowFrameFUN function should inherit ",
-                         "from flowCore::flowFrame")
-                }
-                if (ind == 1) {
+            ffList <- lapply(
+                ffIndexes,
+                FUN = function(ffIndex, 
+                               loadFlowFrameFUN,
+                               loadFlowFrameFUNArgs,
+                               channels, 
+                               verbose) {
+                    if (verbose) {
+                        message("Loading file ", ffIndex, "...")
+                    }
+                    ind <- ind+1
+                    ff <- do.call(
+                        loadFlowFrameFUN,
+                        args = c(list(ffIndex = ffIndex),
+                                 loadFlowFrameFUNArgs))
+                    ## clean memory for ff stored in previous loop
+                    invisible(gc()) 
+                    if(!inherits(ff, "flowFrame")) {
+                        stop("object returned by loadFlowFrameFUN function ",
+                             "should inherit from flowCore::flowFrame")
+                    }
+                    
                     # check channels
                     if (is.null(channels)) {
                         channels <- 
@@ -686,20 +693,19 @@ EMDDist <- function(
                             },
                             FUN.VALUE = "c")
                     }
-                } else {
-                    wrongCh <- which(! channels%in% flowCore::colnames(ff))
-                    if (length(wrongCh) > 0) {
-                        stop(
-                            "found some channels that are non existent in flowframe #",
-                            ffIndex, ": ",
-                            channels[wrongCh])
-                    } 
-                }
+                        
+                    # take only the channels of interest for the following,
+                    # for performance
+                    ff <- ff[, channels]
+                    ff
+                },
+                loadFlowFrameFUN = loadFlowFrameFUN,
+                loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+                channels = channels, 
+                verbose = verbose
+            )
                 
-                # take only the channels of interest for the following,
-                # for performance
-                ffList[[ind]] <- ff[, channels]
-            }
+                                
             
             pwDist <- matrix(rep(0., nRows * nCols),
                              nrow = nRows)
@@ -1037,23 +1043,27 @@ pairwiseEMDDist <- function(
         
         #browser()
         
-        statMatList <- list()
-        ind <- 0
-        for (ffIndex in block){
-            if (verbose) {
-                message("Loading file ", ffIndex, "...")
-            }
-            ind <- ind + 1
-            ff <- do.call(
-                loadFlowFrameFUN,
-                args = c(list(ffIndex = ffIndex),
-                         loadFlowFrameFUNArgs))
-            invisible(gc()) # clean memory for ff stored in previous loop
-            if(!inherits(ff, "flowFrame")) {
-                stop("object returned by loadFlowFrameFUN function ",
-                     "should inherit from flowCore::flowFrame")
-            }
-            if (ind == 1) {
+        statMatList <- lapply(
+            block,
+            FUN = function(ffIndex,
+                           loadFlowFrameFUN,
+                           loadFlowFrameFUNArgs,
+                           channels,
+                           verbose) {
+                if (verbose) {
+                    message("Loading file ", ffIndex, "...")
+                }
+                ff <- do.call(
+                    loadFlowFrameFUN,
+                    args = c(list(ffIndex = ffIndex),
+                             loadFlowFrameFUNArgs))
+                ## clean memory for ff stored in previous loop
+                invisible(gc()) 
+                if(!inherits(ff, "flowFrame")) {
+                    stop("object returned by loadFlowFrameFUN function ",
+                         "should inherit from flowCore::flowFrame")
+                }
+                
                 # check channels
                 if (is.null(channels)) {
                     channels <- 
@@ -1069,29 +1079,27 @@ pairwiseEMDDist <- function(
                         },
                         FUN.VALUE = "c")
                 }
-            } else {
-                wrongCh <- which(! channels%in% flowCore::colnames(ff))
-                if (length(wrongCh) > 0) {
-                    stop(
-                        "found some channels that are non existent in flowframe #",
-                        ffIndex, ": ",
-                        channels[wrongCh])
-                } 
-            }
-            
-            # take only the channels of interest for the following,
-            # for performance
-            ff <- ff[,channels]
-            
-            if (verbose) {
-                message("Calculating stats for file ", ffIndex, "...")
-            }
-            statMatList[[ind]] <- .calcFFStats(
-                ff,
-                channels = channels,
-                statFUNList = statFUNList,
-                verbose = verbose)
-        } # end loop on ffIndex
+                
+                # take only the channels of interest for the following,
+                # for performance
+                ff <- ff[,channels]
+                
+                if (verbose) {
+                    message("Calculating stats for file ", ffIndex, "...")
+                }
+                statMat <- .calcFFStats(
+                    ff,
+                    channels = channels,
+                    statFUNList = statFUNList,
+                    verbose = verbose)
+                
+                statMat
+            },
+            loadFlowFrameFUN = loadFlowFrameFUN,
+            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            channels = channels,
+            verbose = verbose
+        )
         
         statMatList
         
@@ -1113,22 +1121,27 @@ pairwiseEMDDist <- function(
     # rearrange outputs
     
     nCh <- ncol(statMatBlockList[[1]][[1]])
-    chStats <- list()
-    for (s in seq_along(statFUNs)){
-        chStats[[s]] <- matrix(
-            data = rep(0., nSamples * nCh), nrow = nSamples)
-        colnames(chStats[[s]]) <- colnames(statMatBlockList[[1]][[1]])
-        ind <- 0
-        for (b in seq_along(statMatBlockList)) {
-            for (f in seq_along(statMatBlockList[[b]])) {
-                ind <- ind + 1
-                chStats[[s]][ind,] <- 
-                    statMatBlockList[[b]][[f]][s,]
-            }
-        }
-    }
-    names(chStats) <- names(statFUNs)
     
+    chStats <- lapply(
+        seq_along(statFUNs),
+        FUN = function(s, statMatBlockList, nSamples, nCh){
+            chOneStat <- matrix(data = rep(0., nSamples * nCh), nrow = nSamples)
+            colnames(chOneStat) <- colnames(statMatBlockList[[1]][[1]])
+            ind <- 0
+            for (b in seq_along(statMatBlockList)) {
+                for (f in seq_along(statMatBlockList[[b]])) {
+                    ind <- ind + 1
+                    chOneStat[ind,] <- 
+                        statMatBlockList[[b]][[f]][s,]
+                }
+            }
+            chOneStat
+        },
+        statMatBlockList = statMatBlockList,
+        nSamples = nSamples,
+        nCh = nCh
+    )
+    names(chStats) <- names(statFUNs)
     
     # if only one stat function => unlist to return one single matrix
     if (nStats == 1 && !is.list(statFUNs)){
@@ -1480,7 +1493,6 @@ computeMetricMDS <- function(
     if (nDim > nSamples-1) {
         stop("nDim should be at most (nSamples-1)")
     }
-    res <- list()  
     
     if (!is.null(seed)) {
         withr::with_seed(
@@ -1620,12 +1632,12 @@ computeMetricMDSBiplot <- function(
     
     #browser()
     nReg <- ncol(extVariables)
-    mdsBiplot <- list()
-    mdsBiplot$coefficients <- matrix(data = rep(NA_real_, 2*nReg),
+    
+    coefficients <- matrix(data = rep(NA_real_, 2*nReg),
                                      ncol = nReg)
-    colnames(mdsBiplot$coefficients) <- colnames(ext)
-    mdsBiplot$R2vec <- rep(NA_real_, nReg)
-    names(mdsBiplot$R2vec) <- colnames(ext)
+    colnames(coefficients) <- colnames(ext)
+    R2vec <- rep(NA_real_, nReg)
+    names(R2vec) <- colnames(ext)
     #browser()
     for (j in seq_len(nReg)) {
         if (validExtVar[j]) {
@@ -1640,10 +1652,10 @@ computeMetricMDSBiplot <- function(
             }
             
             regfit <- lm(thisExt ~ -1 + thisX)
-            mdsBiplot$coefficients[, j] <- regfit$coefficients
+            coefficients[, j] <- regfit$coefficients
             
             regsum <- summary(regfit)
-            mdsBiplot$R2vec[j] <- regsum$r.squared
+            R2vec[j] <- regsum$r.squared
         } else {
             
         }
@@ -1651,12 +1663,18 @@ computeMetricMDSBiplot <- function(
     
     # calculate Pearson correlations
     # when there are NA's, use complete pairs only
-    mdsBiplot$pearsonCorr <- matrix(data = rep(NA_real_, 2*nReg),
-                                 ncol = nReg)
-    mdsBiplot$pearsonCorr[, validExtVar] <- t(stats::cor(
+    pearsonCorr <- matrix(data = rep(NA_real_, 2*nReg),
+                          ncol = nReg)
+    pearsonCorr[, validExtVar] <- t(stats::cor(
         ext[, validExtVar], X,
         method = "pearson",
         use = "pairwise.complete.obs"))
+    
+    mdsBiplot <- list(
+        coefficients = coefficients,
+        R2vec = R2vec,
+        pearsonCorr = pearsonCorr
+    )
     
     return(mdsBiplot)
 }

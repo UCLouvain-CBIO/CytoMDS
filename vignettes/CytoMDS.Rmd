@@ -213,8 +213,7 @@ in the following code chunk:
 
 ```{r MDSCalc}
 mdsObj <- computeMetricMDS(pwDist, seed = 0)
-(nDimensions <- nDim(mdsObj))
-(pseudoRSquare <- RSq(mdsObj))
+show(mdsObj)
 ```
 
 ## Plotting the MDS projection
