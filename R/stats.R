@@ -13,6 +13,30 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details (<http://www.gnu.org/licenses/>).
 
+# internal function returning channel names taking vector of channel indicators 
+# as input. These indicators can be, either:
+# NULL => take all signal channels
+# a numeric vector of indices
+# a vector of character poiting to either channel names or marker names
+# a flowFrame is also needed to pick channel names by default or convert 
+# marker names to channel names
+.toChannelNames <- function(channels, ff) {
+    if (is.null(channels)) {
+        channels <- 
+            flowCore::colnames(ff)[areSignalCols(ff)]
+    } else if (is.numeric(channels)) {
+        channels <- 
+            flowCore::colnames(ff)[channels]
+    } else {
+        channels <- vapply(
+            channels, 
+            FUN = function(ch) {
+                flowCore::getChannelMarker(ff, ch)$name
+            },
+            FUN.VALUE = "c")
+    }
+}
+
 # internal function calculating the unidimensional histograms of a flowFrame
 .unidimHistograms <- function(
     ff, 
@@ -202,18 +226,8 @@ EMDDist <- function(
     
     ffList <- list(ff1, ff2)
     
-    if (is.null(channels)) {
-        channels <- flowCore::colnames(ff1)[areSignalCols(ff1)]
-    } else if (is.numeric(channels)) {
-        channels <- flowCore::colnames(ff1)[channels]
-    } else {
-        channels <- vapply(
-            channels, 
-            FUN = function(ch) {
-                flowCore::getChannelMarker(ff1, ch)$name
-            },
-            FUN.VALUE = "c")
-    }
+    channels <- .toChannelNames(channels, ff1)
+    
     if (checkChannels) {
         # check that all channels are present in both flow frames
         vapply(X = ffList, FUN = function(ff) {
@@ -530,21 +544,10 @@ EMDDist <- function(
                         stop("object returned by loadFlowFrameFUN function ",
                              "should inherit from flowCore::flowFrame")
                     }
+                    
                     # check channels
-                    if (is.null(channels)) {
-                        channels <- 
-                            flowCore::colnames(ff)[areSignalCols(ff)]
-                    } else if (is.numeric(channels)) {
-                        channels <- 
-                            flowCore::colnames(ff)[channels]
-                    } else {
-                        channels <- vapply(
-                            channels, 
-                            FUN = function(ch) {
-                                flowCore::getChannelMarker(ff, ch)$name
-                            },
-                            FUN.VALUE = "c")
-                    }
+                    channels <- .toChannelNames(channels, ff)
+                    
                     # take only the channels of interest for the following,
                     # for performance
                     ff <- ff[,channels]
@@ -681,20 +684,7 @@ EMDDist <- function(
                     }
                     
                     # check channels
-                    if (is.null(channels)) {
-                        channels <- 
-                            flowCore::colnames(ff)[areSignalCols(ff)]
-                    } else if (is.numeric(channels)) {
-                        channels <- 
-                            flowCore::colnames(ff)[channels]
-                    } else {
-                        channels <- vapply(
-                            channels, 
-                            FUN = function(ch) {
-                                flowCore::getChannelMarker(ff, ch)$name
-                            },
-                            FUN.VALUE = "c")
-                    }
+                    channels <- .toChannelNames(channels, ff)
                         
                     # take only the channels of interest for the following,
                     # for performance
@@ -964,30 +954,60 @@ pairwiseEMDDist <- function(
     nChannels <- length(channels)
     nStats <- length(statFUNList)
     
-    statMatrix <- matrix(rep(0., nStats * nChannels), nrow = nStats)
+    statList <- lapply(seq_along(statFUNList),
+                       FUN = function(fu, statFUNList, ff, channels, 
+                                      channelNames, verbose) {
+                           if (verbose) {
+                               message(
+                                   "computing statistical function ", fu,
+                                   " per channel...")
+                           }
+                           chStats <- vapply(
+                               channels,
+                               FUN = function(ch){
+                                   statFUNList[[fu]](
+                                       flowCore::exprs(ff)[, ch, drop = FALSE],
+                                       na.rm = TRUE)
+                               },
+                               FUN.VALUE = numeric(1))
+                           names(chStats) <- channelNames
+                           chStats
+                           },
+                       statFUNList = statFUNList,
+                       ff = ff,
+                       channels = channels,
+                       channelNames = channelNames,
+                       verbose = verbose)
     
+    names(statList) <- names(statFUNList)
     
-    for (fu in seq_along(statFUNList)) {
-        if (verbose) {
-            message(
-                "computing statistical function ", fu,
-                " per channel...")
-        }
-        statMatrix[fu,] <- vapply(
-            channels,
-            FUN = function(ch){
-                statFUNList[[fu]](
-                flowCore::exprs(ff)[, ch, drop = FALSE],
-                na.rm = TRUE)
-            },
-            FUN.VALUE = 0.)
-    }
-    
-    colnames(statMatrix) <- channelNames
-    rownames(statMatrix) <- names(statFUNList)
-    
-    
-    statMatrix
+    statList
+        
+    # statMatrix <- matrix(rep(0., nStats * nChannels), nrow = nStats)
+    # 
+    # 
+    # 
+    # for (fu in seq_along(statFUNList)) {
+    #     if (verbose) {
+    #         message(
+    #             "computing statistical function ", fu,
+    #             " per channel...")
+    #     }
+    #     statMatrix[fu,] <- vapply(
+    #         channels,
+    #         FUN = function(ch){
+    #             statFUNList[[fu]](
+    #             flowCore::exprs(ff)[, ch, drop = FALSE],
+    #             na.rm = TRUE)
+    #         },
+    #         FUN.VALUE = 0.)
+    # }
+    # 
+    # colnames(statMatrix) <- channelNames
+    # rownames(statMatrix) <- names(statFUNList)
+    # 
+    # 
+    # statMatrix
 }
 
 # internal function for summary stats calculation
@@ -1046,7 +1066,7 @@ pairwiseEMDDist <- function(
         statFUNList,
         verbose) {
         
-        statMatList <- lapply(
+        statListOfList <- lapply(
             block,
             FUN = function(ffIndex,
                            loadFlowFrameFUN,
@@ -1068,20 +1088,7 @@ pairwiseEMDDist <- function(
                 }
                 
                 # check channels
-                if (is.null(channels)) {
-                    channels <- 
-                        flowCore::colnames(ff)[areSignalCols(ff)]
-                } else if (is.numeric(channels)) {
-                    channels <- 
-                        flowCore::colnames(ff)[channels]
-                } else {
-                    channels <- vapply(
-                        channels, 
-                        FUN = function(ch) {
-                            flowCore::getChannelMarker(ff, ch)$name
-                        },
-                        FUN.VALUE = "c")
-                }
+                channels <- .toChannelNames(channels, ff)
                 
                 # take only the channels of interest for the following,
                 # for performance
@@ -1090,13 +1097,13 @@ pairwiseEMDDist <- function(
                 if (verbose) {
                     message("Calculating stats for file ", ffIndex, "...")
                 }
-                statMat <- .calcFFStats(
+                statList <- .calcFFStats(
                     ff,
                     channels = channels,
                     statFUNList = statFUNList,
                     verbose = verbose)
                 
-                statMat
+                statList
             },
             loadFlowFrameFUN = loadFlowFrameFUN,
             loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
@@ -1104,11 +1111,11 @@ pairwiseEMDDist <- function(
             verbose = verbose
         )
         
-        statMatList
+        statListOfList
         
     } # end function
     
-    statMatBlockList <- BiocParallel::bplapply(
+    statListOfBlockList <- BiocParallel::bplapply(
         blocks1D,
         FUN = loadFFAndCalcStats,
         BPPARAM = BPPARAM,
@@ -1119,31 +1126,39 @@ pairwiseEMDDist <- function(
         statFUNList = statFUNList,
         verbose = verbose)
     
+    
     # rearrange outputs
+    statListOfList <- unlist(statListOfBlockList, recursive = FALSE)
+    statListOfList <- do.call(function(...) Map(list, ...), statListOfList) 
+    chStats <- lapply(statListOfList, 
+                      FUN = function(X) {
+                          X <- t(simplify2array(X))
+                          rownames(X) <- NULL
+                          X})
     
-    nCh <- ncol(statMatBlockList[[1]][[1]])
-    
-    chStats <- lapply(
-        seq_along(statFUNs),
-        FUN = function(s, statMatBlockList, nSamples, nCh){
-            chOneStat <- matrix(data = rep(0., nSamples * nCh), nrow = nSamples)
-            colnames(chOneStat) <- colnames(statMatBlockList[[1]][[1]])
-            ind <- 0
-            for (b in seq_along(statMatBlockList)) {
-                for (f in seq_along(statMatBlockList[[b]])) {
-                    ind <- ind + 1
-                    chOneStat[ind,] <- 
-                        statMatBlockList[[b]][[f]][s,]
-                }
-            }
-            chOneStat
-        },
-        statMatBlockList = statMatBlockList,
-        nSamples = nSamples,
-        nCh = nCh
-    )
-    names(chStats) <- names(statFUNs)
-    
+    # nCh <- ncol(statMatBlockList[[1]][[1]])
+    # 
+    # chStats <- lapply(
+    #     seq_along(statFUNs),
+    #     FUN = function(s, statMatBlockList, nSamples, nCh){
+    #         chOneStat <- matrix(data = rep(0., nSamples * nCh), nrow = nSamples)
+    #         colnames(chOneStat) <- colnames(statMatBlockList[[1]][[1]])
+    #         ind <- 0
+    #         for (b in seq_along(statMatBlockList)) {
+    #             for (f in seq_along(statMatBlockList[[b]])) {
+    #                 ind <- ind + 1
+    #                 chOneStat[ind,] <- 
+    #                     statMatBlockList[[b]][[f]][s,]
+    #             }
+    #         }
+    #         chOneStat
+    #     },
+    #     statMatBlockList = statMatBlockList,
+    #     nSamples = nSamples,
+    #     nCh = nCh
+    # )
+    # names(chStats) <- names(statFUNs)
+    # 
     # if only one stat function => unlist to return one single matrix
     if (nStats == 1 && !is.list(statFUNs)){
         chStats <- chStats[[1]]

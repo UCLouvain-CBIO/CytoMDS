@@ -2,6 +2,10 @@
 
 (Prior to Bioconductor submission)
 
+### CytoMDS 0.99.14
+- re-factored code portions to replace, as much as possible, 
+for loops by `apply()` family of functions.
+
 ### CytoMDS 0.99.13
 - re-factored code portions to avoid growing lists incrementally
 
