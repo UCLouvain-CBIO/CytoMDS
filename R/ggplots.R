@@ -143,7 +143,6 @@ ggplotMarginalDensities <- function(
     if (nEventInSubsample < 1) 
         stop("nEventInSubsample should be strictly positive!")
     
-    #browser()
     pData <- flowCore::pData(flowCore::phenoData(fs))
     pData <- pData[sampleSubset,, drop = FALSE]
     fs <- fs[sampleSubset]
@@ -186,11 +185,9 @@ ggplotMarginalDensities <- function(
     
     nChannels <- length(channels)
     
-    #browser()
     DFList <- mapply(
         seq_len(nSamples),
         FUN = function(i, fs, channelLabels, nEventInSubsample, seed){
-            #browser()
             nEvents <- flowCore::nrow(fs[[i]])
             chosenEvents <- 0
             if (nEventInSubsample < nEvents) {
@@ -223,7 +220,6 @@ ggplotMarginalDensities <- function(
     
     DF <- Reduce(DFList, f = rbind.data.frame)
     
-    #browser()
     discardColourLegend <- FALSE
     if (missing(pDataForColour)) {
         DF$pDataForColour <- 1
@@ -478,8 +474,6 @@ ggplotSampleMDS <- function(
         displayPseudoRSq = TRUE,
         ...){
     
-    #browser()
-    
     if (!inherits(mdsObj, "MDS")) {
         stop("mdsObj should be a MDS object")
     }
@@ -545,8 +539,6 @@ ggplotSampleMDS <- function(
     # plot configuration
     
     # don't use notion of marginal RSquare anymore
-    
-    #browser()
     
     RSq <- RSq(mdsObj)
     GoF <- GoF(mdsObj)[nDim]
@@ -724,8 +716,6 @@ ggplotSampleMDS <- function(
     
     # add biplot if specified
     if (biplot) {
-        #browser()
-        
         if (!is.numeric(arrowThreshold))
             stop("arrowThreshold should be numeric!")
         if (arrowThreshold < 0. || arrowThreshold > 1.) {
@@ -737,66 +727,83 @@ ggplotSampleMDS <- function(
             projectionAxes = projectionAxes,
             extVariables = extVariables)
         
-        #browser()
         radius <- 0.9*min(-axesLimits[1], axesLimits[2])
         lengthThreshold <- radius * arrowThreshold
         
         nExtVar <- ncol(mdsBiplot$coefficients)
         if (nExtVar > 0) {
-            segmentXs <- rep(0., nExtVar)
-            segmentYs <- rep(0., nExtVar)
-            segmentNames <- rep("", nExtVar)
-            visible <- rep(FALSE, nExtVar)
-            valid <- rep(FALSE, nExtVar)
-            for (j in seq_len(nExtVar)) {
-                segmentLength <- 0
-                if (biplotType == "regression"){
-                    if (!is.na(mdsBiplot$R2vec[j])) {
-                        valid[j] <- TRUE
-                        segmentLength <- radius * mdsBiplot$R2vec[j]
-                        segmentAngle <- atan(
-                            mdsBiplot$coefficients[2,j] / 
-                                mdsBiplot$coefficients[1,j])
-                        if(mdsBiplot$coefficients[1,j] < 0){
-                            segmentAngle <- segmentAngle + pi
+            ret <- lapply(
+                X = seq_len(nExtVar),
+                FUN = function(j, mdsBiplot, radius, biplotType){
+                    visible <- FALSE
+                    valid <- FALSE
+                    segmentName <- ""
+                    segmentLength <- 0
+                    segmentX <- 0
+                    segmentY <- 0
+                    if (biplotType == "regression"){
+                        if (!is.na(mdsBiplot$R2vec[j])) {
+                            valid <- TRUE
+                            segmentLength <- radius * mdsBiplot$R2vec[j]
+                            segmentAngle <- atan(
+                                mdsBiplot$coefficients[2,j] / 
+                                    mdsBiplot$coefficients[1,j])
+                            if(mdsBiplot$coefficients[1,j] < 0){
+                                segmentAngle <- segmentAngle + pi
+                            }
+                            segmentX <- segmentLength * cos(segmentAngle)
+                            segmentY <- segmentLength * sin(segmentAngle)
                         }
-                        segmentXs[j] <- segmentLength * cos(segmentAngle)
-                        segmentYs[j] <- segmentLength * sin(segmentAngle)
+                        
+                    } else {
+                        # biplotType is "correlation"
+                        if (!is.na(mdsBiplot$pearsonCorr[1, j])) {
+                            valid <- TRUE
+                            segmentX <- radius * mdsBiplot$pearsonCorr[1, j]
+                            segmentY <- radius * mdsBiplot$pearsonCorr[2, j]
+                            segmentLength <- sqrt(segmentX^2 + segmentY^2)
+                        }
                     }
                     
-                } else {
-                    # biplotType == "correlation"
-                    if (!is.na(mdsBiplot$pearsonCorr[1, j])) {
-                        valid[j] <- TRUE
-                        segmentXs[j] <- radius * mdsBiplot$pearsonCorr[1, j]
-                        segmentYs[j] <- radius * mdsBiplot$pearsonCorr[2, j]
-                        segmentLength <- sqrt(segmentXs[j]^2 + segmentYs[j]^2)
+                    if (segmentLength >= lengthThreshold){
+                        visible <- TRUE
+                        segmentName <- colnames(mdsBiplot$coefficients)[j]
                     }
-                }
+                    
+                    
+                    list(segmentX = segmentX,
+                         segmentY = segmentY,
+                         segmentName = segmentName,
+                         visible = visible,
+                         valid = valid)
+                },
+                mdsBiplot = mdsBiplot,
+                radius = radius,
+                biplotType = biplotType)
+            
                 
-                if (segmentLength >= lengthThreshold){
-                    visible[j] <- TRUE
-                    segmentNames[j] <- colnames(mdsBiplot$coefficients)[j]
-                }
-            }
+            # invert list hierarchy and simplify to array
+            ret <- do.call(function(...) Map(list, ...), ret) 
+            ret <- lapply(ret, FUN = simplify2array) 
+            
             
             if (flipXAxis) {
-                segmentXs <- - segmentXs   
+                ret$segmentX <- - ret$segmentX  
             }
             if (flipYAxis) {
-                segmentYs <- - segmentYs
+                ret$segmentY <- - ret$segmentY
             }
             
             segmentDF <- data.frame(
-                segmentName = segmentNames,
+                segmentName = ret$segmentName,
                 segmentXOrigin = rep(0., nExtVar),
                 segmentYOrigin = rep(0., nExtVar),
-                segmentX = segmentXs, 
-                segmentY = segmentYs,
-                visible = visible)
+                segmentX = ret$segmentX, 
+                segmentY = ret$segmentY,
+                visible = ret$visible)
             
             # discard non valid ext variables
-            segmentDF <- segmentDF[valid, ]
+            segmentDF <- segmentDF[ret$valid, ]
             
             p <- p + ggplot2::geom_segment(
                 mapping = ggplot2::aes(
@@ -857,7 +864,7 @@ ggplotSampleMDS <- function(
                     y0 = 0.,
                     r = radius),
                 linetype = 'dotted')
-        }
+        } # if(nExtVar > 0)
     }
     
     p
@@ -1143,8 +1150,6 @@ ggplotSampleMDSWrapBiplots <- function(
         byrow = NULL,
         displayLegend = TRUE,
         ...){
-    
-    #browser()
     
     if (!is.list(extVariableList)) {
         stop("[extVariableList] should be a non zero length list!")

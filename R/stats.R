@@ -26,7 +26,6 @@
         colnames(expr),
         exprMat = expr,
         FUN = function(colName, exprMat) {
-            #browser()
             counts <- graphics::hist(
                 exprMat[, colName], 
                 breaks = c(-Inf, breaks, Inf),
@@ -58,8 +57,7 @@
     channels <- colnames(distr1)
     nChannels <- length(channels)
     
-    distances <- rep(0., length(channels))
-    names(distances) <- channels
+    
         
     nA <- sum(distr1[,1])
     nB <- sum(distr2[,1])
@@ -71,40 +69,48 @@
     ratioA <- nEventsLCM / nA
     ratioB <- nEventsLCM / nB
     
-    #browser()
-        
-    for (ch in seq_along(channels)) {
-        
-        wA <- distr1[, ch, drop=FALSE]
-        wA <- wA * ratioA
-        wB <- distr2[, ch, drop=FALSE]
-        wB <- wB * ratioB
-        #locations <- breaks[-1] - binSize/2
-        locations <- 0.5 * (breaks[-1] + breaks[-nBreaks])
-        
-        # distances[ch] <- 
-        #   emdist::emdw(A = locations,
-        #                wA = wA,
-        #                B = locations,
-        #                wB = wB)
-        distances[ch] <- 
-            transport::wasserstein1d(
-                a = locations,
-                wa = wA,
-                b = locations,
-                wb = wB)
-        
-        # make sure distance is a PRECISE multiple 
-        # of elementary mass transportation cost
-        
-        # if (distances[ch] < 1e-12) {
-        #   distances[ch] <- 0
-        # } else {
-        #   elemCost <- binSize / nEventsLCM
-        #   distances[ch] <- round(distances[ch]/elemCost) *  elemCost
-        # }  
-        
-    }
+    distances <- vapply(
+        seq_along(channels), 
+        FUN = function(ch, distr1, distr2, ratioA, ratioB, breaks) {
+            wA <- distr1[, ch, drop=FALSE]
+            wA <- wA * ratioA
+            wB <- distr2[, ch, drop=FALSE]
+            wB <- wB * ratioB
+            #locations <- breaks[-1] - binSize/2
+            locations <- 0.5 * (breaks[-1] + breaks[-nBreaks])
+            
+            # distance <- 
+            #   emdist::emdw(A = locations,
+            #                wA = wA,
+            #                B = locations,
+            #                wB = wB)
+            distance <- 
+                transport::wasserstein1d(
+                    a = locations,
+                    wa = wA,
+                    b = locations,
+                    wb = wB)
+            
+            # make sure distance is a PRECISE multiple 
+            # of elementary mass transportation cost
+            
+            # if (distances < 1e-12) {
+            #   distances <- 0
+            # } else {
+            #   elemCost <- binSize / nEventsLCM
+            #   distance <- round(distance/elemCost) *  elemCost
+            # }  
+            distance
+        },
+        FUN.VALUE = numeric(1),
+        distr1 = distr1, 
+        distr2 = distr2, 
+        ratioA = ratioA, 
+        ratioB = ratioB, 
+        breaks = breaks
+    )  
+    
+    names(distances) <- channels
     
     return(distances)
 }
@@ -237,8 +243,6 @@ EMDDist <- function(
         FUN = .unidimHistograms,
         breaks = breaks)
     
-    #browser()
-    
     distances <- .distFromUnidimHistograms(
         breaks = breaks, 
         distr1 = distrs[[1]], 
@@ -337,7 +341,10 @@ EMDDist <- function(
             1, by = -1))
     #candidateSides <- candidateSides[candidateSides<=sideMax]
     
-    for (i in seq_along(candidateSides)) {
+    adequateNRowBlockFound <- FALSE
+    i <- 0
+    while(!adequateNRowBlockFound && i < length(candidateSides)) {
+        i <- i+1
         nRowBlock <- ceiling(nRows/candidateSides[i])
         blocks2D <- .generateBlocks2D(
             rowRange, 
@@ -360,12 +367,13 @@ EMDDist <- function(
         
         if (nbInMem <= memSize && length(blocks2D) >= nCores) {
             #  memory threshold and suitable minimum nb of tasks reached
-            break
+            adequateNRowBlockFound <- TRUE
         }
     }
-    # note if the previous loop was not broken, this means
-    # that finally each task will only compute one distance, and there are
-    # not enough distances to compute to fill the nb of cores
+    
+    # note if the previous loop ended because i > length(candidateSides), 
+    # this means that finally each task will only compute one distance, 
+    # and there are not enough distances to compute to fill the nb of cores
     
     nRowBlock
 }
@@ -455,8 +463,6 @@ EMDDist <- function(
     # generate blocks to be run in one go
     nAvailableCores <- BiocParallel::bpworkers(BPPARAM) 
     
-    #browser()
-    
     # calculate the block2D task allocations
     nRowBlock <- .optimizeRowBlockNb(
         rowRange = rowRange,
@@ -502,8 +508,6 @@ EMDDist <- function(
             channels,
             breaks,
             verbose) {
-            
-            #browser()
             
             distrs <- lapply(
                 block,
@@ -590,8 +594,6 @@ EMDDist <- function(
             breaks,
             distrs,
             verbose) {
-            
-            #browser()
             
             rowSeq <- seq(block$rowMin, block$rowMax)
             colSeq <- seq(block$colMin, block$colMax)
@@ -730,6 +732,7 @@ EMDDist <- function(
             }
             
             # apply symmetry for block elements that are in the lower triangle
+            
             for (i in seq_along(rowSeq)) {
                 for (j in seq_along(colSeq)) {
                     if (colSeq[j] < rowSeq[i]) {
@@ -753,11 +756,11 @@ EMDDist <- function(
     }
     
     # sort out all block results to create one single matrix
-    #browser()
     nRows <- rowRange[2] - rowRange[1] + 1
     nCols <- colRange[2] - colRange[1] + 1
     
     pwDist <- matrix(rep(0., nRows*nCols), nrow = nRows)
+    
     for (b in seq_along(blocks2D)){
         block <- blocks2D[[b]]
         for (i in seq(block$rowMin, block$rowMax))
@@ -768,6 +771,7 @@ EMDDist <- function(
     # apply symmetry for lower triangular blocks
     rowSeq <- seq(rowRange[1], rowRange[2])
     colSeq <- seq(colRange[1], colRange[2])
+    
     for (i in seq_along(rowSeq)) {
         for (j in seq_along(colSeq)){
             if (colSeq[j] < rowSeq[i]) {
@@ -943,21 +947,25 @@ pairwiseEMDDist <- function(
     
     # chooses a display name for each channel:
     # markerName if not NA, otherwise channelName
-    
-    #browser()
-    
-    channelNames <- channels
-    for (i in seq_along(channels)) {
-        channelMarker <- flowCore::getChannelMarker(ff, channels[i])$desc
-        if (!is.null(channelMarker) && !is.na(channelMarker)){
-            channelNames[i] <- channelMarker
-        }
-    }
+    channelNames <- vapply(
+        channels,
+        FUN = function(ch, ff) {
+            channelMarker <- flowCore::getChannelMarker(ff, ch)$desc
+            if (!is.null(channelMarker) && !is.na(channelMarker)){
+                channelNames <- channelMarker
+            } else {
+                channelNames <- ch
+            }
+        },
+        FUN.VALUE = character(1),
+        ff = ff
+    )
 
     nChannels <- length(channels)
     nStats <- length(statFUNList)
     
     statMatrix <- matrix(rep(0., nStats * nChannels), nrow = nStats)
+    
     
     for (fu in seq_along(statFUNList)) {
         if (verbose) {
@@ -993,7 +1001,6 @@ pairwiseEMDDist <- function(
         BPPARAM = BiocParallel::SerialParam(),
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore"))) {
-    #browser()
     
     if (!is.numeric(nSamples) || nSamples < 1) {
         stop("nSamples should be a numeric >= 1")
@@ -1014,8 +1021,6 @@ pairwiseEMDDist <- function(
     names(statFUNList) <- names(statFUNs)
     
     nAvailableCores <- BiocParallel::bpworkers(BPPARAM) 
-    
-    #browser()
     
     if (verbose){
         message("Loading flow frames and calculate stats...")
@@ -1040,8 +1045,6 @@ pairwiseEMDDist <- function(
         channels,
         statFUNList,
         verbose) {
-        
-        #browser()
         
         statMatList <- lapply(
             block,
@@ -1115,8 +1118,6 @@ pairwiseEMDDist <- function(
         channels = channels,
         statFUNList = statFUNList,
         verbose = verbose)
-    
-    #browser()
     
     # rearrange outputs
     
@@ -1247,8 +1248,6 @@ channelSummaryStats <- function(
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore"))){
     
-    #browser()
-    
     nSamples <- NULL
     inMemory <- FALSE
     
@@ -1271,7 +1270,6 @@ channelSummaryStats <- function(
             BPOPTIONS = BPOPTIONS)
         
         # set flowframe names to returned matrix(ces)
-        #browser()
         if (is.list(chStats)) {
             chStats <- lapply(chStats, FUN = function(e, fs){
                 rownames(e) <- flowCore::sampleNames(fs)
@@ -1420,8 +1418,6 @@ computeMetricMDS <- function(
         targetPseudoRSq = 0.95,
         maxDim = 128,
         ...){
-        
-    #browser()
     
     if (inherits(pwDist, "dist")) {
         pwDist <- as.matrix(pwDist)
@@ -1622,15 +1618,25 @@ computeMetricMDSBiplot <- function(
         FUN = myFunc
     )
     
-    for (j in which(!validExtVar)) {
-        warning("external variable ", 
-                colnames(extVariables)[j], 
-                " is constant => discarded")
+    warningMessages <- vapply(
+        which(!validExtVar),
+        FUN = function(j, extVariableNames){
+            warnMsg <- paste0(
+                "external variable ", 
+                extVariableNames[j], 
+                " is constant => discarded") 
+            warnMsg
+        },
+        FUN.VALUE = character(1),
+        extVariableNames = colnames(extVariables)
+    )
+    
+    if (length(warningMessages) > 0) {
+        warning(warningMessages)
     }
     
     ext <- scale(extVariables, scale = TRUE)
     
-    #browser()
     nReg <- ncol(extVariables)
     
     coefficients <- matrix(data = rep(NA_real_, 2*nReg),
@@ -1638,28 +1644,37 @@ computeMetricMDSBiplot <- function(
     colnames(coefficients) <- colnames(ext)
     R2vec <- rep(NA_real_, nReg)
     names(R2vec) <- colnames(ext)
-    #browser()
-    for (j in seq_len(nReg)) {
-        if (validExtVar[j]) {
+    
+    regOutputs <- lapply(
+        which(validExtVar),
+        FUN = function(j, ext, mat) {
             thisExt <- ext[,j]
-            thisX <- X
+            thisX <- mat
             
             # keep only rows for which extVariable is not NA
             naIndices <- which(is.na(thisExt))
             if (length(naIndices) > 0) {
                 thisExt <- thisExt[-naIndices]
-                thisX <- X[-naIndices,]
+                thisX <- mat[-naIndices,]
             }
             
             regfit <- lm(thisExt ~ -1 + thisX)
-            coefficients[, j] <- regfit$coefficients
-            
             regsum <- summary(regfit)
-            R2vec[j] <- regsum$r.squared
-        } else {
-            
-        }
-    }
+            return(list(coefficients = regfit$coefficients,
+                        R2 = regsum$r.squared))
+        },
+        ext = ext,
+        mat = X
+    )
+    # invert list hierarchy and simplify to array
+    regOutputs <- do.call(function(...) Map(list, ...), regOutputs) 
+    regOutputs <- lapply(regOutputs, FUN = simplify2array) 
+                        
+    
+    coefficients[, which(validExtVar)] <- 
+        regOutputs$coefficients
+    R2vec[which(validExtVar)] <- 
+        regOutputs$R2
     
     # calculate Pearson correlations
     # when there are NA's, use complete pairs only

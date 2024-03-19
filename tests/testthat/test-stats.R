@@ -600,7 +600,7 @@ test_that("channelSummaryStats works", {
         fsAll,
         channels = channelsOrMarkers,
         statFUNs = stats::median,
-        verbose = FALSE)
+        verbose = TRUE)
     
     expect_equal(unname(rownames(ret)), flowCore::sampleNames(fsAll))
     expect_equal(unname(colnames(ret)), channelsOrMarkers)
