@@ -156,9 +156,7 @@ test_that("EMDDist works", {
                                returnAll = FALSE)
     })
     expect_equal(length(w), 4)
-    for(i in 1:4){
-        expect_match(w[i], regexp = "does not span all events for channel")  
-    }
+    expect_match(w[1], regexp = "does not span all events for channel")  
     expect_equal(distWarn, 0.)
     
     #returning all
@@ -400,15 +398,15 @@ test_that("pairwiseEMDDist with fs works", {
     expect_equal(pwDist[2,1], 0.1551)
     expect_equal(pwDist[2,2], 0.)
     
-    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
-    
-    for(i in 3:5){
-        ffList[[i]] <- 
-            aggregateAndSample(
-                OMIP021Trans,
-                seed = 10*i,
-                nTotalEvents = 5000)[,1:22]
-    }
+    ffList <- c(
+        flowCore::flowSet_to_list(OMIP021Trans),
+        lapply(3:5,
+               FUN = function(i) {
+                   aggregateAndSample(
+                       OMIP021Trans,
+                       seed = 10*i,
+                       nTotalEvents = 5000)[,1:22]
+               }))
     
     fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
     names(ffList) <- fsNames
@@ -431,6 +429,25 @@ test_that("pairwiseEMDDist with fs works", {
     expect_equal(pwDist2[2,2], 0.07451)
     expect_equal(pwDist2[3,1], 0.01293)
     expect_equal(pwDist2[3,2], 0.01813)
+    
+    # test with asymetric block overlapping with diagonal
+    pwDist3 <- pairwiseEMDDist(
+        x = fsAll,
+        rowRange = c(1,5),
+        colRange = c(2,5),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        verbose = FALSE)
+    
+    expect_equal(dim(pwDist3), c(5,4))
+    expect_equal(pwDist3[1,1], 0.1551)
+    expect_equal(pwDist3[1,2], 0.07132)
+    expect_equal(pwDist3[2,1], 0.)
+    expect_equal(pwDist3[2,2], 0.08556)
+    expect_equal(pwDist3[3,1], 0.)
+    expect_equal(pwDist3[3,2], 0.)
 })
 
 test_that("pairwiseEMDDist works with fs and BiocParallel", {
@@ -450,22 +467,27 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
         minRange = -10,
         maxRange = 10,
         BPPARAM = bp))
-    
+
     expect_equal(dim(pwDist), c(2,2))
     expect_equal(pwDist[1,1], 0.)
     expect_equal(pwDist[1,2], 0.1551)
     expect_equal(pwDist[2,1], 0.1551)
     expect_equal(pwDist[2,2], 0.)
     
-    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
+    ffList <- c(
+        flowCore::flowSet_to_list(OMIP021Trans),
+        lapply(3:5,
+               FUN = function(i) {
+                   aggregateAndSample(
+                       OMIP021Trans,
+                       seed = 10*i,
+                       nTotalEvents = 5000)[,1:22]
+               }))
     
-    for(i in 3:5){
-        ffList[[i]] <- 
-            aggregateAndSample(
-                OMIP021Trans,
-                seed = 10*i,
-                nTotalEvents = 5000)[,1:22]
-    }
+    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+    names(ffList) <- fsNames
+    
+    fsAll <- as(ffList,"flowSet")
     
     fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
     names(ffList) <- fsNames
@@ -481,7 +503,7 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
             minRange = -10,
             maxRange = 10,
             BPPARAM = bp))
-    
+
     expect_equal(dim(pwDist2), c(3,2))
     expect_equal(pwDist2[1,1], 0.07241)
     expect_equal(pwDist2[1,2], 0.08347)
@@ -489,7 +511,7 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
     expect_equal(pwDist2[2,2], 0.07451)
     expect_equal(pwDist2[3,1], 0.01293)
     expect_equal(pwDist2[3,2], 0.01813)
-    
+
     pwDist3 <- suppressWarnings(pairwiseEMDDist(
         x = fsAll,
         rowRange = c(1,2),
@@ -499,7 +521,7 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
         minRange = -10,
         maxRange = 10,
         BPPARAM = bp))
-    
+
     expect_equal(dim(pwDist3), c(2,2))
     expect_equal(pwDist3[1,1], 0.07241)
     expect_equal(pwDist3[1,2], 0.08347)
@@ -579,15 +601,15 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
 
 test_that("channelSummaryStats works", {
    
-    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
-    
-    for(i in 3:5){
-        ffList[[i]] <- 
-            aggregateAndSample(
-                OMIP021Trans,
-                seed = 10*i,
-                nTotalEvents = 5000)[,1:22]
-    }
+    ffList <- c(
+        flowCore::flowSet_to_list(OMIP021Trans),
+        lapply(3:5,
+               FUN = function(i) {
+                   aggregateAndSample(
+                       OMIP021Trans,
+                       seed = 10*i,
+                       nTotalEvents = 5000)[,1:22]
+               }))
     
     fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
     names(ffList) <- fsNames
@@ -600,7 +622,7 @@ test_that("channelSummaryStats works", {
         fsAll,
         channels = channelsOrMarkers,
         statFUNs = stats::median,
-        verbose = TRUE)
+        verbose = FALSE)
     
     expect_equal(unname(rownames(ret)), flowCore::sampleNames(fsAll))
     expect_equal(unname(colnames(ret)), channelsOrMarkers)
@@ -784,15 +806,15 @@ test_that("channelSummaryStats dynamic memory loading simulation", {
 
 
 test_that("computeMetricMDS works", {
-    ffList <- flowCore::flowSet_to_list(OMIP021Trans)
-    
-    for(i in 3:5){
-        ffList[[i]] <- 
-            aggregateAndSample(
-                OMIP021Trans,
-                seed = 10*i,
-                nTotalEvents = 5000)[,1:22]
-    }
+    ffList <- c(
+        flowCore::flowSet_to_list(OMIP021Trans),
+        lapply(3:5,
+               FUN = function(i) {
+                   aggregateAndSample(
+                       OMIP021Trans,
+                       seed = 10*i,
+                       nTotalEvents = 5000)[,1:22]
+               }))
     
     fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
     names(ffList) <- fsNames

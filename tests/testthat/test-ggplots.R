@@ -28,18 +28,20 @@ OMIP021Trans <- CytoPipeline::applyScaleTransforms(
     OMIP021Samples, 
     transList)
 
-ffList <- flowCore::flowSet_to_list(OMIP021Trans)
-
-for(i in 3:5){
-    ffList[[i]] <- 
-        aggregateAndSample(
-            OMIP021Trans,
-            seed = 10*i,
-            nTotalEvents = 5000)[,1:22]
-}
+ffList <- c(
+    flowCore::flowSet_to_list(OMIP021Trans),
+    lapply(3:5,
+           FUN = function(i) {
+               aggregateAndSample(
+                   OMIP021Trans,
+                   seed = 10*i,
+                   nTotalEvents = 5000)[,1:22]
+           }))
 
 fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
 names(ffList) <- fsNames
+
+fsAll <- as(ffList,"flowSet")
 
 fsAll <- as(ffList,"flowSet")
 

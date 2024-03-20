@@ -304,6 +304,8 @@ EMDDist <- function(
                                   labels = FALSE))
     }
     
+    # count nb of 2D blocks that contain upper triangle data (to compute)
+    # in order to be able to pre-allocate memory of blocks2D list
     nBlocks2D <- 0
     for (j in seq_along(blocks1DRows)) {
         for (k in seq_along(blocks1DCols)) {
@@ -313,17 +315,21 @@ EMDDist <- function(
         }
     }
     
-    blocks2D <- vector("list", length = nBlocks2D)
+    # allocate blocks2D memory
+    blocks2D <- 
+        replicate(nBlocks2D, 
+                  list(rowMin = 0, rowMax = 0, colMin = 0, colMax = 0), 
+                  simplify = FALSE)
+    
     iBlocks2D <- 0
     for (j in seq_along(blocks1DRows)) {
         for (k in seq_along(blocks1DCols)) {
             if (blocks1DRows[[j]][1] < max(blocks1DCols[[k]])) {
                 iBlocks2D <- iBlocks2D+1
-                blocks2D[[iBlocks2D]] <- 
-                    list(rowMin = blocks1DRows[[j]][1],
-                         rowMax = max(blocks1DRows[[j]]),
-                         colMin = blocks1DCols[[k]][1],
-                         colMax = max(blocks1DCols[[k]]))
+                blocks2D[[iBlocks2D]]$rowMin <- blocks1DRows[[j]][1]
+                blocks2D[[iBlocks2D]]$rowMax <- max(blocks1DRows[[j]])
+                blocks2D[[iBlocks2D]]$colMin <- blocks1DCols[[k]][1]
+                blocks2D[[iBlocks2D]]$colMax <- max(blocks1DCols[[k]])
             }
         }
     }
@@ -598,43 +604,51 @@ EMDDist <- function(
             distrs,
             verbose) {
             
+            #browser()
+        
             rowSeq <- seq(block$rowMin, block$rowMax)
             colSeq <- seq(block$colMin, block$colMax)
             nRows <- length(rowSeq)
             nCols <- length(colSeq)
-            ffIndexes <- union(rowSeq, colSeq)
             
-            pwDist <- matrix(rep(0., nRows * nCols),
-                             nrow = nRows)
+            pwDistMat <- vapply(
+                seq_along(colSeq),
+                FUN = function(j) {
+                    pwDistCol <- vapply(
+                        seq_along(rowSeq),
+                        FUN = function(i) {
+                            if (colSeq[j] > rowSeq[i]) {
+                                pwDist <- sum(.distFromUnidimHistograms(
+                                    breaks = breaks,
+                                    distr1 =
+                                        distrs[[which(
+                                            rowColSeqUnion == rowSeq[i])]],
+                                    distr2 =
+                                        distrs[[which(
+                                            rowColSeqUnion == colSeq[j])]]))
+                                if (verbose) {
+                                    message(
+                                        "i = ", rowSeq[i],
+                                        "; j = ", colSeq[j],
+                                        "; dist = ", round(pwDist[i,j], 12))
+                                }
+                            } else {
+                                pwDist <- 0.
+                            }
+                            pwDist
+                        },
+                        FUN.VALUE = numeric(1))
+                    pwDistCol
+                },
+                FUN.VALUE = numeric(nRows)
+            )
             
-            for (i in seq_along(rowSeq)) {
-                for (j in seq_along(colSeq)) {
-                    if (colSeq[j] > rowSeq[i]) {
-                        pwDist[i,j] <- sum(.distFromUnidimHistograms(
-                            breaks = breaks,
-                            distr1 = 
-                                distrs[[which(rowColSeqUnion == rowSeq[i])]],
-                            distr2 = 
-                                distrs[[which(rowColSeqUnion == colSeq[j])]]))
-                        if (verbose) {
-                            message(
-                                "i = ", rowSeq[i], 
-                                "; j = ", colSeq[j], 
-                                "; dist = ", round(pwDist[i,j], 12)) 
-                        }
-                    }
-                }
+            # in case nRows is equal to 1, matrix is 'dropped' to vector
+            if (!is.matrix(pwDistMat)) {
+                pwDistMat <- matrix(pwDistMat, nrow = nRows)
             }
-            
-            # apply symmetry for block elements that are in the lower triangle
-            for (i in seq_along(rowSeq)) {
-                for (j in seq_along(colSeq)) {
-                    if (colSeq[j] < rowSeq[i]) {
-                        pwDist[i,j] <- pwDist[j,i]
-                    }
-                }
-            }
-            pwDist
+
+            pwDistMat
         } 
         
         pwDistByBlock <- BiocParallel::bplapply(
@@ -696,41 +710,45 @@ EMDDist <- function(
                 channels = channels, 
                 verbose = verbose
             )
-                
-                                
             
-            pwDist <- matrix(rep(0., nRows * nCols),
-                             nrow = nRows)
+            pwDistMat <- vapply(
+                seq_along(colSeq),
+                FUN = function(j) {
+                    pwDistCol <- vapply(
+                        seq_along(rowSeq),
+                        FUN = function(i) {
+                            if (colSeq[j] > rowSeq[i]) {
+                                pwDist <- EMDDist(
+                                    ff1 = ffList[[
+                                        which(ffIndexes == rowSeq[i])]],
+                                    ff2 = ffList[[
+                                        which(ffIndexes == colSeq[j])]],
+                                    channels = channels,
+                                    checkChannels = FALSE) 
+                                        
+                                if (verbose) {
+                                    message(
+                                        "i = ", rowSeq[i],
+                                        "; j = ", colSeq[j],
+                                        "; dist = ", round(pwDist[i,j], 12))
+                                }
+                            } else {
+                                pwDist <- 0.
+                            }
+                            pwDist
+                        },
+                        FUN.VALUE = numeric(1))
+                    pwDistCol
+                },
+                FUN.VALUE = numeric(nRows)
+            )
             
-            for (i in seq_along(rowSeq)) {
-                for (j in seq_along(colSeq)) {
-                    if (colSeq[j] > rowSeq[i]) {
-                        pwDist[i,j] <- 
-                            EMDDist(
-                                ff1 = ffList[[which(ffIndexes == rowSeq[i])]],
-                                ff2 = ffList[[which(ffIndexes == colSeq[j])]],
-                                channels = channels,
-                                checkChannels = FALSE) 
-                        if (verbose) {
-                            message(
-                                "i = ", rowSeq[i], 
-                                "; j = ", colSeq[j], 
-                                "; dist = ", round(pwDist[i,j], 12)) 
-                        }
-                    }
-                }
+            # in case nRows is equal to 1, matrix is 'dropped' to vector
+            if (!is.matrix(pwDistMat)) {
+                pwDistMat <- matrix(pwDistMat, nrow = nRows)
             }
             
-            # apply symmetry for block elements that are in the lower triangle
-            
-            for (i in seq_along(rowSeq)) {
-                for (j in seq_along(colSeq)) {
-                    if (colSeq[j] < rowSeq[i]) {
-                        pwDist[i,j] <- pwDist[j,i]
-                    }
-                }
-            }
-            pwDist
+            pwDistMat
         }
         
         pwDistByBlock <- BiocParallel::bplapply(
@@ -745,7 +763,7 @@ EMDDist <- function(
         
     }
     
-    # sort out all block results to create one single matrix
+    # re-arrange block results to create one single matrix
     nRows <- rowRange[2] - rowRange[1] + 1
     nCols <- colRange[2] - colRange[1] + 1
     
@@ -753,25 +771,31 @@ EMDDist <- function(
     
     for (b in seq_along(blocks2D)){
         block <- blocks2D[[b]]
-        for (i in seq(block$rowMin, block$rowMax))
-            for (j in seq(block$colMin, block$colMax))
-                pwDist[i-rowRange[1]+1,j-colRange[1]+1] <- 
-                    pwDistByBlock[[b]][i-block$rowMin+1,j-block$colMin+1]
-    }
-    # apply symmetry for lower triangular blocks
-    rowSeq <- seq(rowRange[1], rowRange[2])
-    colSeq <- seq(colRange[1], colRange[2])
-    
-    for (i in seq_along(rowSeq)) {
-        for (j in seq_along(colSeq)){
-            if (colSeq[j] < rowSeq[i]) {
-                pwDist[i,j] <- pwDist[j,i]
+        for (i in seq(block$rowMin, block$rowMax)) {
+            for (j in seq(block$colMin, block$colMax)) {
+                pwDist[i - rowRange[1] + 1, j - colRange[1] + 1] <- 
+                    pwDistByBlock[[b]][i - block$rowMin + 1,
+                                       j - block$colMin + 1]
             }
         }
     }
     
+    rowSeq <- seq(rowRange[1], rowRange[2])
+    colSeq <- seq(colRange[1], colRange[2])
+    
     rownames(pwDist) <- rowSeq
     colnames(pwDist) <- colSeq
+    
+    # apply symmetry for lower triangular part of matrix 
+    # NOTE we do it only if rowSeq is identical to colSeq. 
+    # If not, it means we are working on a not symmetrical block, 
+    # hence we might not have the info at our disposal to fill in the parts 
+    # that belong to the low triangle of the distance matrix.
+
+    if (rowRange[1] == colRange[1] && rowRange[2] == colRange[[2]]) {
+        pwDist <- pwDist + t(pwDist)      
+    }
+    
     return(pwDist)
 }
 
@@ -983,31 +1007,6 @@ pairwiseEMDDist <- function(
     
     statList
         
-    # statMatrix <- matrix(rep(0., nStats * nChannels), nrow = nStats)
-    # 
-    # 
-    # 
-    # for (fu in seq_along(statFUNList)) {
-    #     if (verbose) {
-    #         message(
-    #             "computing statistical function ", fu,
-    #             " per channel...")
-    #     }
-    #     statMatrix[fu,] <- vapply(
-    #         channels,
-    #         FUN = function(ch){
-    #             statFUNList[[fu]](
-    #             flowCore::exprs(ff)[, ch, drop = FALSE],
-    #             na.rm = TRUE)
-    #         },
-    #         FUN.VALUE = 0.)
-    # }
-    # 
-    # colnames(statMatrix) <- channelNames
-    # rownames(statMatrix) <- names(statFUNList)
-    # 
-    # 
-    # statMatrix
 }
 
 # internal function for summary stats calculation
@@ -1136,29 +1135,7 @@ pairwiseEMDDist <- function(
                           rownames(X) <- NULL
                           X})
     
-    # nCh <- ncol(statMatBlockList[[1]][[1]])
-    # 
-    # chStats <- lapply(
-    #     seq_along(statFUNs),
-    #     FUN = function(s, statMatBlockList, nSamples, nCh){
-    #         chOneStat <- matrix(data = rep(0., nSamples * nCh), nrow = nSamples)
-    #         colnames(chOneStat) <- colnames(statMatBlockList[[1]][[1]])
-    #         ind <- 0
-    #         for (b in seq_along(statMatBlockList)) {
-    #             for (f in seq_along(statMatBlockList[[b]])) {
-    #                 ind <- ind + 1
-    #                 chOneStat[ind,] <- 
-    #                     statMatBlockList[[b]][[f]][s,]
-    #             }
-    #         }
-    #         chOneStat
-    #     },
-    #     statMatBlockList = statMatBlockList,
-    #     nSamples = nSamples,
-    #     nCh = nCh
-    # )
-    # names(chStats) <- names(statFUNs)
-    # 
+    
     # if only one stat function => unlist to return one single matrix
     if (nStats == 1 && !is.list(statFUNs)){
         chStats <- chStats[[1]]
@@ -1391,23 +1368,24 @@ channelSummaryStats <- function(
 #'     OMIP021Samples, 
 #'     transList)
 #'     
-#' ffList <- flowCore::flowSet_to_list(OMIP021Trans)
-#' 
 #' # As there are only 2 samples in OMIP021Samples dataset,
 #' # we create artificial samples that are random combinations of both samples
 #' 
-#' for(i in 3:5){
-#'     ffList[[i]] <- 
-#'         CytoPipeline::aggregateAndSample(
-#'             OMIP021Trans,
-#'             seed = 10*i,
-#'             nTotalEvents = 5000)[,1:22]
-#' }
+#' ffList <- c(
+#'     flowCore::flowSet_to_list(OMIP021Trans),
+#'     lapply(3:5,
+#'            FUN = function(i) {
+#'                aggregateAndSample(
+#'                    OMIP021Trans,
+#'                    seed = 10*i,
+#'                    nTotalEvents = 5000)[,1:22]
+#'            }))
 #' 
 #' fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
 #' names(ffList) <- fsNames
 #' 
 #' fsAll <- as(ffList,"flowSet")
+#' 
 #' flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
 #' flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
 #' 
