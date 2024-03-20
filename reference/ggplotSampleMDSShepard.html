@@ -25,7 +25,7 @@ low dimensional projection
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.13</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.14</span>
       </span>
     </div>
 
@@ -136,23 +136,21 @@ of nb of dimensions</p></dd>
 <span class="r-in"><span>    <span class="va">OMIP021Samples</span>, </span></span>
 <span class="r-in"><span>    <span class="va">transList</span><span class="op">)</span></span></span>
 <span class="r-in"><span>    </span></span>
-<span class="r-in"><span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu">flowCore</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/flowCore/man/flowSet_to_list.html" class="external-link">flowSet_to_list</a></span><span class="op">(</span><span class="va">OMIP021Trans</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># As there are only 2 samples in OMIP021Samples dataset,</span></span></span>
-<span class="r-in"><span><span class="co"># we create artificial samples that are random combinations of both samples</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">3</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">{</span></span></span>
-<span class="r-in"><span>    <span class="va">ffList</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> </span></span>
-<span class="r-in"><span>        <span class="fu">CytoPipeline</span><span class="fu">::</span><span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/aggregateAndSample.html" class="external-link">aggregateAndSample</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>            <span class="va">OMIP021Trans</span>,</span></span>
-<span class="r-in"><span>            seed <span class="op">=</span> <span class="fl">10</span><span class="op">*</span><span class="va">i</span>,</span></span>
-<span class="r-in"><span>            nTotalEvents <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">22</span><span class="op">]</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="va">ffList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="fu">flowCore</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/flowCore/man/flowSet_to_list.html" class="external-link">flowSet_to_list</a></span><span class="op">(</span><span class="va">OMIP021Trans</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">3</span><span class="op">:</span><span class="fl">5</span>,</span></span>
+<span class="r-in"><span>           FUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>               <span class="fu"><a href="https://uclouvain-cbio.github.io/CytoPipeline/reference/aggregateAndSample.html" class="external-link">aggregateAndSample</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>                   <span class="va">OMIP021Trans</span>,</span></span>
+<span class="r-in"><span>                   seed <span class="op">=</span> <span class="fl">10</span><span class="op">*</span><span class="va">i</span>,</span></span>
+<span class="r-in"><span>                   nTotalEvents <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">22</span><span class="op">]</span></span></span>
+<span class="r-in"><span>           <span class="op">}</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">fsNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Donor1"</span>, <span class="st">"Donor2"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Agg"</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">ffList</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">fsNames</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">fsAll</span> <span class="op">&lt;-</span> <span class="fu">as</span><span class="op">(</span><span class="va">ffList</span>,<span class="st">"flowSet"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">flowCore</span><span class="fu">::</span><span class="fu">pData</span><span class="op">(</span><span class="va">fsAll</span><span class="op">)</span><span class="op">$</span><span class="va">type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"real"</span>, <span class="st">"real"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"synthetic"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">flowCore</span><span class="fu">::</span><span class="fu">pData</span><span class="op">(</span><span class="va">fsAll</span><span class="op">)</span><span class="op">$</span><span class="va">grpId</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"D1"</span>, <span class="st">"D2"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Agg"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>

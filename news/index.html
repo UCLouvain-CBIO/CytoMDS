@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.13</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.14</span>
       </span>
     </div>
 
@@ -54,11 +54,15 @@
 <h2 class="page-header" data-toc-text="0.99" id="cytomds-099">CytoMDS 0.99<a class="anchor" aria-label="anchor" href="#cytomds-099"></a></h2>
 <p>(Prior to Bioconductor submission)</p>
 <div class="section level3">
-<h3 id="cytomds-0-99">CytoMDS 0.99.13<a class="anchor" aria-label="anchor" href="#cytomds-0-99"></a></h3>
+<h3 id="cytomds-0-99">CytoMDS 0.99.14<a class="anchor" aria-label="anchor" href="#cytomds-0-99"></a></h3>
+<ul><li>re-factored code portions to replace, as much as possible, for loops by <code><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply()</a></code> family of functions.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="cytomds-0-99-1">CytoMDS 0.99.13<a class="anchor" aria-label="anchor" href="#cytomds-0-99-1"></a></h3>
 <ul><li>re-factored code portions to avoid growing lists incrementally</li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-1">CytoMDS 0.99.12<a class="anchor" aria-label="anchor" href="#cytomds-0-99-1"></a></h3>
+<h3 id="cytomds-0-99-2">CytoMDS 0.99.12<a class="anchor" aria-label="anchor" href="#cytomds-0-99-2"></a></h3>
 <ul><li>removed <code>useBiocParallel</code> parameters from various stats functions (use BPPARAM = BiocParallel::SerialParam() as a default)</li>
 <li>implemented <code>MDS</code> class to store MDS projection results</li>
 <li>bi-plots now explicitly discard constant external variables (+warning) instead of raising an error without producing a plot</li>
@@ -67,19 +71,19 @@
 <li>updated vignette with <em>Bodenmiller2012</em> dataset and more biological interpretation.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-2">CytoMDS 0.99.11<a class="anchor" aria-label="anchor" href="#cytomds-0-99-2"></a></h3>
+<h3 id="cytomds-0-99-3">CytoMDS 0.99.11<a class="anchor" aria-label="anchor" href="#cytomds-0-99-3"></a></h3>
 <ul><li>re-factored package documentation file</li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-3">CytoMDS 0.99.10<a class="anchor" aria-label="anchor" href="#cytomds-0-99-3"></a></h3>
+<h3 id="cytomds-0-99-4">CytoMDS 0.99.10<a class="anchor" aria-label="anchor" href="#cytomds-0-99-4"></a></h3>
 <ul><li>biplot now handles extVariables with missing values</li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-4">CytoMDS 0.99.9<a class="anchor" aria-label="anchor" href="#cytomds-0-99-4"></a></h3>
+<h3 id="cytomds-0-99-5">CytoMDS 0.99.9<a class="anchor" aria-label="anchor" href="#cytomds-0-99-5"></a></h3>
 <ul><li>in <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> : add label layer after <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> (no more before)</li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-5">CytoMDS 0.99.8<a class="anchor" aria-label="anchor" href="#cytomds-0-99-5"></a></h3>
+<h3 id="cytomds-0-99-6">CytoMDS 0.99.8<a class="anchor" aria-label="anchor" href="#cytomds-0-99-6"></a></h3>
 <ul><li>renamed <code>getChannelSummaryStats()</code> into <code><a href="../reference/channelSummaryStats.html">channelSummaryStats()</a></code>
 </li>
 <li>in <code>channelSummaryStats(), added support for</code>BiocParallel`, and allowed for not loading the whole flowSet in memory at once.</li>
@@ -91,22 +95,22 @@
 <li>finalized creating vignette</li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-6">CytoMDS 0.99.7<a class="anchor" aria-label="anchor" href="#cytomds-0-99-6"></a></h3>
+<h3 id="cytomds-0-99-7">CytoMDS 0.99.7<a class="anchor" aria-label="anchor" href="#cytomds-0-99-7"></a></h3>
 <ul><li>refactored the pairwise distance calculation code, by pre-computing the unidimensional histograms and store them instead of recalculating them each time a distance between 2 samples is calculated. This improves CPU time and memory consumption.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-7">CytoMDS 0.99.6<a class="anchor" aria-label="anchor" href="#cytomds-0-99-7"></a></h3>
+<h3 id="cytomds-0-99-8">CytoMDS 0.99.6<a class="anchor" aria-label="anchor" href="#cytomds-0-99-8"></a></h3>
 <ul><li>added <code>subset</code> argument in <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> and <code>ggplotSampleMDSWrapBiplots</code>
 </li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-8">CytoMDS 0.99.5<a class="anchor" aria-label="anchor" href="#cytomds-0-99-8"></a></h3>
+<h3 id="cytomds-0-99-9">CytoMDS 0.99.5<a class="anchor" aria-label="anchor" href="#cytomds-0-99-9"></a></h3>
 <ul><li>renamed <code>getPairwiseEMDDist()</code> into <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code>
 </li>
 <li>in <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code>, added support for <code>BiocParallel</code>, and allowed for not loading the whole flowSet in memory at once.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-9">CytoMDS 0.99.4<a class="anchor" aria-label="anchor" href="#cytomds-0-99-9"></a></h3>
+<h3 id="cytomds-0-99-10">CytoMDS 0.99.4<a class="anchor" aria-label="anchor" href="#cytomds-0-99-10"></a></h3>
 <ul><li>in <code>getPairwiseEMDDist()</code>, added a second flowSet argument. When the two flowSet arguments are non-null, distances are calculated for all sample pairs, where the first element comes from <code>fs</code>, and the second element comes from <code>fs2</code>.</li>
 <li>renamed <code>ggplotSamplesMDS</code> into <code>ggplotSampleMDS</code>
 </li>
@@ -118,7 +122,7 @@
 </li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-10">CytoMDS 0.99.3<a class="anchor" aria-label="anchor" href="#cytomds-0-99-10"></a></h3>
+<h3 id="cytomds-0-99-11">CytoMDS 0.99.3<a class="anchor" aria-label="anchor" href="#cytomds-0-99-11"></a></h3>
 <ul><li>new version of computeMetricMDS() which automatically sets the number of dimensions to reach a target <em>pseudo R squared</em>
 </li>
 <li>added ggplotly() functionality for output MDS plots</li>
@@ -127,12 +131,12 @@
 <li>in <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> and <code><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard()</a></code>: added <code>displayPseudoRSq</code> parameter.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-11">CytoMDS 0.99.2<a class="anchor" aria-label="anchor" href="#cytomds-0-99-11"></a></h3>
+<h3 id="cytomds-0-99-12">CytoMDS 0.99.2<a class="anchor" aria-label="anchor" href="#cytomds-0-99-12"></a></h3>
 <ul><li>use global Rsquare as an indicator of quality of projection</li>
 <li>use %Var explained per axis</li>
 </ul></div>
 <div class="section level3">
-<h3 id="cytomds-0-99-12">CytoMDS 0.99.1<a class="anchor" aria-label="anchor" href="#cytomds-0-99-12"></a></h3>
+<h3 id="cytomds-0-99-13">CytoMDS 0.99.1<a class="anchor" aria-label="anchor" href="#cytomds-0-99-13"></a></h3>
 <ul><li>in <code>ggplotSamplesMDS()</code>, added parameter <code>pDataForAdditionalLabelling</code>
 </li>
 </ul></div>
