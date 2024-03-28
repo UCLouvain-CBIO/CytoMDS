@@ -448,6 +448,30 @@ test_that("pairwiseEMDDist with fs works", {
     expect_equal(pwDist3[2,2], 0.08556)
     expect_equal(pwDist3[3,1], 0.)
     expect_equal(pwDist3[3,2], 0.)
+    
+    # with verbose
+    msg <- capture_messages(pwDist4 <- pairwiseEMDDist(
+        x = fsAll,
+        rowRange = c(1,5),
+        colRange = c(2,5),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        verbose = TRUE))
+    
+    expect_equal(length(msg), 22)
+    expect_equal(msg[5], "Calculating histogram for file 2...\n")
+    expect_equal(msg[10], "Loading file 5...\n")
+    expect_equal(msg[21], "i = 3; j = 5; dist = 0.01813\n")
+    
+    expect_equal(dim(pwDist4), c(5,4))
+    expect_equal(pwDist4[1,1], 0.1551)
+    expect_equal(pwDist4[1,2], 0.07132)
+    expect_equal(pwDist4[2,1], 0.)
+    expect_equal(pwDist4[2,2], 0.08556)
+    expect_equal(pwDist4[3,1], 0.)
+    expect_equal(pwDist4[3,2], 0.)
 })
 
 test_that("pairwiseEMDDist works with fs and BiocParallel", {

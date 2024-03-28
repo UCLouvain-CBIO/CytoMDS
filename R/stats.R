@@ -630,7 +630,7 @@ EMDDist <- function(
                                     message(
                                         "i = ", rowSeq[i],
                                         "; j = ", colSeq[j],
-                                        "; dist = ", round(pwDist[i,j], 12))
+                                        "; dist = ", round(pwDist, 12))
                                 }
                             } else {
                                 pwDist <- 0.
@@ -730,7 +730,7 @@ EMDDist <- function(
                                     message(
                                         "i = ", rowSeq[i],
                                         "; j = ", colSeq[j],
-                                        "; dist = ", round(pwDist[i,j], 12))
+                                        "; dist = ", round(pwDist, 12))
                                 }
                             } else {
                                 pwDist <- 0.

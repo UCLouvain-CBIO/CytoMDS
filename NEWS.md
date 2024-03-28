@@ -1,6 +1,7 @@
 ## CytoMDS 0.99
 
-(Prior to Bioconductor submission)
+### CytoMDS 0.99.15
+- corrected bug fix (error message) in `pwDist()` when `verbose=TRUE`
 
 ### CytoMDS 0.99.14
 - re-factored code portions to replace, as much as possible, 
