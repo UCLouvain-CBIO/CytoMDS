@@ -590,5 +590,14 @@ test_that("ggplotSampleMDSShepard works", {
     vdiffr::expect_doppelganger(
         "ggplotSampleMDSShepard with default dim nb",
         fig = p)
+    
+    p <- ggplotSampleMDSShepard(mdsObj,
+                                pointSize = 1,
+                                lineWidth = 1)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSampleMDSShepard with explicit graphical params",
+        fig = p)
+    
 
 })

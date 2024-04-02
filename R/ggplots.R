@@ -887,7 +887,8 @@ ggplotSampleMDS <- function(
 #' If missing, it will be set equal to the number of projection dimensions  
 #' as calculated in `mdsObj`
 #' @param title title to give to the plot
-#' @param pointSize plot size of points
+#' @param pointSize point size in plot
+#' @param lineWidth line width in plot 
 #' @param displayPseudoRSq if TRUE, display pseudo RSquare in subtitle, on top
 #' of nb of dimensions
 #'
@@ -972,6 +973,7 @@ ggplotSampleMDSShepard <- function(
         nDim,
         title = "Multi Dimensional Scaling - Shepard's diagram",
         pointSize = 0.5,
+        lineWidth = 0.5,
         displayPseudoRSq = TRUE) {
     
     if (!inherits(mdsObj,"MDS")) {
@@ -1011,17 +1013,30 @@ ggplotSampleMDSShepard <- function(
     xlabel <- "HD distances"
     ylabel <- "Proj. distances"
     
+    nSample <- nrow(pwDist(mdsObj))
+    rowMatrix <- matrix(rep(seq_len(nSample), nSample), nrow = nSample)
+    colMatrix <- matrix(
+        rep(seq_len(nSample), nSample), 
+        nrow = nSample, 
+        byrow = TRUE)
     projDist <- as.vector(dist(projections(mdsObj)[,seq_len(nDim)]))
     HDDist <- as.vector(as.dist(pwDist(mdsObj)))
+    rowNb <- as.vector(as.dist(rowMatrix))
+    colNb <- as.vector(as.dist(colMatrix))
     
     DF <- data.frame(
         HDDist = HDDist,
-        projDist = projDist)
+        projDist = projDist,
+        rowNb = rowNb,
+        colNb = colNb)
     
     p <- ggplot2::ggplot(
         data = DF,
-        mapping = ggplot2::aes(x = .data[["HDDist"]],
-                               y = .data[["projDist"]])) +
+        mapping = ggplot2::aes(
+            x = .data[["HDDist"]],
+            y = .data[["projDist"]],
+            text2 = .data[["rowNb"]],
+            text3 = .data[["colNb"]])) +
         
         ggplot2::labs(
             x = xlabel,
@@ -1033,7 +1048,8 @@ ggplotSampleMDSShepard <- function(
         ggplot2::geom_abline(
             intercept = 0.,
             slope = 1.,
-            linetype = 'dotted')
+            linetype = 'dotted',
+            linewidth = lineWidth)
     p
 }
 
