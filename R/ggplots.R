@@ -308,10 +308,14 @@ ggplotMarginalDensities <- function(
 #' @param title title to give to the plot
 #' @param displayPointLabels if TRUE, displays labels attached to points
 #' (see `pDataForLabels` for the setting of the label values)
+#' @param pointLabelSize size of point labels 
+#' (default: 3.88 as in `geom_text()`)
 #' @param repelPointLabels if TRUE, uses `ggrepel::geom_text_repel()` 
 #' instead of `ggplot2::geom_text()`
 #' (try to split the labels such that they do not overlap) for the points
 #' @param displayArrowLabels if TRUE, displays arrows labels (only with biplot)
+#' @param arrowLabelSize size of arrow labels 
+#' (default: 3.88 as in `geom_text()`)  
 #' @param repelArrowLabels if TRUE, uses `ggrepel::geom_text_repel()` 
 #' instead of `ggplot2::geom_text()` for the arrows (only with biplot)
 #' @param arrowThreshold (only with biplot), arrows will be made barely visible 
@@ -468,8 +472,10 @@ ggplotSampleMDS <- function(
         sizeReflectingStress = FALSE,
         title = "Multi Dimensional Scaling",
         displayPointLabels = TRUE,
+        pointLabelSize = 3.88,
         repelPointLabels = TRUE,
         displayArrowLabels = TRUE,
+        arrowLabelSize = 3.88,
         repelArrowLabels = FALSE,
         arrowThreshold = 0.8,
         flipXAxis = FALSE,
@@ -708,12 +714,14 @@ ggplotSampleMDS <- function(
                 hjust=0.5, 
                 vjust=1, 
                 mapping = ggplot2::aes(label = .data[[labelVar]]),
+                size = pointLabelSize,
                 ...)
         } else {
             p <- p + ggplot2::geom_text(
                 hjust=0.5, 
                 vjust=1,
-                mapping = ggplot2::aes(label = .data[[labelVar]]))
+                mapping = ggplot2::aes(label = .data[[labelVar]]),
+                size = pointLabelSize)
         }
     }
     
@@ -850,14 +858,16 @@ ggplotSampleMDS <- function(
                 # 'Ignoring unknown aesthetics: text1'
                 p <- p + ggrepel::geom_text_repel(
                     mapping = newMapping,
-                    data = segmentDF)
+                    data = segmentDF,
+                    size = arrowLabelSize)
                 
             } else {
                 # discarding possible warning message: 
                 # 'Ignoring unknown aesthetics: text1'
                 p <- p + ggplot2::geom_text(
                     mapping = newMapping,
-                    data = segmentDF)
+                    data = segmentDF,
+                    size = arrowLabelSize)
             }
             
             # add a dashed centered circle to obtain the RSq=1 benchmark

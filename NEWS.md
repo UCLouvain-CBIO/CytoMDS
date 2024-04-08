@@ -4,6 +4,7 @@
 - added `lineWidth` parameter in `ggplotSampleMDSShepard()`
 - running `plotly::ggplotly()` on `ggplotSampleMDSShepard()` output now 
 displays row and column number for each distance point.
+- added `pointLabelSize` and `arrowLabelSize` in `ggplotSample()`
 
 ### CytoMDS 0.99.15
 - corrected bug fix (error message) in `pwDist()` when `verbose=TRUE`

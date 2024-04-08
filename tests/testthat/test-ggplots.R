@@ -271,6 +271,22 @@ test_that("ggplotSampleMDS works", {
     vdiffr::expect_doppelganger(
         "ggplotSampleMDS axes 1 2 biplot regression",
         fig = p)
+    
+    # test arrow label size
+    p <- ggplotSampleMDS(mdsObj = mdsObj,
+                         pData = flowCore::pData(fsAll),
+                         projectionAxes = c(1,2),
+                         biplot = TRUE,
+                         biplotType = "regression",
+                         extVariables = extVars,
+                         pDataForColour = "grpId",
+                         pDataForShape = "type",
+                         arrowLabelSize = 6,
+                         seed = 0)
+    
+    vdiffr::expect_doppelganger(
+        "ggplotSampleMDS axes 1 2 biplot arrow label size",
+        fig = p)
 
     extVarNAs <-  extVars
     extVarNAs[3,1] <- NA
@@ -486,6 +502,19 @@ test_that("ggplotSampleMDS works", {
     p <- ggplotSampleMDS(mdsObj = mdsObj)
 
     vdiffr::expect_doppelganger("ggplotSampleMDS minimal call",
+                                fig = p)
+    
+    # test point label size 
+    p <- ggplotSampleMDS(mdsObj = mdsObj,
+                         pData = flowCore::pData(fsAll),
+                         projectionAxes = c(1,2),
+                         pDataForColour = "grpId",
+                         pDataForLabel = "name",
+                         pDataForShape = "type",
+                         seed = 0,
+                         pointLabelSize = 6)
+    
+    vdiffr::expect_doppelganger("ggplotSampleMDS with pointLabelSize",
                                 fig = p)
 
 })
