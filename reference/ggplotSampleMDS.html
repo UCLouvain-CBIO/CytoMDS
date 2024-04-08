@@ -77,8 +77,10 @@ and the number of dimensions of the MDS projection are provided in sub-title</p>
 <span>  sizeReflectingStress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  title <span class="op">=</span> <span class="st">"Multi Dimensional Scaling"</span>,</span>
 <span>  displayPointLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  pointLabelSize <span class="op">=</span> <span class="fl">3.88</span>,</span>
 <span>  repelPointLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  displayArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  arrowLabelSize <span class="op">=</span> <span class="fl">3.88</span>,</span>
 <span>  repelArrowLabels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  arrowThreshold <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  flipXAxis <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -177,6 +179,11 @@ the less accurate its representation is
 (see <code>pDataForLabels</code> for the setting of the label values)</p></dd>
 
 
+<dt>pointLabelSize</dt>
+<dd><p>size of point labels
+(default: 3.88 as in <code>geom_text()</code>)</p></dd>
+
+
 <dt>repelPointLabels</dt>
 <dd><p>if TRUE, uses <code><a href="https://ggrepel.slowkow.com/reference/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
 instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">ggplot2::geom_text()</a></code>
@@ -185,6 +192,11 @@ instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html
 
 <dt>displayArrowLabels</dt>
 <dd><p>if TRUE, displays arrows labels (only with biplot)</p></dd>
+
+
+<dt>arrowLabelSize</dt>
+<dd><p>size of arrow labels
+(default: 3.88 as in <code>geom_text()</code>)</p></dd>
 
 
 <dt>repelArrowLabels</dt>
