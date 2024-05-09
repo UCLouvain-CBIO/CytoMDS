@@ -1,3 +1,9 @@
+## CytoMDS 1.1.0
+(no devel yet)
+
+## CytoMDS 1.0.0
+(release Bioconductor)
+
 ## CytoMDS 0.99
 
 ### CytoMDS 0.99.16

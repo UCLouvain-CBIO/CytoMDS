@@ -658,8 +658,6 @@ ggplotSampleMDS <- function(
     axesLimits <- c(rangeMin, rangeMax)
     #axesLimits <- c(min(-rangeMax, rangeMin), max(-rangeMin, rangeMax))
     
-    ggplot2::scale_x_continuous(limits = axesLimits)
-    
     p <- ggplot2::ggplot(
         data = DF[sampleSubset,],
         mapping = mainAesMapping) +
