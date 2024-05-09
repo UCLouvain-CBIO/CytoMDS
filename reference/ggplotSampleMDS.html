@@ -20,7 +20,7 @@ and the number of dimensions of the MDS projection are provided in sub-title"><!
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.16</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -92,34 +92,34 @@ and the number of dimensions of the MDS projection are provided in sub-title</p>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>mdsObj</dt>
+    <dl><dt id="arg-mdsobj">mdsObj<a class="anchor" aria-label="anchor" href="#arg-mdsobj"></a></dt>
 <dd><p>a MDS object, output of the <code><a href="computeMetricMDS.html">computeMetricMDS()</a></code> method.</p></dd>
 
 
-<dt>pData</dt>
+<dt id="arg-pdata">pData<a class="anchor" aria-label="anchor" href="#arg-pdata"></a></dt>
 <dd><p>(optional) a data.frame providing user input sample data.
 These can be design of experiment variables, phenotype data per sample,...
 and will be used to highlight sample categories in the plot
 and/or for subsetting.</p></dd>
 
 
-<dt>sampleSubset</dt>
+<dt id="arg-samplesubset">sampleSubset<a class="anchor" aria-label="anchor" href="#arg-samplesubset"></a></dt>
 <dd><p>(optional) a logical vector, of size <code>nrow(pData)</code>,
 which is by construction the nb of samples, indicating which samples to keep
 in the plot. Typically it is obtained through the evaluation of
 a logical condition on <code>pData</code> rows.</p></dd>
 
 
-<dt>projectionAxes</dt>
+<dt id="arg-projectionaxes">projectionAxes<a class="anchor" aria-label="anchor" href="#arg-projectionaxes"></a></dt>
 <dd><p>which two axes should be plotted
 (should be a numeric vector of length 2)</p></dd>
 
 
-<dt>biplot</dt>
+<dt id="arg-biplot">biplot<a class="anchor" aria-label="anchor" href="#arg-biplot"></a></dt>
 <dd><p>if TRUE, adds projection of external variables</p></dd>
 
 
-<dt>biplotType</dt>
+<dt id="arg-biplottype">biplotType<a class="anchor" aria-label="anchor" href="#arg-biplottype"></a></dt>
 <dd><p>type of biplot used:</p><ul><li><p>if "correlation", projection of external variables will be according to
 Pearson correlations w.r.t. projection axes (arrow x &amp; y coordinates)</p></li>
 <li><p>if "regression", a linear regression of external variables using the 2
@@ -129,7 +129,7 @@ of external variables will be according to regression coefficients
 </ul></dd>
 
 
-<dt>extVariables</dt>
+<dt id="arg-extvariables">extVariables<a class="anchor" aria-label="anchor" href="#arg-extvariables"></a></dt>
 <dd><p>are used to generate a biplot
 these are the external variables that will be used in the biplot.
 They should be provided as a matrix with named columns corresponding to the
@@ -138,24 +138,24 @@ The matrix might contain some NA's, in that case only complete rows will
 be used to calculate biplot arrows.</p></dd>
 
 
-<dt>pDataForColour</dt>
+<dt id="arg-pdataforcolour">pDataForColour<a class="anchor" aria-label="anchor" href="#arg-pdataforcolour"></a></dt>
 <dd><p>(optional) which <code>pData</code> variable
 will be used as colour aesthetic. Should be a character.</p></dd>
 
 
-<dt>pDataForShape</dt>
+<dt id="arg-pdataforshape">pDataForShape<a class="anchor" aria-label="anchor" href="#arg-pdataforshape"></a></dt>
 <dd><p>(optional) which <code>pData</code> variable
 will be used as shape aesthetic. Should be a character.</p></dd>
 
 
-<dt>pDataForLabel</dt>
+<dt id="arg-pdataforlabel">pDataForLabel<a class="anchor" aria-label="anchor" href="#arg-pdataforlabel"></a></dt>
 <dd><p>(optional) which <code>pData</code> variable
 will be used as point labels in the plot. Should be a character.
 If missing, point labels will be set equal to point names defined in
 MDS object (if not NULL, otherwise no labels will be set).</p></dd>
 
 
-<dt>pDataForAdditionalLabelling</dt>
+<dt id="arg-pdataforadditionallabelling">pDataForAdditionalLabelling<a class="anchor" aria-label="anchor" href="#arg-pdataforadditionallabelling"></a></dt>
 <dd><p>(optional) which <code>pData</code> variable(s)
 will be add to the ggplot mapping, as to make them available for
 <em>plotly</em> tooltipping. Should be an array of character of maximum length 3.
@@ -163,68 +163,68 @@ Note this works only if biplot=FALSE, as biplots contain circle and arrows
 that are currently not supported under <code>ggplotly</code>.</p></dd>
 
 
-<dt>sizeReflectingStress</dt>
+<dt id="arg-sizereflectingstress">sizeReflectingStress<a class="anchor" aria-label="anchor" href="#arg-sizereflectingstress"></a></dt>
 <dd><p>if TRUE, size of points will appear
 proportional to stress by point, i.e. the bigger the sample point appears,
 the less accurate its representation is
 (in terms of distances w.r.t. other points)</p></dd>
 
 
-<dt>title</dt>
+<dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
 <dd><p>title to give to the plot</p></dd>
 
 
-<dt>displayPointLabels</dt>
+<dt id="arg-displaypointlabels">displayPointLabels<a class="anchor" aria-label="anchor" href="#arg-displaypointlabels"></a></dt>
 <dd><p>if TRUE, displays labels attached to points
 (see <code>pDataForLabels</code> for the setting of the label values)</p></dd>
 
 
-<dt>pointLabelSize</dt>
+<dt id="arg-pointlabelsize">pointLabelSize<a class="anchor" aria-label="anchor" href="#arg-pointlabelsize"></a></dt>
 <dd><p>size of point labels
 (default: 3.88 as in <code>geom_text()</code>)</p></dd>
 
 
-<dt>repelPointLabels</dt>
+<dt id="arg-repelpointlabels">repelPointLabels<a class="anchor" aria-label="anchor" href="#arg-repelpointlabels"></a></dt>
 <dd><p>if TRUE, uses <code><a href="https://ggrepel.slowkow.com/reference/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
 instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">ggplot2::geom_text()</a></code>
 (try to split the labels such that they do not overlap) for the points</p></dd>
 
 
-<dt>displayArrowLabels</dt>
+<dt id="arg-displayarrowlabels">displayArrowLabels<a class="anchor" aria-label="anchor" href="#arg-displayarrowlabels"></a></dt>
 <dd><p>if TRUE, displays arrows labels (only with biplot)</p></dd>
 
 
-<dt>arrowLabelSize</dt>
+<dt id="arg-arrowlabelsize">arrowLabelSize<a class="anchor" aria-label="anchor" href="#arg-arrowlabelsize"></a></dt>
 <dd><p>size of arrow labels
 (default: 3.88 as in <code>geom_text()</code>)</p></dd>
 
 
-<dt>repelArrowLabels</dt>
+<dt id="arg-repelarrowlabels">repelArrowLabels<a class="anchor" aria-label="anchor" href="#arg-repelarrowlabels"></a></dt>
 <dd><p>if TRUE, uses <code><a href="https://ggrepel.slowkow.com/reference/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
 instead of <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">ggplot2::geom_text()</a></code> for the arrows (only with biplot)</p></dd>
 
 
-<dt>arrowThreshold</dt>
+<dt id="arg-arrowthreshold">arrowThreshold<a class="anchor" aria-label="anchor" href="#arg-arrowthreshold"></a></dt>
 <dd><p>(only with biplot), arrows will be made barely visible
 if their length is (in absolute value) less than this threshold.</p></dd>
 
 
-<dt>flipXAxis</dt>
+<dt id="arg-flipxaxis">flipXAxis<a class="anchor" aria-label="anchor" href="#arg-flipxaxis"></a></dt>
 <dd><p>if TRUE, take the opposite of x values
 (provided as it might ease low dimensional projection comparisons)</p></dd>
 
 
-<dt>flipYAxis</dt>
+<dt id="arg-flipyaxis">flipYAxis<a class="anchor" aria-label="anchor" href="#arg-flipyaxis"></a></dt>
 <dd><p>if TRUE, take the opposite of y values
 (provided as it might ease low dimensional projection comparisons)</p></dd>
 
 
-<dt>displayPseudoRSq</dt>
+<dt id="arg-displaypseudorsq">displayPseudoRSq<a class="anchor" aria-label="anchor" href="#arg-displaypseudorsq"></a></dt>
 <dd><p>if TRUE, display pseudo RSquare in subtitle, on top
 of nb of dimensions</p></dd>
 
 
-<dt>...</dt>
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>additional parameters passed to <code><a href="https://ggrepel.slowkow.com/reference/geom_text_repel.html" class="external-link">ggrepel::geom_text_repel()</a></code>
 (if used)</p></dd>
 
@@ -375,7 +375,7 @@ of nb of dimensions</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.9000.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.9000.</p>
 </div>
 
       </footer></div>

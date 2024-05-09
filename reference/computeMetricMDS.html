@@ -30,7 +30,7 @@ looking for too big projection spaces."><!-- mathjax --><script src="https://cdn
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.16</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -94,33 +94,33 @@ looking for too big projection spaces.</p>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>pwDist</dt>
+    <dl><dt id="arg-pwdist">pwDist<a class="anchor" aria-label="anchor" href="#arg-pwdist"></a></dt>
 <dd><p>(<code>nSamples</code> rows, <code>nSamples</code> columns),
 previously calculated pairwise distances between samples,
 must be provided as a full symmetric square matrix, with 0. diagonal</p></dd>
 
 
-<dt>nDim</dt>
+<dt id="arg-ndim">nDim<a class="anchor" aria-label="anchor" href="#arg-ndim"></a></dt>
 <dd><p>number of dimensions of projection, as input to SMACOF algorithm
 if not provided, will be found iteratively using <code>targetPseudoRSq</code></p></dd>
 
 
-<dt>seed</dt>
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>seed to be set when launching SMACOF algorithm
 (e.g. when <code>init</code> is set to <code>"random"</code> but not only)</p></dd>
 
 
-<dt>targetPseudoRSq</dt>
+<dt id="arg-targetpseudorsq">targetPseudoRSq<a class="anchor" aria-label="anchor" href="#arg-targetpseudorsq"></a></dt>
 <dd><p>target pseudo RSquare to be reached
 (only used when <code>nDim</code> is set to NULL)</p></dd>
 
 
-<dt>maxDim</dt>
+<dt id="arg-maxdim">maxDim<a class="anchor" aria-label="anchor" href="#arg-maxdim"></a></dt>
 <dd><p>in case <code>nDim</code> is found iteratively,
 maximum number of dimensions the search procedure is allowed to explore</p></dd>
 
 
-<dt>...</dt>
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>additional parameters passed to SMACOF algorithm</p></dd>
 
 </dl></div>
@@ -217,7 +217,7 @@ as minimum</p></li>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.9000.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.9000.</p>
 </div>
 
       </footer></div>

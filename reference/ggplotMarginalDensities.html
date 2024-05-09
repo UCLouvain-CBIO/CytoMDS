@@ -22,7 +22,7 @@ and the number of dimensions of the MDS projection are provided in sub-title"><!
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.16</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -80,41 +80,41 @@ and the number of dimensions of the MDS projection are provided in sub-title</p>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>x</dt>
+    <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>a <code><a href="https://rdrr.io/pkg/flowCore/man/flowSet-class.html" class="external-link">flowCore::flowSet</a></code> (or a single <code><a href="https://rdrr.io/pkg/flowCore/man/flowFrame-class.html" class="external-link">flowCore::flowFrame</a></code>)</p></dd>
 
 
-<dt>sampleSubset</dt>
+<dt id="arg-samplesubset">sampleSubset<a class="anchor" aria-label="anchor" href="#arg-samplesubset"></a></dt>
 <dd><p>(optional) a logical vector, of size <code>nrow(pData)</code>,
 which is by construction the nb of samples, indicating which samples to keep
 in the plot. Typically it is obtained through the evaluation of
 a logical condition on <code>pData</code> rows.</p></dd>
 
 
-<dt>channels</dt>
+<dt id="arg-channels">channels<a class="anchor" aria-label="anchor" href="#arg-channels"></a></dt>
 <dd><p>(optional)</p></dd>
 
 
-<dt>pDataForColour</dt>
+<dt id="arg-pdataforcolour">pDataForColour<a class="anchor" aria-label="anchor" href="#arg-pdataforcolour"></a></dt>
 <dd><p>(optional) which <code>phenoData(fs)</code> variable
 will be used as colour aesthetic. Should be a character.</p></dd>
 
 
-<dt>pDataForGroup</dt>
+<dt id="arg-pdataforgroup">pDataForGroup<a class="anchor" aria-label="anchor" href="#arg-pdataforgroup"></a></dt>
 <dd><p>(optional) which <code>phenoData(fs)</code> variable
 will be used as group aesthetic. Should be a character.</p></dd>
 
 
-<dt>nEventInSubsample</dt>
+<dt id="arg-neventinsubsample">nEventInSubsample<a class="anchor" aria-label="anchor" href="#arg-neventinsubsample"></a></dt>
 <dd><p>how many event to take
 (per flowFrame of the flowSet).</p></dd>
 
 
-<dt>seed</dt>
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>if not null, used in subsampling.</p></dd>
 
 
-<dt>transList</dt>
+<dt id="arg-translist">transList<a class="anchor" aria-label="anchor" href="#arg-translist"></a></dt>
 <dd><p>a <code><a href="https://rdrr.io/pkg/flowCore/man/transformList-class.html" class="external-link">flowCore::transformList</a></code> that will be applied
 before plotting.</p></dd>
 
@@ -194,7 +194,7 @@ before plotting.</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.9000.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.9000.</p>
 </div>
 
       </footer></div>

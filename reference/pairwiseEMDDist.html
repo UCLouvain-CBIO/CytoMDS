@@ -29,7 +29,7 @@ on several computation nodes.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.16</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -95,31 +95,31 @@ on several computation nodes.</p></li>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>x</dt>
+    <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>either a flowCore::flowSet, or the number of samples (integer &gt;=1)</p></dd>
 
 
-<dt>rowRange</dt>
+<dt id="arg-rowrange">rowRange<a class="anchor" aria-label="anchor" href="#arg-rowrange"></a></dt>
 <dd><p>the range of rows of the distance matrix to be calculated</p></dd>
 
 
-<dt>colRange</dt>
+<dt id="arg-colrange">colRange<a class="anchor" aria-label="anchor" href="#arg-colrange"></a></dt>
 <dd><p>the range of columns of the distance matrix to be calculated</p></dd>
 
 
-<dt>loadFlowFrameFUN</dt>
+<dt id="arg-loadflowframefun">loadFlowFrameFUN<a class="anchor" aria-label="anchor" href="#arg-loadflowframefun"></a></dt>
 <dd><p>the function used to translate a flowFrame index
 into a flowFrame. In other words, the function should code how to load a
 specific flowFrame into memory. Important: the flow Frame index should be
 the first function argument and should be named <code>ffIndex</code>.</p></dd>
 
 
-<dt>loadFlowFrameFUNArgs</dt>
+<dt id="arg-loadflowframefunargs">loadFlowFrameFUNArgs<a class="anchor" aria-label="anchor" href="#arg-loadflowframefunargs"></a></dt>
 <dd><p>(optional) a named list containing
 additional input parameters of <code>loadFlowFrameFUN()</code></p></dd>
 
 
-<dt>channels</dt>
+<dt id="arg-channels">channels<a class="anchor" aria-label="anchor" href="#arg-channels"></a></dt>
 <dd><p>which channels (integer index(ices) or character(s)):</p><ul><li><p>if it is a character vector,
 it can refer to either the channel names, or the marker names</p></li>
 <li><p>if it is a numeric vector,
@@ -128,18 +128,18 @@ it refers to the indexes of channels in <code>fs</code></p></li>
 </ul></dd>
 
 
-<dt>verbose</dt>
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>if <code>TRUE</code>, output a message
 after each single distance calculation</p></dd>
 
 
-<dt>BPPARAM</dt>
+<dt id="arg-bpparam">BPPARAM<a class="anchor" aria-label="anchor" href="#arg-bpparam"></a></dt>
 <dd><p>sets the <code>BPPARAM</code> back-end to
 be used for the computation. If not provided, will use
 <code><a href="https://rdrr.io/pkg/BiocParallel/man/SerialParam-class.html" class="external-link">BiocParallel::SerialParam()</a></code> (no task parallelization)</p></dd>
 
 
-<dt>BPOPTIONS</dt>
+<dt id="arg-bpoptions">BPOPTIONS<a class="anchor" aria-label="anchor" href="#arg-bpoptions"></a></dt>
 <dd><p>sets the BPOPTIONS to be
 passed to <code>bplapply()</code> function.
 Note that if you use a <code>SnowParams</code> back-end, you need to specify all
@@ -149,17 +149,17 @@ the <code>flowCore</code> package needs to be loaded.
 (hence the default <code>BPOPTIONS = bpoptions(packages = c("flowCore"))</code> )</p></dd>
 
 
-<dt>binSize</dt>
+<dt id="arg-binsize">binSize<a class="anchor" aria-label="anchor" href="#arg-binsize"></a></dt>
 <dd><p>size of equal bins to approximate
 the marginal distributions.</p></dd>
 
 
-<dt>minRange</dt>
+<dt id="arg-minrange">minRange<a class="anchor" aria-label="anchor" href="#arg-minrange"></a></dt>
 <dd><p>minimum value taken
 when approximating the marginal distributions</p></dd>
 
 
-<dt>maxRange</dt>
+<dt id="arg-maxrange">maxRange<a class="anchor" aria-label="anchor" href="#arg-maxrange"></a></dt>
 <dd><p>maximum value taken
 when approximating the marginal distributions</p></dd>
 
@@ -211,7 +211,7 @@ when approximating the marginal distributions</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.9000.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.9000.</p>
 </div>
 
       </footer></div>
