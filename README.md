@@ -19,3 +19,22 @@ projection.
 Also, the package provides some diagnostic tools for both checking the quality 
 of the MDS projection, as well as tools to help with the interpretation of 
 the axes of the projection.
+
+### License
+
+The `CytoMDS` code is provided under [GPL license version 3.0 or 
+higher](https://opensource.org/licenses/GPL-3.0). The documentation, 
+including the manual pages and the vignettes, are distributed under a [CC BY-SA 
+4.0 license](https://creativecommons.org/licenses/by-sa/4.0/).
+
+### Citation
+
+If you use `CytoMDS` in your research, please use the following citation:
+
+>Hauchamps, Philippe, Simon Delandre, Stephane T. Temmerman, 
+> Dan Lin, and Laurent Gatto. 2024. 
+> “Visual Quality Control with CytoMDS, a Bioconductor Package 
+> for Low Dimensional Representation of Cytometry Sample Distances.” 
+> bioRxiv. https://doi.org/10.1101/2024.07.01.601465.
+
+or run `citation("CytoMDS")` to get the bibtex entry.

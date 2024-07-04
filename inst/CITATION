@@ -1,0 +1,12 @@
+bibentry(
+  bibtype = "Article",
+  title    = "Visual quality control with {CytoMDS}, a Bioconductor package for
+              low dimensional representation of cytometry sample distances",
+  author   = "Hauchamps, Philippe and Delandre, Simon and Temmerman, Stephane T
+              and Lin, Dan and Gatto, Laurent",
+  journal  = "bioRxiv",
+  pages    = "2024.07.01.601465",
+  month    =  7,
+  year     =  2024,
+  language = "en"
+)

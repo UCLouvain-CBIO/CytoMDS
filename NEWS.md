@@ -1,5 +1,5 @@
 ## CytoMDS 1.1.0
-(no devel yet)
+- added citation to _bioRxiv_ pre-print
 
 ## CytoMDS 1.0.0
 (release Bioconductor)
