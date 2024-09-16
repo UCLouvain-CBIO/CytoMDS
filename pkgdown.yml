@@ -1,6 +1,6 @@
-pandoc: '3.2'
-pkgdown: 2.0.9.9000
-pkgdown_sha: 812e8c81d2a550f11f1b9a5201aa7d9ab0e42cdb
+pandoc: '3.3'
+pkgdown: 2.1.0.9000
+pkgdown_sha: bbf246ea0e115fa39486bee5be80f91903c0081b
 articles:
   CytoMDS: CytoMDS.html
-last_built: 2024-07-04T13:27Z
+last_built: 2024-09-16T08:50Z
