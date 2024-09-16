@@ -37,12 +37,10 @@
     }
 }
 
-# internal function calculating the unidimensional histograms of a flowFrame
+# internal function calculating the unidimensional histograms of a 2D expression matrix
 .unidimHistograms <- function(
-    ff, 
+    expr, 
     breaks){
-    
-    expr <- flowCore::exprs(ff)#[, drop = FALSE]
     
     # discretize all marginal distributions
     # check that the range correctly spans all events
@@ -56,13 +54,10 @@
                 plot = FALSE)$counts
             counts <- counts[-c(1,length(counts))]
             if (sum(counts) != nrow(exprMat)) {
-                warning(
-                    "for flowFrame: [", 
-                    flowCore::identifier(ff), "] : \n",
-                    "provided [minRange, maxRange] does not ",
-                    "span all events for channel ", colName,
-                    ": count(events) = ", sum(counts), 
-                    "; nEvents = ", nrow(exprMat))
+                warning("provided [minRange, maxRange] does not ",
+                        "span all events for channel ", colName,
+                        ": count(events) = ", sum(counts), 
+                        "; nEvents = ", nrow(exprMat))
             }
             return(counts)
         },
@@ -244,6 +239,7 @@ EMDDist <- function(
     
     # for performance
     ffList <- lapply(ffList, FUN = function(ff) ff[, channels, drop = FALSE])
+    exprList <- lapply(ffList, FUN = flowCore::exprs)
     
     breaks <- seq(
         minRange,
@@ -253,7 +249,7 @@ EMDDist <- function(
     breaks <- round(breaks,12)
     
     distrs <- lapply(
-        X = ffList,
+        X = exprList,
         FUN = .unidimHistograms,
         breaks = breaks)
     
@@ -557,13 +553,14 @@ EMDDist <- function(
                     # take only the channels of interest for the following,
                     # for performance
                     ff <- ff[,channels]
+                    expr <- flowCore::exprs(ff)
                     
                     if (verbose) {
                         message("Calculating histogram for file ", ffIndex, "...")
                     }
                     
                     distr <- .unidimHistograms(
-                        ff,
+                        expr,
                         breaks = breaks
                     )
                     
