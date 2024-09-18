@@ -988,7 +988,7 @@ pairwiseEMDDist <- function(
     nSamples <- NULL
     
     if(inherits(x, "flowSet")) {
-        getExpr <- function(exprMatrixIndex, fs, channels) {
+        getExprFlowSet <- function(exprMatrixIndex, fs, channels) {
             exprMat <- flowCore::exprs(fs[[exprMatrixIndex]])
             channelIds <- .toChannelNames(channels, x)
             exprMat <- exprMat[, channelIds, drop = FALSE]
@@ -999,7 +999,7 @@ pairwiseEMDDist <- function(
             nSamples = nSamples,
             rowRange = rowRange,
             colRange = colRange,
-            loadExprMatrixFUN = getExpr,
+            loadExprMatrixFUN = getExprFlowSet,
             loadExprMatrixFUNArgs = list(fs = x, channels = channels),
             channels = NULL, #already taken into account in loadExprMatrixFUN
             verbose = verbose,
@@ -1020,7 +1020,7 @@ pairwiseEMDDist <- function(
             }
             return(TRUE)
         })
-        getExpr <- function(exprMatrixIndex, expMatrixList, channels) {
+        getExprMatList <- function(exprMatrixIndex, expMatrixList, channels) {
             exprMat <- expMatrixList[[exprMatrixIndex]]
             channelIds <- .toChannelNames(channels, exprMat)
             exprMat <- exprMat[, channelIds, drop=FALSE]
@@ -1031,7 +1031,7 @@ pairwiseEMDDist <- function(
             nSamples = nSamples,
             rowRange = rowRange,
             colRange = colRange,
-            loadExprMatrixFUN = getExpr,
+            loadExprMatrixFUN = getExprMatList,
             loadExprMatrixFUNArgs = list(
                 expMatrixList = x, channels = channels),
             channels = NULL, #already taken into account in loadExprMatrixFUN
@@ -1278,6 +1278,10 @@ pairwiseEMDDist <- function(
 #' - if it is a numeric vector,
 #' it refers to the indices of channels in `fs`
 #' - if NULL, all scatter and fluorescent channels of `fs` #' will be selected.
+#' @param statFUNs a list (possibly of length one) of functions to call 
+#' to calculate the statistics, or a simple function.  
+#' This list can be named, in that case, these names will be transfered to the
+#' returned list.
 #' @param verbose if `TRUE`, output a message 
 #' after each single statistics calculation
 #' @param BPPARAM sets the `BPPARAM` back-end to
@@ -1348,7 +1352,7 @@ channelSummaryStats <- function(
     nSamples <- NULL
         
     if(inherits(x, "flowSet")) {
-        getExpr <- function(exprMatrixIndex, fs, channels) {
+        getExprFlowSet <- function(exprMatrixIndex, fs, channels) {
             exprMat <- flowCore::exprs(fs[[exprMatrixIndex]])
             channelIds <- .toChannelNames(channels, x)
             exprMat <- exprMat[, channelIds, drop = FALSE]
@@ -1368,7 +1372,7 @@ channelSummaryStats <- function(
       
         chStats <- .channelSummaryStats(
             nSamples = nSamples,
-            loadExprMatrixFUN = getExpr,
+            loadExprMatrixFUN = getExprFlowSet,
             loadExprMatrixFUNArgs = list(fs = x, channels = channels),
             channels = NULL, # already taken into account in loadExprMatrixFUN
             statFUNs = statFUNs,
@@ -1396,7 +1400,7 @@ channelSummaryStats <- function(
             }
             return(TRUE)
         })
-        getExpr <- function(exprMatrixIndex, expMatrixList, channels) {
+        getExprMatList <- function(exprMatrixIndex, expMatrixList, channels) {
             exprMat <- expMatrixList[[exprMatrixIndex]]
             channelIds <- .toChannelNames(channels, exprMat)
             exprMat <- exprMat[, channelIds, drop=FALSE]
@@ -1408,7 +1412,7 @@ channelSummaryStats <- function(
         }
         chStats <- .channelSummaryStats(
             nSamples = nSamples,
-            loadExprMatrixFUN = getExpr,
+            loadExprMatrixFUN = getExprMatList,
             loadExprMatrixFUNArgs = list(
                 expMatrixList = x, channels = channels),
             channels = NULL, # already taken into account in loadExprMatrixFUN

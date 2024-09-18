@@ -41,6 +41,11 @@ it refers to the indices of channels in \code{fs}
 \item if NULL, all scatter and fluorescent channels of \code{fs} #' will be selected.
 }}
 
+\item{statFUNs}{a list (possibly of length one) of functions to call
+to calculate the statistics, or a simple function.
+This list can be named, in that case, these names will be transfered to the
+returned list.}
+
 \item{verbose}{if \code{TRUE}, output a message
 after each single statistics calculation}
 
