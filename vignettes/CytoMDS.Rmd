@@ -530,6 +530,8 @@ ggplotSampleMDSWrapBiplots(
     repelArrowLabels = TRUE)
 ```
 
+
+
 # Handling large datasets
 
 Computing Earth Mover's Distances between all sample pairs of large datasets 
@@ -548,13 +550,14 @@ mitigate these issues.
 In order to be able to handle datasets of greater size than the available 
 computer RAM, the `pairwiseEMDDist()` function allows for an alternative input 
 mode, where:
-- the input samples are NOT provided directly via a `flowCore::flowSet`, but
+- the input samples are NOT provided directly via a `flowCore::flowSet`, or  
+a list of expression matrices, but
 - the user provides the nb of samples, and a user-written flow frame loading 
-function that will be called to dynamically load the *i*th sample upon request, 
-and optionally additional arguments.
+function that will be called to dynamically load the *i*th sample 
+- as an expression matrix - upon request, and optionally additional arguments.
 
-Typically, the flow frame loading function provided by the user shall describe 
-how to read the *i*th sample from disk. 
+Typically, the expression matrix loading function provided by the user shall 
+describe how to read the *i*th sample from disk. 
 
 ## Using BiocParallel to parallelize distance matrix computation
 
@@ -570,7 +573,7 @@ Note that this example has illustrative purpose only, as in fact this dataset
 is small enough to fully reside in memory and to not require parallelization 
 of distance calculation. 
 
-In case where 'on-the-fly' flowFrame in-memory loading is required, 
+In case where 'on-the-fly' expression matrices in-memory loading is required, 
 we advise, as a preliminary step, to store the samples, previously scale 
 transformed, on disk. Here we do it in a temporary directory. 
 
@@ -590,7 +593,7 @@ for (i in seq_len(nSample)) {
 ```
 
 Then, the `pairwiseEMDDist()` method can be called, now specifying a number of 
-samples, a flowFrame loading function, and a `BiocParallel::SnowParam()` 
+samples, a expression matrix loading function, and a `BiocParallel::SnowParam()` 
 backbone for parallelization of the computations. 
 
 ```{r distance_calc_loading_otf_parallel}
@@ -600,10 +603,16 @@ bp <- BiocParallel::SnowParam(
 pwDistLast <- suppressWarnings(pairwiseEMDDist(
     x = nSample,
     channels = chMarkers,
-    loadFlowFrameFUN = function(ffIndex, theFiles){
-        readRDS(file = theFiles[ffIndex])
+    loadExprMatrixFUN  = function(exprMatrixIndex, files, channels, markers){
+        ff <- readRDS(file = files[exprMatrixIndex ])
+        exprMat <- flowCore::exprs(ff)[, channels, drop = FALSE]
+        colnames(exprMat) <- markers
+        exprMat
     },
-    loadFlowFrameFUNArgs = list(theFiles = fileNames),
+    loadExprMatrixFUNArgs = list(
+        files = fileNames, 
+        channels = chLabels,
+        markers = chMarkers),
     BPPARAM = bp))
 ```
 The obtained distances - as shown in the below histogram - are exactly 
@@ -620,6 +629,114 @@ pHistLast <- ggplot(distVecDFLast, mapping = aes(x=dist)) +
         subtitle =  "on the fly memory loading and parallel computation")
 pHistLast
 ```
+
+
+# Expression matrices as input instead of flowFrames
+Standard use of `CytoMDS` involves providing cytometry sample data, contained 
+in `flowCore` standard cytometry data structures (`flowSet` and `flowFrame`) 
+as input to Earth Mover's distance calculation.  
+
+However, `CytoMDS` can also accept more generic input data, as a list 
+of expression matrices, stored in standard R matrices. For instance, this 
+allows using `CytoMDS` visualizations for other type of data than cytometry, as 
+long as each sample can be represented by a matrix with any number of rows 
+(cells), and fixed columns/features (markers).
+
+Here below is an illustrating toy example with some randomly simulated data.  
+
+Let us first simulate 10 samples with 1,000 rows each and 10 features.
+Samples are split into 2 groups: `conditionA` and `conditionB` with some
+increased expression std deviation for 3 features in `conditionB`, 
+compared to `conditionA`.
+
+```{r simulExprMatrices}
+nSample <- 10
+conditions <- factor(c(rep("conditionA", 5), rep("conditionB", 5)))
+nRow <- 1000
+nFeat <- 10
+nDiffFeat <- 3
+diffFeats = c(2, 3, 9)
+stdDevFactor = 1.5
+
+exprMatrixList <- mapply(
+    seq(nSample),
+    conditions,
+    FUN = function(i, condition) {
+        exprMatrix <- matrix(rnorm(nRow*nFeat), nrow = nRow)
+        if (condition == "conditionB") {
+            exprMatrix[, diffFeats] <- exprMatrix[, diffFeats] * stdDevFactor
+        }
+        colnames(exprMatrix) <- paste0("Feat", seq(nFeat))
+        exprMatrix
+    },
+    SIMPLIFY = FALSE
+)
+
+names(exprMatrixList) <- paste0("sample", seq(nSample))
+
+```
+
+We can now generate a pairwise sample distance matrix, based on the previously 
+simulated matrix list, and show the corresponding histogram: 
+
+```{r distExprMatrices}
+
+pwDistExpr <-  pairwiseEMDDist(
+    exprMatrixList
+)
+```
+
+```{r distExprMatShowHist, fig.align='center', fig.wide = TRUE}
+distVecExpr <- pwDistExpr[upper.tri(pwDistExpr)]
+distVecDFExpr <- data.frame(dist = distVecExpr)
+pHistExpr <- ggplot(distVecDFExpr, mapping = aes(x=dist)) +
+    geom_histogram(fill = "darkgrey", col = "black", bins = 15) +
+    theme_bw() + 
+    ggtitle(
+        "EMD distances for simulated expression matrices")
+pHistExpr
+```
+
+With the generated pairwise distance matrix, we can now proceed with the 
+`CytoMDS` workflow, as in the previous examples:
+
+```{r MDSCalcExprMat}
+mdsObjExpr <- computeMetricMDS(pwDistExpr, seed = 0)
+show(mdsObjExpr)
+```
+
+```{r plotMDSExprMat, fig.align='center', fig.asp = 0.9, fig.wide = TRUE}
+phenoDataExpr <- data.frame(sampleId = seq(nSample), cond = conditions)
+p12 <- ggplotSampleMDS(
+    mdsObjExpr,
+    pData = phenoDataExpr,
+    projectionAxes = c(1,2),
+    pDataForColour = "cond",
+    pDataForLabel = "sampleId"
+)
+p12
+```
+
+```{r biplotsMDSExprMat, fig.align='center', fig.asp = 0.9, fig.wide = TRUE}
+statFunctions <- list(mean = base::mean,
+                      std_dev = stats::sd)
+chStatsExpr <- channelSummaryStats(exprMatrixList,
+                                   statFUNs  = statFunctions)
+p <- CytoMDS::ggplotSampleMDSWrapBiplots(
+    mdsObj = mdsObjExpr,
+    extVariableList = chStatsExpr,
+    pData = phenoDataExpr,
+    projectionAxes = c(1,2),
+    pDataForColour = "cond",
+    displayPointLabels = FALSE,
+    repelArrowLabels = TRUE,
+    ncol = 2,
+    arrowThreshold = 0.9
+)
+p
+
+```
+
 
 # Session information {-}
 

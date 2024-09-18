@@ -2,13 +2,12 @@
 % Please edit documentation in R/stats.R
 \name{EMDDist}
 \alias{EMDDist}
-\title{Calculate Earth Mover's distance between two flowFrames}
+\title{Calculate Earth Mover's distance between two samples}
 \usage{
 EMDDist(
-  ff1,
-  ff2,
+  x1,
+  x2,
   channels = NULL,
-  checkChannels = TRUE,
   binSize = 0.05,
   minRange = -10,
   maxRange = 10,
@@ -16,22 +15,24 @@ EMDDist(
 )
 }
 \arguments{
-\item{ff1}{a flowCore::flowFrame}
+\item{x1}{can be either a flowCore::flowFrame,
+or an expression matrix}
 
-\item{ff2}{a flowCore::flowFrame}
+\item{x2}{can be either a flowCore::flowFrame,
+or an expression matrix}
 
 \item{channels}{which channels (integer index(ices) or character(s)):
 \itemize{
 \item if it is a character vector,
-it can refer to either the channel names, or the marker names
+it can refer to either the channel names, or the marker names if x1 and x2
+have been provided as flowCore::flowFrame
 \item if it is a numeric vector,
-it refers to the indexes of channels in \code{ff1}
-\item if NULL all scatter and fluorescent channels of \code{ff1}
-will be selected
+it refers to the indexes of channels in \code{x1}
+\item if NULL : if \code{x1} and \code{x2} are provided as flowCore::flowFrames,
+all scatter and fluorescent channels of \code{x1} will be selected;
+if \code{x1} and \code{x2} are provided as expression matrices, all colnames of \code{x1}
+will be selected.
 }}
-
-\item{checkChannels}{if \code{TRUE}, will explicitly check that
-all provided channels are present in both flowFrames}
 
 \item{binSize}{size of equal bins to approximate
 the marginal distributions.}
@@ -46,12 +47,12 @@ when approximating the marginal distributions}
 distances are returned as well. Default = \code{FALSE}.}
 }
 \value{
-the Earth Mover's distance between \code{ff1} and \code{ff2},
+the Earth Mover's distance between \code{x1} and \code{x2},
 which is calculated by summing up all EMD approximates for
 the marginal distributions of each channel
 }
 \description{
-Calculate Earth Mover's distance between two flowFrames
+Calculate Earth Mover's distance between two samples
 }
 \examples{
 
@@ -75,24 +76,24 @@ OMIP021Trans <- CytoPipeline::applyScaleTransforms(
 # distance with itself (all channels at once)
 # => should return 0
 dist0 <- EMDDist(
-    ff1 = OMIP021Trans[[1]],
-    ff2 = OMIP021Trans[[1]])
+    x1 = OMIP021Trans[[1]],
+    x2 = OMIP021Trans[[1]])
 
 # returning only distance, 2 channels
 dist1 <- EMDDist(
-    ff1 = OMIP021Trans[[1]], 
-    ff2 = OMIP021Trans[[2]], 
+    x1 = OMIP021Trans[[1]], 
+    x2 = OMIP021Trans[[2]], 
     channels = c("FSC-A", "SSC-A"))
 
 # using only one channel, passed by marker name
-dist2 <- EMDDist(ff1 = OMIP021Trans[[1]], 
-                    ff2 = OMIP021Trans[[2]], 
-                    channels = c("BV785 - CD3"))
+dist2 <- EMDDist(x1 = OMIP021Trans[[1]], 
+                 x2 = OMIP021Trans[[2]], 
+                 channels = c("BV785 - CD3"))
 
 # using only one channel, passed by index
-dist3 <- EMDDist(ff1 = OMIP021Trans[[1]], 
-                    ff2 = OMIP021Trans[[2]], 
-                    channels = 10)
+dist3 <- EMDDist(x1 = OMIP021Trans[[1]], 
+                 x2 = OMIP021Trans[[2]], 
+                 channels = 10)
 
 dist2 == dist3
 

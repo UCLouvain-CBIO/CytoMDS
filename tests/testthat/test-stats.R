@@ -30,28 +30,29 @@ OMIP021Trans <- CytoPipeline::applyScaleTransforms(
     transList)
 
 # function used in subsequent tests where the flow set is not stored at once
-# in memory but the flow frames are loadeed dynamically upon request
+# in memory but the flow frames are loaded dynamically upon request
 simulMemoryLoad <- function(
-        ffIndex, 
+        exprMatrixIndex, 
         filePaths, 
         nSamples,
+        channels = NULL,
         verbose) {
     
     if (!is.numeric(nSamples) || nSamples < 1) {
         stop("nSamples should be a numeric greater than or equal to 1")
     }
     
-    if (!is.numeric(ffIndex) || ffIndex < 1) {
-        stop("ffIndex should be a numeric greater than or equal to 1")
+    if (!is.numeric(exprMatrixIndex) || exprMatrixIndex < 1) {
+        stop("exprMatrixIndex should be a numeric greater than or equal to 1")
     }
     
-    if (ffIndex > nSamples) {
-        stop("ffIndex should be <= nSamples")
+    if (exprMatrixIndex > nSamples) {
+        stop("exprMatrixIndex should be <= nSamples")
     }
     
     # init Flow Set
     if (verbose) {
-        message("loading ff #", ffIndex, "/", nSamples, "...")
+        message("loading ff #", exprMatrixIndex, "/", nSamples, "...")
         message("reading initial flow set...")
     }
     
@@ -81,16 +82,16 @@ simulMemoryLoad <- function(
         message("creating specific sample...")
     }
     
-    if (ffIndex <= ceiling(nSamples/2)){
+    if (exprMatrixIndex <= ceiling(nSamples/2)){
         ff <- CytoPipeline::subsample(
             transFS[[1]],
             nEvents = 1000,
-            seed = ffIndex)[,1:22]
+            seed = exprMatrixIndex)[,1:22]
     } else {
         ff <- CytoPipeline::subsample(
             transFS[[2]],
             nEvents = 1000,
-            seed = ffIndex)[,1:22]
+            seed = exprMatrixIndex)[,1:22]
     }
     
     # fscMean <- mean(flowCore::exprs(ff)[,"FSC-A"])
@@ -98,80 +99,151 @@ simulMemoryLoad <- function(
     # message("OBTAINED FF: FSC mean: ", round(fscMean,6), "; SSC mean:", 
     #          round(sscMean,6), "\n")
     
-    ff
+    exprMat <- flowCore::exprs(ff)
+    channelsId <- CytoMDS:::.toChannelNames(channels, ff)
+    
+    exprMat <- exprMat[, channelsId, drop=FALSE]
+    if (!is.null(channels)) {
+        colnames(exprMat) <- channels
+    }
+    exprMat
 }
 
-test_that("EMDDist works", {
+test_that("EMDDist works with ffs", {
     # distance with itself, all channels
-    distDum <- EMDDist(ff1 = OMIP021Trans[[1]],
-                          ff2 = OMIP021Trans[[1]],
-                          binSize = 0.05,
-                          minRange = -10,
-                          maxRange = 10,
-                          returnAll = FALSE)
+    distDum <- EMDDist(x1 = OMIP021Trans[[1]],
+                       x2 = OMIP021Trans[[1]],
+                       binSize = 0.05,
+                       minRange = -10,
+                       maxRange = 10,
+                       returnAll = FALSE)
     expect_equal(distDum, 0.)
     
     # returning only distance, 2 channels
-    dist1 <- EMDDist(ff1 = OMIP021Trans[[1]], 
-                        ff2 = OMIP021Trans[[2]], 
-                        channels = c("FSC-A", "SSC-A"),
-                        binSize = 0.05,
-                        minRange = -10,
-                        maxRange = 10,
-                        returnAll = FALSE)
+    dist1 <- EMDDist(x1 = OMIP021Trans[[1]], 
+                     x2 = OMIP021Trans[[2]], 
+                     channels = c("FSC-A", "SSC-A"),
+                     binSize = 0.05,
+                     minRange = -10,
+                     maxRange = 10,
+                     returnAll = FALSE)
     
     expect_equal(dist1, 0.1551)
     
     # using only one channel, passed by marker name
-    dist3 <- EMDDist(ff1 = OMIP021Trans[[1]], 
-                        ff2 = OMIP021Trans[[2]], 
-                        channels = c("BV785 - CD3"),
-                        binSize = 0.05,
-                        minRange = -10,
-                        maxRange = 10,
-                        returnAll = FALSE)
+    dist3 <- EMDDist(x1 = OMIP021Trans[[1]], 
+                     x2 = OMIP021Trans[[2]], 
+                     channels = c("BV785 - CD3"),
+                     binSize = 0.05,
+                     minRange = -10,
+                     maxRange = 10,
+                     returnAll = FALSE)
     
     expect_equal(dist3, 0.1393)
     
     # using only one channel, passed by index
-    dist4 <- EMDDist(ff1 = OMIP021Trans[[1]], 
-                        ff2 = OMIP021Trans[[2]], 
-                        channels = 10,
-                        binSize = 0.05,
-                        minRange = -10,
-                        maxRange = 10,
-                        returnAll = FALSE)
+    dist4 <- EMDDist(x1 = OMIP021Trans[[1]], 
+                     x2 = OMIP021Trans[[2]], 
+                     channels = 10,
+                     binSize = 0.05,
+                     minRange = -10,
+                     maxRange = 10,
+                     returnAll = FALSE)
     
     expect_equal(dist4, dist3)
     
     # check that a warning is issued, when [minRange, maxRange] does not span
     # all events
     w <- capture_warnings({
-        distWarn <- EMDDist(ff1 = OMIP021Trans[[1]],
-                               ff2 = OMIP021Trans[[1]],
-                               channels = c("FSC-A", "SSC-A"),
-                               binSize = 0.05,
-                               minRange = -3,
-                               maxRange = 3,
-                               returnAll = FALSE)
+        distWarn <- EMDDist(x1 = OMIP021Trans[[1]],
+                            x2 = OMIP021Trans[[1]],
+                            channels = c("FSC-A", "SSC-A"),
+                            binSize = 0.05,
+                            minRange = -3,
+                            maxRange = 3,
+                            returnAll = FALSE)
     })
     expect_equal(length(w), 4)
     expect_match(w[1], regexp = "does not span all events for channel")  
     expect_equal(distWarn, 0.)
     
     #returning all
-    allDist <- EMDDist(ff1 = OMIP021Trans[[1]], 
-                          ff2 = OMIP021Trans[[2]], 
-                          channels = c("FSC-A", "SSC-A"),
-                          binSize = 0.05,
-                          minRange = -10,
-                          maxRange = 10,
-                          returnAll = TRUE)
+    allDist <- EMDDist(x1 = OMIP021Trans[[1]], 
+                       x2 = OMIP021Trans[[2]], 
+                       channels = c("FSC-A", "SSC-A"),
+                       binSize = 0.05,
+                       minRange = -10,
+                       maxRange = 10,
+                       returnAll = TRUE)
     expectedDists <- c(0.11292, 0.04218)
     names(expectedDists) <- c("FSC-A", "SSC-A")
     expect_equal(allDist$distances, expectedDists)
+})
+
+test_that("EMDDist works with expr matrices", {
+    expr1 <- flowCore::exprs(OMIP021Trans[[1]])[, 
+        CytoPipeline::areSignalCols(OMIP021Trans[[1]])]
+        
+    expr2 <- flowCore::exprs(OMIP021Trans[[2]])[, 
+        CytoPipeline::areSignalCols(OMIP021Trans[[2]])]
     
+    # distance with itself, all channels
+    distDum <- EMDDist(x1 = expr1,
+                       x2 = expr1,
+                       binSize = 0.05,
+                       minRange = -10,
+                       maxRange = 10,
+                       returnAll = FALSE)
+    expect_equal(distDum, 0.)
     
+    # returning only distance, 2 channels
+    dist1 <- EMDDist(x1 = expr1, 
+                     x2 = expr2, 
+                     channels = c("FSC-A", "SSC-A"),
+                     binSize = 0.05,
+                     minRange = -10,
+                     maxRange = 10,
+                     returnAll = FALSE)
+    
+    expect_equal(dist1, 0.1551)
+    
+    # using only one channel, passed by index
+    dist4 <- EMDDist(x1 = expr1, 
+                     x2 = expr2, 
+                     channels = 10,
+                     binSize = 0.05,
+                     minRange = -10,
+                     maxRange = 10,
+                     returnAll = FALSE)
+    
+    expect_equal(dist4, 0.1393)
+    
+    # check that a warning is issued, when [minRange, maxRange] does not span
+    # all events
+    w <- capture_warnings({
+        distWarn <- EMDDist(x1 = expr1,
+                            x2 = expr1,
+                            channels = c("FSC-A", "SSC-A"),
+                            binSize = 0.05,
+                            minRange = -3,
+                            maxRange = 3,
+                            returnAll = FALSE)
+    })
+    expect_equal(length(w), 4)
+    expect_match(w[1], regexp = "does not span all events for channel")  
+    expect_equal(distWarn, 0.)
+    
+    #returning all
+    allDist <- EMDDist(x1 = expr1, 
+                       x2 = expr2, 
+                       channels = c("FSC-A", "SSC-A"),
+                       binSize = 0.05,
+                       minRange = -10,
+                       maxRange = 10,
+                       returnAll = TRUE)
+    expectedDists <- c(0.11292, 0.04218)
+    names(expectedDists) <- c("FSC-A", "SSC-A")
+    expect_equal(allDist$distances, expectedDists)
 })
 
 
@@ -474,6 +546,112 @@ test_that("pairwiseEMDDist with fs works", {
     expect_equal(pwDist4[3,2], 0.)
 })
 
+test_that("pairwiseEMDDist with expr matrix works", {
+    
+    expr1 <- flowCore::exprs(OMIP021Trans[[1]])[, 
+        CytoPipeline::areSignalCols(OMIP021Trans[[1]])]
+    expr2 <- flowCore::exprs(OMIP021Trans[[2]])[, 
+        CytoPipeline::areSignalCols(OMIP021Trans[[2]])]
+    
+    pwDist <- pairwiseEMDDist(
+        x = list(expr1),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10)
+    expect_equal(dim(pwDist), c(1,1))
+    expect_equal(pwDist[1,1], 0.)
+    
+    pwDist <- pairwiseEMDDist(
+        x = list(expr1, expr2),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10)
+    expect_equal(dim(pwDist), c(2,2))
+    expect_equal(pwDist[1,1], 0.)
+    expect_equal(pwDist[1,2], 0.1551)
+    expect_equal(pwDist[2,1], 0.1551)
+    expect_equal(pwDist[2,2], 0.)
+    
+    ffList <- c(
+        flowCore::flowSet_to_list(OMIP021Trans),
+        lapply(3:5,
+               FUN = function(i) {
+                   aggregateAndSample(
+                       OMIP021Trans,
+                       seed = 10*i,
+                       nTotalEvents = 5000)[,1:22]
+               }))
+    
+    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+    names(ffList) <- fsNames
+    
+    exprList <- lapply(ffList, FUN = function(ff) {
+        expr <- flowCore::exprs(ff)[, CytoPipeline::areSignalCols(ff)]
+    })
+        
+    pwDist2 <- pairwiseEMDDist(
+        x = exprList,
+        rowRange = c(1,3),
+        colRange = c(4,5),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        verbose = FALSE)
+    expect_equal(dim(pwDist2), c(3,2))
+    expect_equal(pwDist2[1,1], 0.07241)
+    expect_equal(pwDist2[1,2], 0.08347)
+    expect_equal(pwDist2[2,1], 0.08501)
+    expect_equal(pwDist2[2,2], 0.07451)
+    expect_equal(pwDist2[3,1], 0.01293)
+    expect_equal(pwDist2[3,2], 0.01813)
+    
+    # test with asymetric block overlapping with diagonal
+    pwDist3 <- pairwiseEMDDist(
+        x = exprList,
+        rowRange = c(1,5),
+        colRange = c(2,5),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        verbose = FALSE)
+    
+    expect_equal(dim(pwDist3), c(5,4))
+    expect_equal(pwDist3[1,1], 0.1551)
+    expect_equal(pwDist3[1,2], 0.07132)
+    expect_equal(pwDist3[2,1], 0.)
+    expect_equal(pwDist3[2,2], 0.08556)
+    expect_equal(pwDist3[3,1], 0.)
+    expect_equal(pwDist3[3,2], 0.)
+    
+    # with verbose
+    msg <- capture_messages(pwDist4 <- pairwiseEMDDist(
+        x = exprList,
+        rowRange = c(1,5),
+        colRange = c(2,5),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        verbose = TRUE))
+    
+    expect_equal(length(msg), 22)
+    expect_equal(msg[5], "Calculating histogram for file 2...\n")
+    expect_equal(msg[10], "Loading file 5...\n")
+    expect_equal(msg[21], "i = 3; j = 5; dist = 0.01813\n")
+    
+    expect_equal(dim(pwDist4), c(5,4))
+    expect_equal(pwDist4[1,1], 0.1551)
+    expect_equal(pwDist4[1,2], 0.07132)
+    expect_equal(pwDist4[2,1], 0.)
+    expect_equal(pwDist4[2,2], 0.08556)
+    expect_equal(pwDist4[3,1], 0.)
+    expect_equal(pwDist4[3,2], 0.)
+})
+
 test_that("pairwiseEMDDist works with fs and BiocParallel", {
     
     logDir <- file.path(outputDir, "BiocParallel", "log")
@@ -553,6 +731,92 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
     expect_equal(pwDist3[2,2], 0.07451)
 })
 
+test_that("pairwiseEMDDist works with expr matrix and BiocParallel", {
+    
+    expr1 <- flowCore::exprs(OMIP021Trans[[1]])[, 
+        CytoPipeline::areSignalCols(OMIP021Trans[[1]])]
+    expr2 <- flowCore::exprs(OMIP021Trans[[2]])[, 
+        CytoPipeline::areSignalCols(OMIP021Trans[[2]])]
+    
+    logDir <- file.path(outputDir, "BiocParallel", "log")
+    
+    suppressWarnings(dir.create(logDir, recursive = TRUE))
+    
+    bp <- BiocParallel::SnowParam(workers = 2, log = TRUE, 
+                                  logdir = logDir,
+                                  progressbar = TRUE)
+    
+    pwDist <- suppressWarnings(pairwiseEMDDist(
+        x = list(expr1, expr2),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        BPPARAM = bp))
+    
+    expect_equal(dim(pwDist), c(2,2))
+    expect_equal(pwDist[1,1], 0.)
+    expect_equal(pwDist[1,2], 0.1551)
+    expect_equal(pwDist[2,1], 0.1551)
+    expect_equal(pwDist[2,2], 0.)
+    
+    ffList <- c(
+        flowCore::flowSet_to_list(OMIP021Trans),
+        lapply(3:5,
+               FUN = function(i) {
+                   aggregateAndSample(
+                       OMIP021Trans,
+                       seed = 10*i,
+                       nTotalEvents = 5000)[,1:22]
+               }))
+    
+    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+    names(ffList) <- fsNames
+    
+    fsAll <- as(ffList,"flowSet")
+    
+    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+    names(ffList) <- fsNames
+    
+    exprList <- lapply(ffList, FUN = function(ff) {
+        expr <- flowCore::exprs(ff)[, CytoPipeline::areSignalCols(ff)]
+    })
+    
+    pwDist2 <- suppressWarnings(pairwiseEMDDist(
+        x = exprList,
+        rowRange = c(1,3),
+        colRange = c(4,5),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        BPPARAM = bp))
+    
+    expect_equal(dim(pwDist2), c(3,2))
+    expect_equal(pwDist2[1,1], 0.07241)
+    expect_equal(pwDist2[1,2], 0.08347)
+    expect_equal(pwDist2[2,1], 0.08501)
+    expect_equal(pwDist2[2,2], 0.07451)
+    expect_equal(pwDist2[3,1], 0.01293)
+    expect_equal(pwDist2[3,2], 0.01813)
+    
+    pwDist3 <- suppressWarnings(pairwiseEMDDist(
+        x = exprList,
+        rowRange = c(1,2),
+        colRange = c(4,5),
+        channels = c("FSC-A", "SSC-A"),
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        BPPARAM = bp))
+    
+    expect_equal(dim(pwDist3), c(2,2))
+    expect_equal(pwDist3[1,1], 0.07241)
+    expect_equal(pwDist3[1,2], 0.08347)
+    expect_equal(pwDist3[2,1], 0.08501)
+    expect_equal(pwDist3[2,2], 0.07451)
+})
+
 test_that("pairwiseEMDDist dynamic memory loading simulation", {
     datasetPath <- system.file("extdata",
                                package = "CytoPipeline")
@@ -566,8 +830,8 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
     verbose <- FALSE
     pwDist <- pairwiseEMDDist(
         x = nSamples,
-        loadFlowFrameFUN = simulMemoryLoad,
-        loadFlowFrameFUNArgs = list(
+        loadExprMatrixFUN = simulMemoryLoad,
+        loadExprMatrixFUNArgs = list(
             filePaths = filePaths,
             nSamples = nSamples,
             verbose = FALSE
@@ -593,8 +857,8 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
     verbose <- FALSE
     pwDist2 <- suppressWarnings(pairwiseEMDDist(
         x = nSamples,
-        loadFlowFrameFUN = simulMemoryLoad,
-        loadFlowFrameFUNArgs = list(
+        loadExprMatrixFUN = simulMemoryLoad,
+        loadExprMatrixFUNArgs = list(
             filePaths = filePaths,
             nSamples = nSamples,
             verbose = verbose
@@ -623,8 +887,130 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
     expect_equal(pwDist2[6,10], 0.05840)
 })
 
-test_that("channelSummaryStats works", {
-   
+test_that("channelSummaryStats works with fs", {
+
+    ffList <- c(
+        flowCore::flowSet_to_list(OMIP021Trans),
+        lapply(3:5,
+               FUN = function(i) {
+                   aggregateAndSample(
+                       OMIP021Trans,
+                       seed = 10*i,
+                       nTotalEvents = 5000)[,1:22]
+               }))
+
+    fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+    names(ffList) <- fsNames
+
+    fsAll <- as(ffList,"flowSet")
+
+    channelsOrMarkers <- c("FSC-A", "SSC-A", "BV785 - CD3")
+
+    ret <- channelSummaryStats(
+        fsAll,
+        channels = channelsOrMarkers,
+        statFUNs = stats::median,
+        verbose = FALSE)
+
+    expect_equal(unname(rownames(ret)), flowCore::sampleNames(fsAll))
+    expect_equal(unname(colnames(ret)), channelsOrMarkers)
+
+    expect_equal(unname(ret[2,1]), 1.941572819633120)
+    expect_equal(unname(ret[3,2]), 1.131832378296435)
+    expect_equal(unname(ret[4,3]), 1.638696159955064)
+
+    ret <- channelSummaryStats(
+        fsAll,
+        channels = channelsOrMarkers,
+        statFUNs = list("mean" = mean, "std.dev" = stats::sd),
+        verbose = FALSE)
+
+    expect_equal(names(ret), c("mean", "std.dev"))
+    expect_equal(unname(rownames(ret[[1]])), flowCore::sampleNames(fsAll))
+    expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
+    expect_equal(unname(ret[[1]][2,1]), 1.961771149533659)
+    expect_equal(unname(ret[[1]][3,2]), 1.393034241892733)
+    expect_equal(unname(ret[[1]][4,3]), 1.907561024702794)
+
+    expect_equal(unname(rownames(ret[[2]])), flowCore::sampleNames(fsAll))
+    expect_equal(unname(colnames(ret[[2]])), channelsOrMarkers)
+    expect_equal(unname(ret[[2]][2,1]), 0.5942291770870205)
+    expect_equal(unname(ret[[2]][3,2]), 0.7352746696905406)
+    expect_equal(unname(ret[[2]][4,3]), 0.8420740225208073)
+
+    # test with only one flow frame
+    ret <- channelSummaryStats(
+        fsAll[1],
+        channels = channelsOrMarkers,
+        statFUNs = list("mean" = mean, "std.dev" = stats::sd),
+        verbose = FALSE)
+
+    expect_equal(names(ret), c("mean", "std.dev"))
+    expect_equal(unname(rownames(ret[[1]])), "Donor1")
+    expect_equal(unname(rownames(ret[[2]])), "Donor1")
+    expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
+    expect_equal(unname(colnames(ret[[2]])), channelsOrMarkers)
+    expect_equal(unname(ret[[1]][1]), 1.900298)
+    expect_equal(unname(ret[[1]][2]), 1.39186533)
+    expect_equal(unname(ret[[1]][3]), 1.8544648)
+    expect_equal(unname(ret[[2]][1]), 0.73461306)
+    expect_equal(unname(ret[[2]][2]), 0.74513873)
+    expect_equal(unname(ret[[2]][3]), 0.85498796)
+
+    # one flow frame, one stat
+    ret <- channelSummaryStats(
+        fsAll[1],
+        channels = channelsOrMarkers,
+        statFUNs = list("mean" = mean),
+        verbose = FALSE)
+
+    expect_equal(unname(rownames(ret[[1]])), "Donor1")
+    expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
+    expect_equal(unname(ret[[1]][1,1]), 1.900298)
+    expect_equal(unname(ret[[1]][1,2]), 1.39186533)
+    expect_equal(unname(ret[[1]][1,3]), 1.8544648)
+
+    # one flow frame, one stat (bis with direct impact of stat FUN)
+    ret <- channelSummaryStats(
+        fsAll[1],
+        channels = channelsOrMarkers,
+        statFUNs = mean,
+        verbose = FALSE)
+
+    expect_equal(unname(rownames(ret)), "Donor1")
+    expect_equal(unname(colnames(ret)), channelsOrMarkers)
+    expect_equal(unname(ret[1,1]), 1.900298)
+    expect_equal(unname(ret[1,2]), 1.39186533)
+    expect_equal(unname(ret[1,3]), 1.8544648)
+
+    # case where no channels is provided
+    ret <- channelSummaryStats(
+        fsAll,
+        statFUNs = list("mean" = mean, "std.dev" = stats::sd),
+        verbose = FALSE
+    )
+
+    allSignalChannels <-
+        flowCore::colnames(fsAll)[CytoPipeline::areSignalCols(fsAll)]
+    nSignalCh <- length(allSignalChannels)
+
+    allSignalChannelNames <- allSignalChannels
+    for (i in seq_along(allSignalChannels)) {
+        channelMarker <-
+            flowCore::getChannelMarker(fsAll[[1]], allSignalChannels[i])$desc
+        if (!is.null(channelMarker) && !is.na(channelMarker)){
+            allSignalChannelNames[i] <- channelMarker
+        }
+    }
+
+    expect_equal(unname(rownames(ret[[1]])),
+                 c("Donor1", "Donor2", "Agg1", "Agg2", "Agg3"))
+    expect_equal(unname(colnames(ret[[1]])), allSignalChannelNames)
+
+})
+
+test_that("channelSummaryStats works with expr matrix", {
+    
     ffList <- c(
         flowCore::flowSet_to_list(OMIP021Trans),
         lapply(3:5,
@@ -638,54 +1024,63 @@ test_that("channelSummaryStats works", {
     fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
     names(ffList) <- fsNames
     
-    fsAll <- as(ffList,"flowSet")
+    exprList <- lapply(
+        ffList,
+        FUN = function(ff) {
+            exprMat <- 
+                flowCore::exprs(ff)[,CytoPipeline::areSignalCols(ff)]
+            exprMat
+        }
+    )
     
-    channelsOrMarkers <- c("FSC-A", "SSC-A", "BV785 - CD3")
+    names(exprList) <- names(ffList)
+    
+    channels <- c("FSC-A", "SSC-A", "670/30Violet-A")
     
     ret <- channelSummaryStats(
-        fsAll,
-        channels = channelsOrMarkers,
+        exprList,
+        channels = channels,
         statFUNs = stats::median,
         verbose = FALSE)
     
-    expect_equal(unname(rownames(ret)), flowCore::sampleNames(fsAll))
-    expect_equal(unname(colnames(ret)), channelsOrMarkers)
+    expect_equal(unname(rownames(ret)), names(ffList))
+    expect_equal(unname(colnames(ret)), channels)
     
     expect_equal(unname(ret[2,1]), 1.941572819633120)
     expect_equal(unname(ret[3,2]), 1.131832378296435)
     expect_equal(unname(ret[4,3]), 1.638696159955064)
     
     ret <- channelSummaryStats(
-        fsAll,
-        channels = channelsOrMarkers,
+        exprList,
+        channels = channels,
         statFUNs = list("mean" = mean, "std.dev" = stats::sd),
         verbose = FALSE)
     
     expect_equal(names(ret), c("mean", "std.dev"))
-    expect_equal(unname(rownames(ret[[1]])), flowCore::sampleNames(fsAll))
-    expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
+    expect_equal(unname(rownames(ret[[1]])), names(ffList))
+    expect_equal(unname(colnames(ret[[1]])), channels)
     expect_equal(unname(ret[[1]][2,1]), 1.961771149533659)
     expect_equal(unname(ret[[1]][3,2]), 1.393034241892733)
     expect_equal(unname(ret[[1]][4,3]), 1.907561024702794)
     
-    expect_equal(unname(rownames(ret[[2]])), flowCore::sampleNames(fsAll))
-    expect_equal(unname(colnames(ret[[2]])), channelsOrMarkers)
+    expect_equal(unname(rownames(ret[[2]])), names(ffList))
+    expect_equal(unname(colnames(ret[[2]])), channels)
     expect_equal(unname(ret[[2]][2,1]), 0.5942291770870205)
     expect_equal(unname(ret[[2]][3,2]), 0.7352746696905406)
     expect_equal(unname(ret[[2]][4,3]), 0.8420740225208073)
     
-    # test with only one flow frame 
+    # test with only one flow frame
     ret <- channelSummaryStats(
-        fsAll[1],
-        channels = channelsOrMarkers,
+        exprList[1],
+        channels = channels,
         statFUNs = list("mean" = mean, "std.dev" = stats::sd),
         verbose = FALSE)
     
     expect_equal(names(ret), c("mean", "std.dev"))
     expect_equal(unname(rownames(ret[[1]])), "Donor1")
     expect_equal(unname(rownames(ret[[2]])), "Donor1")
-    expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
-    expect_equal(unname(colnames(ret[[2]])), channelsOrMarkers)
+    expect_equal(unname(colnames(ret[[1]])), channels)
+    expect_equal(unname(colnames(ret[[2]])), channels)
     expect_equal(unname(ret[[1]][1]), 1.900298)
     expect_equal(unname(ret[[1]][2]), 1.39186533)
     expect_equal(unname(ret[[1]][3]), 1.8544648)
@@ -695,53 +1090,44 @@ test_that("channelSummaryStats works", {
     
     # one flow frame, one stat
     ret <- channelSummaryStats(
-        fsAll[1],
-        channels = channelsOrMarkers,
+        exprList[1],
+        channels = channels,
         statFUNs = list("mean" = mean),
         verbose = FALSE)
     
     expect_equal(unname(rownames(ret[[1]])), "Donor1")
-    expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
+    expect_equal(unname(colnames(ret[[1]])), channels)
     expect_equal(unname(ret[[1]][1,1]), 1.900298)
     expect_equal(unname(ret[[1]][1,2]), 1.39186533)
     expect_equal(unname(ret[[1]][1,3]), 1.8544648)
     
     # one flow frame, one stat (bis with direct impact of stat FUN)
     ret <- channelSummaryStats(
-        fsAll[1],
-        channels = channelsOrMarkers,
+        exprList[1],
+        channels = channels,
         statFUNs = mean,
         verbose = FALSE)
     
     expect_equal(unname(rownames(ret)), "Donor1")
-    expect_equal(unname(colnames(ret)), channelsOrMarkers)
+    expect_equal(unname(colnames(ret)), channels)
     expect_equal(unname(ret[1,1]), 1.900298)
     expect_equal(unname(ret[1,2]), 1.39186533)
     expect_equal(unname(ret[1,3]), 1.8544648)
     
     # case where no channels is provided
     ret <- channelSummaryStats(
-        fsAll,
+        exprList,
         statFUNs = list("mean" = mean, "std.dev" = stats::sd),
         verbose = FALSE
     )
     
-    allSignalChannels <- 
-        flowCore::colnames(fsAll)[CytoPipeline::areSignalCols(fsAll)]
+    allSignalChannels <- colnames(exprList[[1]])
     nSignalCh <- length(allSignalChannels)
     
-    allSignalChannelNames <- allSignalChannels
-    for (i in seq_along(allSignalChannels)) {
-        channelMarker <- 
-            flowCore::getChannelMarker(fsAll[[1]], allSignalChannels[i])$desc
-        if (!is.null(channelMarker) && !is.na(channelMarker)){
-            allSignalChannelNames[i] <- channelMarker
-        }
-    }
     
-    expect_equal(unname(rownames(ret[[1]])), 
+    expect_equal(unname(rownames(ret[[1]])),
                  c("Donor1", "Donor2", "Agg1", "Agg2", "Agg3"))
-    expect_equal(unname(colnames(ret[[1]])), allSignalChannelNames)
+    expect_equal(unname(colnames(ret[[1]])), allSignalChannels)
     
 })
 
@@ -753,23 +1139,23 @@ test_that("channelSummaryStats dynamic memory loading simulation", {
     if (length(files) != 2) stop("unexpected nb of files!")
 
     filePaths <- file.path(datasetPath, files)
-    
+
     channelsOrMarkers <- c("FSC-A", "SSC-A", "BV785 - CD3")
 
     nSamples <- 10
     verbose <- FALSE
-    ret <- CytoMDS::channelSummaryStats(
+    ret <- channelSummaryStats(
         x = nSamples,
-        loadFlowFrameFUN = simulMemoryLoad,
-        loadFlowFrameFUNArgs = list(
+        loadExprMatrixFUN = simulMemoryLoad,
+        loadExprMatrixFUNArgs = list(
             filePaths = filePaths,
             nSamples = nSamples,
+            channels = channelsOrMarkers,
             verbose = FALSE
         ),
-        channels = channelsOrMarkers,
         statFUNs = list("mean" = mean, "std.dev" = stats::sd),
         verbose = verbose)
-    
+
     expect_equal(names(ret), c("mean", "std.dev"))
     expect_equal(dim(ret[[1]]), c(10, 3))
     expect_equal(unname(colnames(ret[[1]])), channelsOrMarkers)
@@ -792,19 +1178,19 @@ test_that("channelSummaryStats dynamic memory loading simulation", {
                                   RNGseed = 0)
     ret2 <- suppressWarnings(CytoMDS::channelSummaryStats(
         x = nSamples,
-        loadFlowFrameFUN = simulMemoryLoad,
-        loadFlowFrameFUNArgs = list(
+        loadExprMatrixFUN = simulMemoryLoad,
+        loadExprMatrixFUNArgs = list(
             filePaths = filePaths,
             nSamples = nSamples,
+            channels = channelsOrMarkers,
             verbose = FALSE
         ),
-        channels = channelsOrMarkers,
         statFUNs = list("mean" = mean, "std.dev" = stats::sd),
         verbose = verbose,
         BPPARAM = bp,
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore", "CytoPipeline"))))
-    
+
     # Note it is normal that the computed stats are different
     # from the ones obtained when not using BiocParallel.
     # As described in section 2.4 of technical note:

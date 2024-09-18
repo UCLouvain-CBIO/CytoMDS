@@ -17,36 +17,87 @@
 # as input. These indicators can be, either:
 # NULL => take all signal channels
 # a numeric vector of indices
-# a vector of character poiting to either channel names or marker names
-# a flowFrame is also needed to pick channel names by default or convert 
-# marker names to channel names
-.toChannelNames <- function(channels, ff) {
-    if (is.null(channels)) {
-        channels <- 
-            flowCore::colnames(ff)[areSignalCols(ff)]
-    } else if (is.numeric(channels)) {
-        channels <- 
-            flowCore::colnames(ff)[channels]
-    } else {
-        channels <- vapply(
-            channels, 
-            FUN = function(ch) {
-                flowCore::getChannelMarker(ff, ch)$name
-            },
-            FUN.VALUE = "c")
+# a vector of character pointing to either channel names or marker names
+# if x is a flowFrame or flowSet, it pick channel names by default 
+# or convert marker names to channel names
+# if x is an expression matrix it simply uses the matrix column names
+.toChannelNames <- function(channels, x) {
+    if (inherits(x, "flowFrame") || inherits(x, "flowSet")) {
+        if (is.null(channels)) {
+            channels <- 
+                flowCore::colnames(x)[areSignalCols(x)]
+        } else if (is.numeric(channels)) {
+            channels <- 
+                flowCore::colnames(x)[channels]
+        } else {
+            if (inherits(x, "flowSet")) {
+                channels <- vapply(
+                    channels, 
+                    FUN = function(ch) {
+                        flowCore::getChannelMarker(x[[1]], ch)$name
+                    },
+                    FUN.VALUE = "c")
+            } else {
+                channels <- vapply(
+                    channels, 
+                    FUN = function(ch) {
+                        flowCore::getChannelMarker(x, ch)$name
+                    },
+                    FUN.VALUE = "c")    
+            }
+            
+        }
+    } else if (is.matrix(x)) {
+        if (is.null(colnames(x))) {
+            stop("expression matrix should have named columns")
+        }
+        if (is.null(channels)) {
+            channels <- colnames(x)
+        } else if (is.numeric(channels)) {
+            channels <- colnames(x)[channels]
+        } else if (!all(channels %in% colnames(x))) {
+            stop("channels should all be expression matrix column names")
+        }
+        channels
+    } else 
+    {
+        stop("x should be either a flowCore::flowFrame or an expression matrix")
     }
+    
+}
+
+# internal function returning channel default display names 
+# taking the channel names as input, for a flowFrame
+# => replaces channel names by marker names when they exist 
+.defaultChannelDisplayNames <- function(ff, channels) {
+    if (!inherits(ff, "flowFrame")) {
+        stop("ff should be a flowCore::flowFrame")
+    }
+    channelNames <- vapply(
+        channels,
+        FUN = function(ch, ff) {
+            channelMarker <- flowCore::getChannelMarker(ff, ch)$desc
+            if (!is.null(channelMarker) && !is.na(channelMarker)){
+                channelNames <- channelMarker
+            } else {
+                channelNames <- ch
+            }
+        },
+        FUN.VALUE = character(1),
+        ff = ff
+    )
 }
 
 # internal function calculating the unidimensional histograms of a 2D expression matrix
 .unidimHistograms <- function(
-    expr, 
+    exprMat, 
     breaks){
     
     # discretize all marginal distributions
     # check that the range correctly spans all events
     distr <- vapply(
-        colnames(expr),
-        exprMat = expr,
+        colnames(exprMat),
+        exprMat = exprMat,
         FUN = function(colName, exprMat) {
             counts <- graphics::hist(
                 exprMat[, colName], 
@@ -134,112 +185,16 @@
     return(distances)
 }
 
-#' @title Calculate Earth Mover's distance between two flowFrames
-#'
-#' @param ff1           a flowCore::flowFrame
-#' @param ff2           a flowCore::flowFrame
-#' @param channels      which channels (integer index(ices) or character(s)):
-#' - if it is a character vector, 
-#' it can refer to either the channel names, or the marker names
-#' - if it is a numeric vector, 
-#' it refers to the indexes of channels in `ff1`
-#' - if NULL all scatter and fluorescent channels of `ff1`
-#' will be selected
-#' @param checkChannels  if `TRUE`, will explicitly check that
-#' all provided channels are present in both flowFrames
-#' @param binSize  size of equal bins to approximate 
-#' the marginal distributions.
-#' @param minRange minimum value taken 
-#' when approximating the marginal distributions
-#' @param maxRange maximum value taken 
-#' when approximating the marginal distributions
-#' @param returnAll If `TRUE`, distributions and marginal distribution
-#' distances are returned as well. Default = `FALSE`.
-#'
-#' @return the Earth Mover's distance between `ff1` and `ff2`,
-#' which is calculated by summing up all EMD approximates for
-#' the marginal distributions of each channel
-#' @importFrom CytoPipeline areSignalCols
-#' @export
-#' 
-#' @examples
-#' 
-#' library(CytoPipeline)
-#' 
-#' data(OMIP021Samples)
-#' 
-#' # estimate scale transformations 
-#' # and transform the whole OMIP021Samples
-#' 
-#' transList <- estimateScaleTransforms(
-#'     ff = OMIP021Samples[[1]],
-#'     fluoMethod = "estimateLogicle",
-#'     scatterMethod = "linearQuantile",
-#'     scatterRefMarker = "BV785 - CD3")
-#' 
-#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
-#'     OMIP021Samples, 
-#'     transList)
-#' 
-#' # distance with itself (all channels at once)
-#' # => should return 0
-#' dist0 <- EMDDist(
-#'     ff1 = OMIP021Trans[[1]],
-#'     ff2 = OMIP021Trans[[1]])
-#' 
-#' # returning only distance, 2 channels
-#' dist1 <- EMDDist(
-#'     ff1 = OMIP021Trans[[1]], 
-#'     ff2 = OMIP021Trans[[2]], 
-#'     channels = c("FSC-A", "SSC-A"))
-#' 
-#' # using only one channel, passed by marker name
-#' dist2 <- EMDDist(ff1 = OMIP021Trans[[1]], 
-#'                     ff2 = OMIP021Trans[[2]], 
-#'                     channels = c("BV785 - CD3"))
-#' 
-#' # using only one channel, passed by index
-#' dist3 <- EMDDist(ff1 = OMIP021Trans[[1]], 
-#'                     ff2 = OMIP021Trans[[2]], 
-#'                     channels = 10)
-#' 
-#' dist2 == dist3
-#' 
-EMDDist <- function(
-        ff1, 
-        ff2, 
-        channels = NULL,
-        checkChannels = TRUE,
+# internal function for EMD distance between two expression matrices
+.EMDDist <- function(
+        expr1, 
+        expr2, 
         binSize = 0.05,
         minRange = -10,
         maxRange = 10,
-        returnAll = FALSE) {
-                       
-    if (!inherits(ff1, "flowFrame") || !inherits(ff2, "flowFrame")) {
-        stop("both flowFrame objects should inherit from flowCore::flowFrame")
-    }
-    
-    ffList <- list(ff1, ff2)
-    
-    channels <- .toChannelNames(channels, ff1)
-    
-    if (checkChannels) {
-        # check that all channels are present in both flow frames
-        vapply(X = ffList, FUN = function(ff) {
-            wrongCh <- which(! channels %in% flowCore::colnames(ff))
-            if (length(wrongCh) > 0) {
-                stop(
-                    "found some channels that are non existent in flowFrame ",
-                    flowCore::identifier(ff), ":",
-                    channels[wrongCh])
-            }
-            return(TRUE)
-        }, FUN.VALUE = TRUE)  
-    }
-    
-    # for performance
-    ffList <- lapply(ffList, FUN = function(ff) ff[, channels, drop = FALSE])
-    exprList <- lapply(ffList, FUN = flowCore::exprs)
+        returnAll = FALSE)
+{
+    exprList <- list(expr1, expr2)
     
     breaks <- seq(
         minRange,
@@ -269,6 +224,140 @@ EMDDist <- function(
     else {
         return(globalDist)
     }
+}
+
+#' @title Calculate Earth Mover's distance between two samples
+#'
+#' @param x1            can be either a flowCore::flowFrame,  
+#' or an expression matrix
+#' @param x2            can be either a flowCore::flowFrame,
+#' or an expression matrix
+#' @param channels      which channels (integer index(ices) or character(s)):
+#' - if it is a character vector, 
+#' it can refer to either the channel names, or the marker names if x1 and x2
+#' have been provided as flowCore::flowFrame
+#' - if it is a numeric vector, 
+#' it refers to the indexes of channels in `x1`
+#' - if NULL : if `x1` and `x2` are provided as flowCore::flowFrames, 
+#' all scatter and fluorescent channels of `x1` will be selected; 
+#' if `x1` and `x2` are provided as expression matrices, all colnames of `x1` 
+#' will be selected.
+#' @param binSize  size of equal bins to approximate 
+#' the marginal distributions.
+#' @param minRange minimum value taken 
+#' when approximating the marginal distributions
+#' @param maxRange maximum value taken 
+#' when approximating the marginal distributions
+#' @param returnAll If `TRUE`, distributions and marginal distribution
+#' distances are returned as well. Default = `FALSE`.
+#'
+#' @return the Earth Mover's distance between `x1` and `x2`,
+#' which is calculated by summing up all EMD approximates for
+#' the marginal distributions of each channel
+#' @importFrom CytoPipeline areSignalCols
+#' @export
+#' 
+#' @examples
+#' 
+#' library(CytoPipeline)
+#' 
+#' data(OMIP021Samples)
+#' 
+#' # estimate scale transformations 
+#' # and transform the whole OMIP021Samples
+#' 
+#' transList <- estimateScaleTransforms(
+#'     ff = OMIP021Samples[[1]],
+#'     fluoMethod = "estimateLogicle",
+#'     scatterMethod = "linearQuantile",
+#'     scatterRefMarker = "BV785 - CD3")
+#' 
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples, 
+#'     transList)
+#' 
+#' # distance with itself (all channels at once)
+#' # => should return 0
+#' dist0 <- EMDDist(
+#'     x1 = OMIP021Trans[[1]],
+#'     x2 = OMIP021Trans[[1]])
+#' 
+#' # returning only distance, 2 channels
+#' dist1 <- EMDDist(
+#'     x1 = OMIP021Trans[[1]], 
+#'     x2 = OMIP021Trans[[2]], 
+#'     channels = c("FSC-A", "SSC-A"))
+#' 
+#' # using only one channel, passed by marker name
+#' dist2 <- EMDDist(x1 = OMIP021Trans[[1]], 
+#'                  x2 = OMIP021Trans[[2]], 
+#'                  channels = c("BV785 - CD3"))
+#' 
+#' # using only one channel, passed by index
+#' dist3 <- EMDDist(x1 = OMIP021Trans[[1]], 
+#'                  x2 = OMIP021Trans[[2]], 
+#'                  channels = 10)
+#' 
+#' dist2 == dist3
+#' 
+EMDDist <- function(
+        x1, 
+        x2, 
+        channels = NULL,
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10,
+        returnAll = FALSE) {
+    
+    if (inherits(x1, "flowFrame")) {
+        expr1 <- flowCore::exprs(x1)
+    } else if (is.matrix(x1)) {
+        expr1 <- x1
+    } else {
+        stop("x1 object should either inherit from flowCore::flowFrame, ",
+             "or should be an expression matrix")
+    }
+    
+    if (inherits(x2, "flowFrame")) {
+        expr2 <- flowCore::exprs(x2)
+    } else if (is.matrix(x2)) {
+        expr2 <- x2
+    } else {
+        stop("x2 object should either inherit from flowCore::flowFrame, ",
+             "or should be an expression matrix")
+    }
+    
+    channelsId <- .toChannelNames(channels, x1)
+    
+    # check that all channels are present in both expr matrices
+    checkChannels <- function(exprMat, channelsId) {
+        wrongCh <- which(! channelsId %in% colnames(exprMat))
+        if (length(wrongCh) > 0) {
+            stop("found some channels that are non existent ",
+                 "in all expr matrices")
+        }
+        return(TRUE) 
+    }
+    
+    if (!is.null(channelsId)) {
+        checkChannels(expr1, channelsId)
+        checkChannels(expr2, channelsId)    
+    }
+    
+    
+    # for performance
+    expr1 <- expr1[, channelsId, drop = FALSE]
+    expr2 <- expr2[, channelsId, drop = FALSE]
+    
+    ret <- .EMDDist(
+        expr1, 
+        expr2, 
+        binSize = binSize,
+        minRange = minRange,
+        maxRange = maxRange,
+        returnAll = returnAll)
+    ret
+    
 }
 
 # internal function to generate blocks from a (rectangular piece of a) matrix
@@ -400,13 +489,13 @@ EMDDist <- function(
 # unidimensional histograms, in that case tight memory management will
 # again be needed. 
 #
-# (3.)`memSize` should be an estimate of the number of flow frame (per core) 
-# that can reside concurrently in memory. In that case the pairwise distance 
-# calculation will be split by matrix blocs, and the block size 
-# - hence the number of flow frames stored in memory concurrently - 
+# (3.)`memSize` should be an estimate of the number of expression matrices 
+# (per core) that can reside concurrently in memory. In that case the pairwise 
+# distance # calculation will be split by matrix blocs, and the block size 
+# - hence the number of expression matrices stored in memory concurrently - 
 # will be adjusted according to the estimate.
-# @param memSize specifies an estimate of the number of flowFrames that can
-# live concurrently in the memory available to a single core 
+# @param memSize specifies an estimate of the number of expression matrices 
+# that can live concurrently in the memory available to a single core 
 # (in case BiocParallel is used). Note the provided value has to take into 
 # account the type of BiocParallel infrastructure used (i.e. whether it uses 
 # shared memory or not). 
@@ -414,8 +503,8 @@ EMDDist <- function(
         nSamples,
         rowRange = c(1, nSamples), 
         colRange = c(min(rowRange), nSamples),
-        loadFlowFrameFUN,
-        loadFlowFrameFUNArgs = NULL,
+        loadExprMatrixFUN,
+        loadExprMatrixFUNArgs = NULL,
         channels = NULL,
         verbose = FALSE,
         BPPARAM = BiocParallel::SerialParam(),
@@ -517,57 +606,59 @@ EMDDist <- function(
         
         breaks <- round(breaks,12)
         
-        loadFFAndCalcHistograms <- function(
+        loadExprMatAndCalcHistograms <- function(
             block, 
-            loadFlowFrameFUN, 
-            loadFlowFrameFUNArgs,
+            loadExprMatrixFUN, 
+            loadExprMatrixFUNArgs,
             channels,
             breaks,
             verbose) {
             
             distrs <- lapply(
                 block,
-                FUN = function(ffIndex, 
-                               loadFlowFrameFUN,
-                               loadFlowFrameFUNArgs,
+                FUN = function(index, 
+                               loadExprMatrixFUN,
+                               loadExprMatrixFUNArgs,
                                channels, 
                                breaks, 
                                verbose) {
                     if (verbose) {
-                        message("Loading file ", ffIndex, "...")
+                        message("Loading file ", index, "...")
                     }
-                    ff <- do.call(
-                        loadFlowFrameFUN,
-                        args = c(list(ffIndex = ffIndex),
-                                 loadFlowFrameFUNArgs))
-                    ## clean memory for ff stored in previous loop
+                    exprMat <- do.call(
+                        loadExprMatrixFUN,
+                        args = c(list(exprMatrixIndex = index),
+                                 loadExprMatrixFUNArgs))
+                    ## clean memory for expr matrices stored in previous loop
                     invisible(gc()) 
-                    if(!inherits(ff, "flowFrame")) {
-                        stop("object returned by loadFlowFrameFUN function ",
-                             "should inherit from flowCore::flowFrame")
+                    if(!is.matrix(exprMat)) {
+                        stop("object returned by loadExprMatrixFUN function ",
+                             "should be a matrix - containing the expressions")
                     }
-                    
-                    # check channels
-                    channels <- .toChannelNames(channels, ff)
                     
                     # take only the channels of interest for the following,
                     # for performance
-                    ff <- ff[,channels]
-                    expr <- flowCore::exprs(ff)
+                    if(!is.null(channels)) {
+                        if(!all(channels %in% colnames(exprMat))) {
+                            stop("channels are not all in expr matrix column names")
+                        }
+                        exprMat <- exprMat[, channels, drop=FALSE]
+                    }
                     
                     if (verbose) {
-                        message("Calculating histogram for file ", ffIndex, "...")
+                        message("Calculating histogram for file ", index, 
+                                "...")
                     }
                     
                     distr <- .unidimHistograms(
-                        expr,
+                        exprMat,
                         breaks = breaks
                     )
                     
                     distr
                 },
-                loadFlowFrameFUN = loadFlowFrameFUN,
-                loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+                loadExprMatrixFUN = loadExprMatrixFUN,
+                loadExprMatrixFUNArgs = loadExprMatrixFUNArgs,
                 channels = channels, 
                 breaks = breaks, 
                 verbose = verbose
@@ -578,11 +669,11 @@ EMDDist <- function(
         
         distribBlockList <- BiocParallel::bplapply(
             blocks1D,
-            FUN = loadFFAndCalcHistograms,
+            FUN = loadExprMatAndCalcHistograms,
             BPPARAM = BPPARAM,
             BPOPTIONS = BPOPTIONS,
-            loadFlowFrameFUN = loadFlowFrameFUN,
-            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            loadExprMatrixFUN = loadExprMatrixFUN,
+            loadExprMatrixFUNArgs = loadExprMatrixFUNArgs,
             channels = channels,
             breaks = breaks,
             verbose = verbose)
@@ -600,8 +691,6 @@ EMDDist <- function(
             breaks,
             distrs,
             verbose) {
-            
-            #browser()
         
             rowSeq <- seq(block$rowMin, block$rowMax)
             colSeq <- seq(block$colMin, block$colMax)
@@ -661,49 +750,49 @@ EMDDist <- function(
     } else {
         handleOneBlock <- function(
         block,
-        loadFlowFrameFUN,
-        loadFlowFrameFUNArgs,
+        loadExprMatrixFUN,
+        loadExprMatrixFUNArgs,
         channels,
         verbose) {
-            
             rowSeq <- seq(block$rowMin, block$rowMax)
             colSeq <- seq(block$colMin, block$colMax)
             nRows <- length(rowSeq)
             nCols <- length(colSeq)
-            ffIndexes <- union(rowSeq, colSeq)
+            exprMatIndices <- union(rowSeq, colSeq)
             
-            ffList <- lapply(
-                ffIndexes,
-                FUN = function(ffIndex, 
-                               loadFlowFrameFUN,
-                               loadFlowFrameFUNArgs,
+            expMatList <- lapply(
+                exprMatIndices,
+                FUN = function(index, 
+                               loadExprMatrixFUN,
+                               loadExprMatrixFUNArgs,
                                channels, 
                                verbose) {
                     if (verbose) {
-                        message("Loading file ", ffIndex, "...")
+                        message("Loading file ", index, "...")
                     }
-                    ind <- ind+1
-                    ff <- do.call(
-                        loadFlowFrameFUN,
-                        args = c(list(ffIndex = ffIndex),
-                                 loadFlowFrameFUNArgs))
-                    ## clean memory for ff stored in previous loop
+                    exprMat <- do.call(
+                        loadExprMatrixFUN,
+                        args = c(list(exprMatrixIndex = index),
+                                 loadExprMatrixFUNArgs))
+                    ## clean memory for expr matrices stored in previous loop
                     invisible(gc()) 
-                    if(!inherits(ff, "flowFrame")) {
-                        stop("object returned by loadFlowFrameFUN function ",
-                             "should inherit from flowCore::flowFrame")
+                    if(!is.matrix(exprMat)) {
+                        stop("object returned by loadExprMatrixFUN function ",
+                             "should be a matrix - containing the expressions")
                     }
                     
-                    # check channels
-                    channels <- .toChannelNames(channels, ff)
-                        
                     # take only the channels of interest for the following,
                     # for performance
-                    ff <- ff[, channels]
-                    ff
+                    if(!is.null(channels)) {
+                        if(!all(channels %in% colnames(exprMat))) {
+                            stop("channels are not all in expr matrix column names")
+                        }
+                        exprMat <- exprMat[, channels, drop=FALSE]
+                    }
+                    exprMat
                 },
-                loadFlowFrameFUN = loadFlowFrameFUN,
-                loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+                loadExprMatrixFUN = loadExprMatrixFUN,
+                loadExprMatrixFUNArgs = loadExprMatrixFUNArgs,
                 channels = channels, 
                 verbose = verbose
             )
@@ -715,13 +804,15 @@ EMDDist <- function(
                         seq_along(rowSeq),
                         FUN = function(i) {
                             if (colSeq[j] > rowSeq[i]) {
-                                pwDist <- EMDDist(
-                                    ff1 = ffList[[
-                                        which(ffIndexes == rowSeq[i])]],
-                                    ff2 = ffList[[
-                                        which(ffIndexes == colSeq[j])]],
-                                    channels = channels,
-                                    checkChannels = FALSE) 
+                                pwDist <- .EMDDist(
+                                    expr1 = expMatList[[
+                                        which(exprMatIndices == rowSeq[i])]],
+                                    expr2 = expMatList[[
+                                        which(exprMatIndices == colSeq[j])]],
+                                    binSize = binSize,
+                                    minRange = minRange,
+                                    maxRange = maxRange,
+                                    returnAll = FALSE) 
                                         
                                 if (verbose) {
                                     message(
@@ -753,8 +844,8 @@ EMDDist <- function(
             BPPARAM = BPPARAM,
             BPOPTIONS = BPOPTIONS,
             FUN = handleOneBlock,
-            loadFlowFrameFUN = loadFlowFrameFUN,
-            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            loadExprMatrixFUN = loadExprMatrixFUN,
+            loadExprMatrixFUNArgs = loadExprMatrixFUNArgs,
             channels = channels,
             verbose = verbose)
         
@@ -799,25 +890,31 @@ EMDDist <- function(
 #' @title Pairwise Earth Mover's Distance calculation
 #' @description Computation of all EMD between pairs of flowFrames belonging
 #' to a flowSet.  
-#' This method provides two different input modes:
-#' - the user provides directly a flowSet loaded in memory (RAM).
+#' This method provides three different input modes:
+#' - the user provides directly a flowCore::flowSet loaded in memory (RAM).
+#' - the user provides directly a list of expression matrices loaded in RAM,
+#'  of which the column names are the channel/marker names
 #' - the user provides (1.) a number of samples `nSamples`; (2.) an ad-hoc 
 #' function that takes as input an index between 1 and `nSamples`, and codes
-#' the method to load the corresponding flowFrame in memory; 
+#' the method to load the corresponding expression matrix in memory; 
 #' Optional row and column ranges can be provided to limit the calculation
 #' to a specific rectangle of the matrix. These i.e. can be specified as a way 
 #' to split heavy calculations of large distance matrices 
 #' on several computation nodes.  
 #' 
-#' @param x either a flowCore::flowSet, or the number of samples (integer >=1)
+#' @param x can be:  
+#' - a flowCore::flowSet   
+#' - a list of expression matrices (Double matrix with named columns)  
+#' - the number of samples (integer >=1)
 #' @param rowRange the range of rows of the distance matrix to be calculated
 #' @param colRange the range of columns of the distance matrix to be calculated
-#' @param loadFlowFrameFUN the function used to translate a flowFrame index
-#' into a flowFrame. In other words, the function should code how to load a
-#' specific flowFrame into memory. Important: the flow Frame index should be 
-#' the first function argument and should be named `ffIndex`. 
-#' @param loadFlowFrameFUNArgs (optional) a named list containing 
-#' additional input parameters of `loadFlowFrameFUN()`
+#' @param loadExprMatrixFUN the function used to translate an integer index
+#' into an expression matrix. In other words, the function should code how to 
+#' load the `index`th expression matrix into memory. 
+#' IMPORTANT: the expression matrix index should be the first function argument 
+#' and should be named `exprMatrixIndex`. 
+#' @param loadExprMatrixFUNArgs (optional) a named list containing 
+#' additional input parameters of `loadExprMatrixFUN()`
 #' @param channels which channels (integer index(ices) or character(s)):
 #' - if it is a character vector,
 #' it can refer to either the channel names, or the marker names
@@ -876,8 +973,8 @@ pairwiseEMDDist <- function(
         x,
         rowRange = c(1, nSamples), 
         colRange = c(min(rowRange), nSamples),
-        loadFlowFrameFUN = NULL,
-        loadFlowFrameFUNArgs = NULL,
+        loadExprMatrixFUN = NULL,
+        loadExprMatrixFUNArgs = NULL,
         channels = NULL,
         verbose = FALSE,
         BPPARAM = BiocParallel::SerialParam(),
@@ -889,20 +986,55 @@ pairwiseEMDDist <- function(
         ){
     
     nSamples <- NULL
-    inMemory <- FALSE
     
     if(inherits(x, "flowSet")) {
-        getFF <- function(ffIndex, fs) {
-            return(fs[[ffIndex]])
+        getExpr <- function(exprMatrixIndex, fs, channels) {
+            exprMat <- flowCore::exprs(fs[[exprMatrixIndex]])
+            channelIds <- .toChannelNames(channels, x)
+            exprMat <- exprMat[, channelIds, drop = FALSE]
+            exprMat
         }
         nSamples <- length(x)
         pwDist <- .pairwiseEMDDist(
             nSamples = nSamples,
             rowRange = rowRange,
             colRange = colRange,
-            loadFlowFrameFUN = getFF,
-            loadFlowFrameFUNArgs = list(fs = x),
-            channels = channels,
+            loadExprMatrixFUN = getExpr,
+            loadExprMatrixFUNArgs = list(fs = x, channels = channels),
+            channels = NULL, #already taken into account in loadExprMatrixFUN
+            verbose = verbose,
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BPOPTIONS,
+            binSize = binSize,
+            minRange = minRange,
+            maxRange = maxRange)
+        
+    } else if (is.list(x)) {
+        tests <- lapply(x, FUN = function(exprMat) {
+            if (!is.numeric(exprMat) || !is.matrix(exprMat)) {
+                stop("each element of the expression matrix list should be ",
+                     " a numeric matrix")
+            }
+            if (is.null(colnames(exprMat))) {
+                stop("each expression matrix should contain named columns")
+            }
+            return(TRUE)
+        })
+        getExpr <- function(exprMatrixIndex, expMatrixList, channels) {
+            exprMat <- expMatrixList[[exprMatrixIndex]]
+            channelIds <- .toChannelNames(channels, exprMat)
+            exprMat <- exprMat[, channelIds, drop=FALSE]
+            exprMat
+        }
+        nSamples <- length(x)
+        pwDist <- .pairwiseEMDDist(
+            nSamples = nSamples,
+            rowRange = rowRange,
+            colRange = colRange,
+            loadExprMatrixFUN = getExpr,
+            loadExprMatrixFUNArgs = list(
+                expMatrixList = x, channels = channels),
+            channels = NULL, #already taken into account in loadExprMatrixFUN
             verbose = verbose,
             BPPARAM = BPPARAM,
             BPOPTIONS = BPOPTIONS,
@@ -912,15 +1044,16 @@ pairwiseEMDDist <- function(
     } else {
         if (!is.numeric(x) || length(x) > 1) {
             stop("x should be either a flowCore::flowFrame ",
-                 "or a numeric of length 1")
+                 "or a list of expression matrices, ",
+                 "or a numeric of length 1 (nb of samples)")
         }
         if (x < 1) {
             stop("x should be >= 1")
         }
         nSamples <- x
         
-        if (is.null(loadFlowFrameFUN)) {
-            stop("loadFlowFrameFUN should be provided ",
+        if (is.null(loadExprMatrixFUN)) {
+            stop("loadExprMatrixFUN should be provided ",
                  "when x is the number of samples")
         }
         
@@ -935,8 +1068,8 @@ pairwiseEMDDist <- function(
             nSamples = nSamples,
             rowRange = rowRange,
             colRange = colRange,
-            loadFlowFrameFUN = loadFlowFrameFUN,
-            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            loadExprMatrixFUN = loadExprMatrixFUN,
+            loadExprMatrixFUNArgs = loadExprMatrixFUNArgs,
             channels = channels,
             verbose = verbose,
             BPPARAM = BPPARAM,
@@ -949,35 +1082,19 @@ pairwiseEMDDist <- function(
     pwDist
 }
 
-# internal function calculating some by channel summary stats of a flowFrame
-.calcFFStats <- function(
-        ff, 
-        channels,
+# internal function calculating some by channel summary stats
+# of an expression matrix
+.calcExprMatrixStats <- function(
+        exprMatrix,
         statFUNList,
         verbose){
-    
-    # chooses a display name for each channel:
-    # markerName if not NA, otherwise channelName
-    channelNames <- vapply(
-        channels,
-        FUN = function(ch, ff) {
-            channelMarker <- flowCore::getChannelMarker(ff, ch)$desc
-            if (!is.null(channelMarker) && !is.na(channelMarker)){
-                channelNames <- channelMarker
-            } else {
-                channelNames <- ch
-            }
-        },
-        FUN.VALUE = character(1),
-        ff = ff
-    )
 
-    nChannels <- length(channels)
+    channels <- colnames(exprMatrix)
     nStats <- length(statFUNList)
     
     statList <- lapply(seq_along(statFUNList),
-                       FUN = function(fu, statFUNList, ff, channels, 
-                                      channelNames, verbose) {
+                       FUN = function(fu, statFUNList, exprMat, channels, 
+                                      verbose) {
                            if (verbose) {
                                message(
                                    "computing statistical function ", fu,
@@ -987,17 +1104,16 @@ pairwiseEMDDist <- function(
                                channels,
                                FUN = function(ch){
                                    statFUNList[[fu]](
-                                       flowCore::exprs(ff)[, ch, drop = FALSE],
+                                       exprMat[, ch, drop = FALSE],
                                        na.rm = TRUE)
                                },
                                FUN.VALUE = numeric(1))
-                           names(chStats) <- channelNames
+                           names(chStats) <- channels
                            chStats
                            },
                        statFUNList = statFUNList,
-                       ff = ff,
+                       exprMat = exprMatrix,
                        channels = channels,
-                       channelNames = channelNames,
                        verbose = verbose)
     
     names(statList) <- names(statFUNList)
@@ -1009,9 +1125,9 @@ pairwiseEMDDist <- function(
 # internal function for summary stats calculation
 .channelSummaryStats <- function(
         nSamples,
-        loadFlowFrameFUN,
-        loadFlowFrameFUNArgs,
-        channels = NULL,
+        loadExprMatrixFUN,
+        loadExprMatrixFUNArgs,
+        channels,
         statFUNs = stats::median,
         verbose = FALSE,
         BPPARAM = BiocParallel::SerialParam(),
@@ -1054,56 +1170,52 @@ pairwiseEMDDist <- function(
                               labels = FALSE)) 
     }
     
-    loadFFAndCalcStats <- function(
+    loadExpMatrixAndCalcStats <- function(
         block, 
-        loadFlowFrameFUN, 
-        loadFlowFrameFUNArgs,
-        channels,
+        loadExprMatrixFUN, 
+        loadExprMatrixFUNArgs,
         statFUNList,
         verbose) {
         
         statListOfList <- lapply(
             block,
-            FUN = function(ffIndex,
-                           loadFlowFrameFUN,
-                           loadFlowFrameFUNArgs,
-                           channels,
+            FUN = function(index,
+                           loadExprMatrixFUN,
+                           loadExprMatrixFUNArgs,
                            verbose) {
                 if (verbose) {
-                    message("Loading file ", ffIndex, "...")
+                    message("Loading file ", index, "...")
                 }
-                ff <- do.call(
-                    loadFlowFrameFUN,
-                    args = c(list(ffIndex = ffIndex),
-                             loadFlowFrameFUNArgs))
-                ## clean memory for ff stored in previous loop
+                myArgs <- c(list(exprMatrixIndex = index),
+                            loadExprMatrixFUNArgs)
+                exprMatrix <- do.call(
+                    loadExprMatrixFUN,
+                    args = myArgs)
+                ## clean memory for exp matrix stored in previous loop
                 invisible(gc()) 
-                if(!inherits(ff, "flowFrame")) {
-                    stop("object returned by loadFlowFrameFUN function ",
-                         "should inherit from flowCore::flowFrame")
+                if(!is.numeric(exprMatrix) || !is.matrix(exprMatrix)) {
+                    stop("object returned by loadExprMatrixFUN function ",
+                         "should be an expression matrix")
                 }
-                
-                # check channels
-                channels <- .toChannelNames(channels, ff)
-                
-                # take only the channels of interest for the following,
-                # for performance
-                ff <- ff[,channels]
+                if(!is.null(channels)) {
+                    if(!all(channels %in% colnames(exprMatrix))) {
+                        stop("channels are not all in expr matrix column names")
+                    }
+                    exprMatrix <- exprMatrix[, channels, drop=FALSE]
+                }
                 
                 if (verbose) {
-                    message("Calculating stats for file ", ffIndex, "...")
+                    message("Calculating stats for file #", index, "...")
                 }
-                statList <- .calcFFStats(
-                    ff,
-                    channels = channels,
+                statList <- .calcExprMatrixStats(
+                    exprMatrix,
                     statFUNList = statFUNList,
                     verbose = verbose)
                 
                 statList
             },
-            loadFlowFrameFUN = loadFlowFrameFUN,
-            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
-            channels = channels,
+            loadExprMatrixFUN = loadExprMatrixFUN,
+            loadExprMatrixFUNArgs = loadExprMatrixFUNArgs,
             verbose = verbose
         )
         
@@ -1113,12 +1225,11 @@ pairwiseEMDDist <- function(
     
     statListOfBlockList <- BiocParallel::bplapply(
         blocks1D,
-        FUN = loadFFAndCalcStats,
+        FUN = loadExpMatrixAndCalcStats,
         BPPARAM = BPPARAM,
         BPOPTIONS = BPOPTIONS,
-        loadFlowFrameFUN = loadFlowFrameFUN,
-        loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
-        channels = channels,
+        loadExprMatrixFUN = loadExprMatrixFUN,
+        loadExprMatrixFUNArgs = loadExprMatrixFUNArgs,
         statFUNList = statFUNList,
         verbose = verbose)
     
@@ -1142,36 +1253,33 @@ pairwiseEMDDist <- function(
 
 #' @title Summary statistics per channel computation
 #' @description Computation of summary statistic for selected channels,
-#' for all flowFrames of a flowSet.   
-#' This method provides two different input modes:
-#' - the user provides directly a flowSet loaded in memory (RAM).
+#' for all flowFrames of a flowSet, or for all expression matrices of a list.  
+#' This method provides three different input modes:
+#' - the user provides directly a flowCore::flowSet loaded in memory (RAM)
+#' - the user provides directly a list of expression matrices of which the
+#' column names are the channel/marker names
 #' - the user provides (1.) a number of samples `nSamples`; (2.) an ad-hoc 
 #' function that takes as input an index between 1 and `nSamples`, and codes
-#' the method to load the corresponding flowFrame in memory; 
-#' Optional row and column ranges can be provided to limit the calculation
-#' to a specific rectangle of the matrix. These i.e. can be specified as a way 
-#' to split heavy calculations of large distance matrices 
-#' on several computation nodes.  
-#' @param x either a flowCore::flowSet, or the number of samples (integer >=1)
-#' @param loadFlowFrameFUN the function used to translate a flowFrame index
-#' into a flowFrame. In other words, the function should code how to load a
-#' specific flowFrame into memory. Important: the flow Frame index should be 
-#' the first function argument and should be named `ffIndex`. 
-#' @param loadFlowFrameFUNArgs (optional) a named list containing 
-#' additional input parameters of `loadFlowFrameFUN()`
-#' @param channels which channels (integer index(ices) or character(s)):
-#' - if it is a character vector, 
+#' the method to load the corresponding expression matrix in memory; 
+#' @param x can be:  
+#' - a flowCore::flowSet   
+#' - a list of expression matrices (Double matrix with named columns)  
+#' - the number of samples (integer >=1)
+#' @param loadExprMatrixFUN the function used to translate an integer index
+#' into an expression matrix. In other words, the function should code how to 
+#' load the `index`th expression matrix into memory. 
+#' IMPORTANT: the expression matrix index should be the first function argument 
+#' and should be named `exprMatrixIndex`. 
+#' @param loadExprMatrixFUNArgs (optional) a named list containing 
+#' additional input parameters of `loadExprMatrixFUN()`
+#' @param channels which channels needs to be included:
+#' - if it is a character vector,
 #' it can refer to either the channel names, or the marker names
-#' - if it is a numeric vector, 
-#' it refers to the indexes of channels in `fs`
-#' - if NULL all scatter and fluorescent channels of `fs`
-#' will be selected
-#' @param statFUNs a list (possibly of length one) of
-#' functions to call to calculate the statistics, or a simple function
-#' This list can be named, in that case, these names will be transfered to the
-#' returned value.
+#' - if it is a numeric vector,
+#' it refers to the indices of channels in `fs`
+#' - if NULL, all scatter and fluorescent channels of `fs` #' will be selected.
 #' @param verbose if `TRUE`, output a message 
-#' after each single distance calculation
+#' after each single statistics calculation
 #' @param BPPARAM sets the `BPPARAM` back-end to
 #' be used for the computation. If not provided, will use 
 #' `BiocParallel::SerialParam()` (no task parallelization)
@@ -1228,8 +1336,8 @@ pairwiseEMDDist <- function(
 #'  
 channelSummaryStats <- function(
         x,
-        loadFlowFrameFUN = NULL,
-        loadFlowFrameFUNArgs = NULL,
+        loadExprMatrixFUN = NULL,
+        loadExprMatrixFUNArgs = NULL,
         channels = NULL,
         statFUNs = stats::median,
         verbose = FALSE,
@@ -1238,21 +1346,31 @@ channelSummaryStats <- function(
             packages = c("flowCore"))){
     
     nSamples <- NULL
-    inMemory <- FALSE
-    
+        
     if(inherits(x, "flowSet")) {
-        getFF <- function(ffIndex, fs) {
-            return(fs[[ffIndex]])
+        getExpr <- function(exprMatrixIndex, fs, channels) {
+            exprMat <- flowCore::exprs(fs[[exprMatrixIndex]])
+            channelIds <- .toChannelNames(channels, x)
+            exprMat <- exprMat[, channelIds, drop = FALSE]
+            if (is.null(channels)) {
+                channelDisplayNames <- 
+                    .defaultChannelDisplayNames(x[[1]], channelIds)
+                colnames(exprMat) <- channelDisplayNames
+            } else {
+                colnames(exprMat) <- channels
+            }
+            exprMat
         }
         nSamples <- length(x)
         if (nSamples < 1) {
             stop("empty flowSet passed")
         }
+      
         chStats <- .channelSummaryStats(
             nSamples = nSamples,
-            loadFlowFrameFUN = getFF,
-            loadFlowFrameFUNArgs = list(fs = x),
-            channels = channels,
+            loadExprMatrixFUN = getExpr,
+            loadExprMatrixFUNArgs = list(fs = x, channels = channels),
+            channels = NULL, # already taken into account in loadExprMatrixFUN
             statFUNs = statFUNs,
             verbose = verbose,
             BPPARAM = BPPARAM,
@@ -1267,25 +1385,67 @@ channelSummaryStats <- function(
         } else { # simple matrix
             rownames(chStats) <- flowCore::sampleNames(x)
         }
+    } else if (is.list(x)) {
+        tests <- lapply(x, FUN = function(exprMat) {
+            if (!is.numeric(exprMat) || !is.matrix(exprMat)) {
+                stop("each element of the expression matrix list should be ",
+                     " a numeric matrix")
+            }
+            if (is.null(colnames(exprMat))) {
+                stop("each expression matrix should contain named columns")
+            }
+            return(TRUE)
+        })
+        getExpr <- function(exprMatrixIndex, expMatrixList, channels) {
+            exprMat <- expMatrixList[[exprMatrixIndex]]
+            channelIds <- .toChannelNames(channels, exprMat)
+            exprMat <- exprMat[, channelIds, drop=FALSE]
+            exprMat
+        }
+        nSamples <- length(x)
+        if (nSamples < 1) {
+            stop("empty expression matrix list passed")
+        }
+        chStats <- .channelSummaryStats(
+            nSamples = nSamples,
+            loadExprMatrixFUN = getExpr,
+            loadExprMatrixFUNArgs = list(
+                expMatrixList = x, channels = channels),
+            channels = NULL, # already taken into account in loadExprMatrixFUN
+            statFUNs = statFUNs,
+            verbose = verbose,
+            BPPARAM = BPPARAM,
+            BPOPTIONS = BPOPTIONS)
+        
+        # set expression list names to returned matrix(ces)
+        if (is.list(chStats)) {
+            chStats <- lapply(chStats, FUN = function(e, expList){
+                rownames(e) <- names(expList)
+                e
+            }, expList = x)
+        } else { # simple matrix
+            rownames(chStats) <- names(x)
+        }
     } else {
         if (!is.numeric(x) || length(x) > 1) {
             stop("x should be either a flowCore::flowFrame ",
-                 "or a numeric of length 1")
+                 "or a list of expression matrices, ",
+                 "or a numeric of length 1 (nb of samples)")
         }
         if (x < 1) {
             stop("x should be >= 1")
         }
         nSamples <- x
         
-        if (is.null(loadFlowFrameFUN)) {
-            stop("loadFlowFrameFUN should be provided ",
+        if (is.null(loadExprMatrixFUN)) {
+            stop("loadExprMatrixFUN should be provided ",
                  "when x is the number of samples")
         }
         
         chStats <- .channelSummaryStats(
             nSamples = nSamples,
-            loadFlowFrameFUN = loadFlowFrameFUN,
-            loadFlowFrameFUNArgs = loadFlowFrameFUNArgs,
+            loadExprMatrixFUN = loadExprMatrixFUN,
+            loadExprMatrixFUNArgs = loadExprMatrixFUNArgs,
             channels = channels,
             statFUNs = statFUNs,
             verbose = verbose,
