@@ -1,5 +1,10 @@
-## CytoMDS 1.1.0
-(no devel yet)
+## CytoMDS 1.1
+
+### CytoMDS 1.1.1
+- added citation to _bioRxiv_ pre-print
+
+### CytoMDS 1.1.2
+- expression matrices as input to EMD calculation
 
 ## CytoMDS 1.0.0
 (release Bioconductor)

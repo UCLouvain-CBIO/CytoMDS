@@ -6,8 +6,8 @@
 \usage{
 channelSummaryStats(
   x,
-  loadFlowFrameFUN = NULL,
-  loadFlowFrameFUNArgs = NULL,
+  loadExprMatrixFUN = NULL,
+  loadExprMatrixFUNArgs = NULL,
   channels = NULL,
   statFUNs = stats::median,
   verbose = FALSE,
@@ -16,33 +16,38 @@ channelSummaryStats(
 )
 }
 \arguments{
-\item{x}{either a flowCore::flowSet, or the number of samples (integer >=1)}
+\item{x}{can be:
+\itemize{
+\item a flowCore::flowSet
+\item a list of expression matrices (Double matrix with named columns)
+\item the number of samples (integer >=1)
+}}
 
-\item{loadFlowFrameFUN}{the function used to translate a flowFrame index
-into a flowFrame. In other words, the function should code how to load a
-specific flowFrame into memory. Important: the flow Frame index should be
-the first function argument and should be named \code{ffIndex}.}
+\item{loadExprMatrixFUN}{the function used to translate an integer index
+into an expression matrix. In other words, the function should code how to
+load the \code{index}th expression matrix into memory.
+IMPORTANT: the expression matrix index should be the first function argument
+and should be named \code{exprMatrixIndex}.}
 
-\item{loadFlowFrameFUNArgs}{(optional) a named list containing
-additional input parameters of \code{loadFlowFrameFUN()}}
+\item{loadExprMatrixFUNArgs}{(optional) a named list containing
+additional input parameters of \code{loadExprMatrixFUN()}}
 
-\item{channels}{which channels (integer index(ices) or character(s)):
+\item{channels}{which channels needs to be included:
 \itemize{
 \item if it is a character vector,
 it can refer to either the channel names, or the marker names
 \item if it is a numeric vector,
-it refers to the indexes of channels in \code{fs}
-\item if NULL all scatter and fluorescent channels of \code{fs}
-will be selected
+it refers to the indices of channels in \code{fs}
+\item if NULL, all scatter and fluorescent channels of \code{fs} #' will be selected.
 }}
 
-\item{statFUNs}{a list (possibly of length one) of
-functions to call to calculate the statistics, or a simple function
+\item{statFUNs}{a list (possibly of length one) of functions to call
+to calculate the statistics, or a simple function.
 This list can be named, in that case, these names will be transfered to the
-returned value.}
+returned list.}
 
 \item{verbose}{if \code{TRUE}, output a message
-after each single distance calculation}
+after each single statistics calculation}
 
 \item{BPPARAM}{sets the \code{BPPARAM} back-end to
 be used for the computation. If not provided, will use
@@ -64,17 +69,15 @@ Exception: if only one stat function (and not a list) is passed in
 }
 \description{
 Computation of summary statistic for selected channels,
-for all flowFrames of a flowSet.
-This method provides two different input modes:
+for all flowFrames of a flowSet, or for all expression matrices of a list.
+This method provides three different input modes:
 \itemize{
-\item the user provides directly a flowSet loaded in memory (RAM).
+\item the user provides directly a flowCore::flowSet loaded in memory (RAM)
+\item the user provides directly a list of expression matrices of which the
+column names are the channel/marker names
 \item the user provides (1.) a number of samples \code{nSamples}; (2.) an ad-hoc
 function that takes as input an index between 1 and \code{nSamples}, and codes
-the method to load the corresponding flowFrame in memory;
-Optional row and column ranges can be provided to limit the calculation
-to a specific rectangle of the matrix. These i.e. can be specified as a way
-to split heavy calculations of large distance matrices
-on several computation nodes.
+the method to load the corresponding expression matrix in memory;
 }
 }
 \examples{

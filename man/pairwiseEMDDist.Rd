@@ -8,8 +8,8 @@ pairwiseEMDDist(
   x,
   rowRange = c(1, nSamples),
   colRange = c(min(rowRange), nSamples),
-  loadFlowFrameFUN = NULL,
-  loadFlowFrameFUNArgs = NULL,
+  loadExprMatrixFUN = NULL,
+  loadExprMatrixFUNArgs = NULL,
   channels = NULL,
   verbose = FALSE,
   BPPARAM = BiocParallel::SerialParam(),
@@ -20,19 +20,25 @@ pairwiseEMDDist(
 )
 }
 \arguments{
-\item{x}{either a flowCore::flowSet, or the number of samples (integer >=1)}
+\item{x}{can be:
+\itemize{
+\item a flowCore::flowSet
+\item a list of expression matrices (Double matrix with named columns)
+\item the number of samples (integer >=1)
+}}
 
 \item{rowRange}{the range of rows of the distance matrix to be calculated}
 
 \item{colRange}{the range of columns of the distance matrix to be calculated}
 
-\item{loadFlowFrameFUN}{the function used to translate a flowFrame index
-into a flowFrame. In other words, the function should code how to load a
-specific flowFrame into memory. Important: the flow Frame index should be
-the first function argument and should be named \code{ffIndex}.}
+\item{loadExprMatrixFUN}{the function used to translate an integer index
+into an expression matrix. In other words, the function should code how to
+load the \code{index}th expression matrix into memory.
+IMPORTANT: the expression matrix index should be the first function argument
+and should be named \code{exprMatrixIndex}.}
 
-\item{loadFlowFrameFUNArgs}{(optional) a named list containing
-additional input parameters of \code{loadFlowFrameFUN()}}
+\item{loadExprMatrixFUNArgs}{(optional) a named list containing
+additional input parameters of \code{loadExprMatrixFUN()}}
 
 \item{channels}{which channels (integer index(ices) or character(s)):
 \itemize{
@@ -74,12 +80,14 @@ a distance matrix of pairwise distances
 \description{
 Computation of all EMD between pairs of flowFrames belonging
 to a flowSet.
-This method provides two different input modes:
+This method provides three different input modes:
 \itemize{
-\item the user provides directly a flowSet loaded in memory (RAM).
+\item the user provides directly a flowCore::flowSet loaded in memory (RAM).
+\item the user provides directly a list of expression matrices loaded in RAM,
+of which the column names are the channel/marker names
 \item the user provides (1.) a number of samples \code{nSamples}; (2.) an ad-hoc
 function that takes as input an index between 1 and \code{nSamples}, and codes
-the method to load the corresponding flowFrame in memory;
+the method to load the corresponding expression matrix in memory;
 Optional row and column ranges can be provided to limit the calculation
 to a specific rectangle of the matrix. These i.e. can be specified as a way
 to split heavy calculations of large distance matrices
