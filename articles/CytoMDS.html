@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.2</span>
       </span>
     </div>
 
@@ -619,12 +619,13 @@ computation<a class="anchor" aria-label="anchor" href="#loading-flow-frames-dyna
 <p>In order to be able to handle datasets of greater size than the
 available computer RAM, the <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code> function
 allows for an alternative input mode, where: - the input samples are NOT
-provided directly via a <code><a href="https://rdrr.io/pkg/flowCore/man/flowSet-class.html" class="external-link">flowCore::flowSet</a></code>, but - the user
-provides the nb of samples, and a user-written flow frame loading
-function that will be called to dynamically load the <em>i</em>th sample
-upon request, and optionally additional arguments.</p>
-<p>Typically, the flow frame loading function provided by the user shall
-describe how to read the <em>i</em>th sample from disk.</p>
+provided directly via a <code><a href="https://rdrr.io/pkg/flowCore/man/flowSet-class.html" class="external-link">flowCore::flowSet</a></code>, or<br>
+a list of expression matrices, but - the user provides the nb of
+samples, and a user-written flow frame loading function that will be
+called to dynamically load the <em>i</em>th sample - as an expression
+matrix - upon request, and optionally additional arguments.</p>
+<p>Typically, the expression matrix loading function provided by the
+user shall describe how to read the <em>i</em>th sample from disk.</p>
 </div>
 <div class="section level3">
 <h3 id="using-biocparallel-to-parallelize-distance-matrix-computation">Using BiocParallel to parallelize distance matrix computation<a class="anchor" aria-label="anchor" href="#using-biocparallel-to-parallelize-distance-matrix-computation"></a>
@@ -639,9 +640,10 @@ blocks of the distance matrix.</p>
 Note that this example has illustrative purpose only, as in fact this
 dataset is small enough to fully reside in memory and to not require
 parallelization of distance calculation.</p>
-<p>In case where ‘on-the-fly’ flowFrame in-memory loading is required,
-we advise, as a preliminary step, to store the samples, previously scale
-transformed, on disk. Here we do it in a temporary directory.</p>
+<p>In case where ‘on-the-fly’ expression matrices in-memory loading is
+required, we advise, as a preliminary step, to store the samples,
+previously scale transformed, on disk. Here we do it in a temporary
+directory.</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">storageLocation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -656,9 +658,9 @@ transformed, on disk. Here we do it in a temporary directory.</p>
 <span>            file <span class="op">=</span> <span class="va">fileNames</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Then, the <code><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist()</a></code> method can be called, now
-specifying a number of samples, a flowFrame loading function, and a
-<code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">BiocParallel::SnowParam()</a></code> backbone for parallelization of
-the computations.</p>
+specifying a number of samples, a expression matrix loading function,
+and a <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">BiocParallel::SnowParam()</a></code> backbone for
+parallelization of the computations.</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bp</span> <span class="op">&lt;-</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam</a></span><span class="op">(</span></span>
 <span>    stop.on.error <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -666,10 +668,16 @@ the computations.</p>
 <span><span class="va">pwDistLast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span></span>
 <span>    x <span class="op">=</span> <span class="va">nSample</span>,</span>
 <span>    channels <span class="op">=</span> <span class="va">chMarkers</span>,</span>
-<span>    loadFlowFrameFUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">ffIndex</span>, <span class="va">theFiles</span><span class="op">)</span><span class="op">{</span></span>
-<span>        <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span>file <span class="op">=</span> <span class="va">theFiles</span><span class="op">[</span><span class="va">ffIndex</span><span class="op">]</span><span class="op">)</span></span>
+<span>    loadExprMatrixFUN  <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">exprMatrixIndex</span>, <span class="va">files</span>, <span class="va">channels</span>, <span class="va">markers</span><span class="op">)</span><span class="op">{</span></span>
+<span>        <span class="va">ff</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span>file <span class="op">=</span> <span class="va">files</span><span class="op">[</span><span class="va">exprMatrixIndex</span> <span class="op">]</span><span class="op">)</span></span>
+<span>        <span class="va">exprMat</span> <span class="op">&lt;-</span> <span class="fu">flowCore</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/exprs.html" class="external-link">exprs</a></span><span class="op">(</span><span class="va">ff</span><span class="op">)</span><span class="op">[</span>, <span class="va">channels</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">exprMat</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">markers</span></span>
+<span>        <span class="va">exprMat</span></span>
 <span>    <span class="op">}</span>,</span>
-<span>    loadFlowFrameFUNArgs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>theFiles <span class="op">=</span> <span class="va">fileNames</span><span class="op">)</span>,</span>
+<span>    loadExprMatrixFUNArgs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        files <span class="op">=</span> <span class="va">fileNames</span>, </span>
+<span>        channels <span class="op">=</span> <span class="va">chLabels</span>,</span>
+<span>        markers <span class="op">=</span> <span class="va">chMarkers</span><span class="op">)</span>,</span>
 <span>    BPPARAM <span class="op">=</span> <span class="va">bp</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   |                                                                              |                                                                      |   0%  |                                                                              |==================                                                    |  25%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================================                  |  75%  |                                                                              |======================================================================| 100%</span></span>
 <span><span class="co">## </span></span>
@@ -688,6 +696,108 @@ exactly the same as before.</p>
 <span><span class="va">pHistLast</span></span></code></pre></div>
 <p><img src="CytoMDS_files/figure-html/dist1ShowHistAgain-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="expression-matrices-as-input-instead-of-flowframes">Expression matrices as input instead of flowFrames<a class="anchor" aria-label="anchor" href="#expression-matrices-as-input-instead-of-flowframes"></a>
+</h2>
+<p>Standard use of <code>CytoMDS</code> involves providing cytometry
+sample data, contained in <code>flowCore</code> standard cytometry data
+structures (<code>flowSet</code> and <code>flowFrame</code>) as input to
+Earth Mover’s distance calculation.</p>
+<p>However, <code>CytoMDS</code> can also accept more generic input
+data, as a list of expression matrices, stored in standard R matrices.
+For instance, this allows using <code>CytoMDS</code> visualizations for
+other type of data than cytometry, as long as each sample can be
+represented by a matrix with any number of rows (cells), and fixed
+columns/features (markers).</p>
+<p>Here below is an illustrating toy example with some randomly
+simulated data.</p>
+<p>Let us first simulate 10 samples with 1,000 rows each and 10
+features. Samples are split into 2 groups: <code>conditionA</code> and
+<code>conditionB</code> with some increased expression std deviation for
+3 features in <code>conditionB</code>, compared to
+<code>conditionA</code>.</p>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
+<span><span class="va">conditions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"conditionA"</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"conditionB"</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">nRow</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
+<span><span class="va">nFeat</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
+<span><span class="va">nDiffFeat</span> <span class="op">&lt;-</span> <span class="fl">3</span></span>
+<span><span class="va">diffFeats</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">9</span><span class="op">)</span></span>
+<span><span class="va">stdDevFactor</span> <span class="op">=</span> <span class="fl">1.5</span></span>
+<span></span>
+<span><span class="va">exprMatrixList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mapply.html" class="external-link">mapply</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span>,</span>
+<span>    <span class="va">conditions</span>,</span>
+<span>    FUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">i</span>, <span class="va">condition</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="va">exprMatrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nRow</span><span class="op">*</span><span class="va">nFeat</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">nRow</span><span class="op">)</span></span>
+<span>        <span class="kw">if</span> <span class="op">(</span><span class="va">condition</span> <span class="op">==</span> <span class="st">"conditionB"</span><span class="op">)</span> <span class="op">{</span></span>
+<span>            <span class="va">exprMatrix</span><span class="op">[</span>, <span class="va">diffFeats</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">exprMatrix</span><span class="op">[</span>, <span class="va">diffFeats</span><span class="op">]</span> <span class="op">*</span> <span class="va">stdDevFactor</span></span>
+<span>        <span class="op">}</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">exprMatrix</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Feat"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="va">nFeat</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">exprMatrix</span></span>
+<span>    <span class="op">}</span>,</span>
+<span>    SIMPLIFY <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">exprMatrixList</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"sample"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>We can now generate a pairwise sample distance matrix, based on the
+previously simulated matrix list, and show the corresponding
+histogram:</p>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pwDistExpr</span> <span class="op">&lt;-</span>  <span class="fu"><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span></span>
+<span>    <span class="va">exprMatrixList</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">distVecExpr</span> <span class="op">&lt;-</span> <span class="va">pwDistExpr</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDistExpr</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">distVecDFExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVecExpr</span><span class="op">)</span></span>
+<span><span class="va">pHistExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDFExpr</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span>, bins <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span></span>
+<span>        <span class="st">"EMD distances for simulated expression matrices"</span><span class="op">)</span></span>
+<span><span class="va">pHistExpr</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/distExprMatShowHist-1.png" width="700" style="display: block; margin: auto;"></p>
+<p>With the generated pairwise distance matrix, we can now proceed with
+the <code>CytoMDS</code> workflow, as in the previous examples:</p>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mdsObjExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDistExpr</span>, seed <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="fu">show</span><span class="op">(</span><span class="va">mdsObjExpr</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## MDS object containing MDS projection (using Smacof algorithm)  data:</span></span>
+<span><span class="co">## Nb of dimensions:  3 </span></span>
+<span><span class="co">## Nb of points:  10 </span></span>
+<span><span class="co">## Stress:  0.065625 </span></span>
+<span><span class="co">## Pseudo RSquare:  0.972289 </span></span>
+<span><span class="co">## Goodness of fit:  0.995693</span></span></code></pre>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">phenoDataExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sampleId <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span>, cond <span class="op">=</span> <span class="va">conditions</span><span class="op">)</span></span>
+<span><span class="va">p12</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span></span>
+<span>    <span class="va">mdsObjExpr</span>,</span>
+<span>    pData <span class="op">=</span> <span class="va">phenoDataExpr</span>,</span>
+<span>    projectionAxes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span>
+<span>    pDataForColour <span class="op">=</span> <span class="st">"cond"</span>,</span>
+<span>    pDataForLabel <span class="op">=</span> <span class="st">"sampleId"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">p12</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/plotMDSExprMat-1.png" width="700" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">statFunctions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu">base</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span>,</span>
+<span>                      std_dev <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">)</span></span>
+<span><span class="va">chStatsExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/channelSummaryStats.html">channelSummaryStats</a></span><span class="op">(</span><span class="va">exprMatrixList</span>,</span>
+<span>                                   statFUNs  <span class="op">=</span> <span class="va">statFunctions</span><span class="op">)</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/ggplotSampleMDSWrapBiplots.html">ggplotSampleMDSWrapBiplots</a></span><span class="op">(</span></span>
+<span>    mdsObj <span class="op">=</span> <span class="va">mdsObjExpr</span>,</span>
+<span>    extVariableList <span class="op">=</span> <span class="va">chStatsExpr</span>,</span>
+<span>    pData <span class="op">=</span> <span class="va">phenoDataExpr</span>,</span>
+<span>    projectionAxes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span>
+<span>    pDataForColour <span class="op">=</span> <span class="st">"cond"</span>,</span>
+<span>    displayPointLabels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>    repelArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    ncol <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>    arrowThreshold <span class="op">=</span> <span class="fl">0.9</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">p</span></span></code></pre></div>
+<p><img src="CytoMDS_files/figure-html/biplotsMDSExprMat-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
@@ -716,8 +826,8 @@ exactly the same as before.</p>
 <span><span class="co">## [8] base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">##  [1] patchwork_1.2.0             ggplot2_3.5.1              </span></span>
-<span><span class="co">##  [3] CytoMDS_1.1.0               HDCytoData_1.25.0          </span></span>
+<span><span class="co">##  [1] patchwork_1.3.0             ggplot2_3.5.1              </span></span>
+<span><span class="co">##  [3] CytoMDS_1.1.2               HDCytoData_1.25.0          </span></span>
 <span><span class="co">##  [5] flowCore_2.17.0             SummarizedExperiment_1.35.1</span></span>
 <span><span class="co">##  [7] Biobase_2.65.1              GenomicRanges_1.57.1       </span></span>
 <span><span class="co">##  [9] GenomeInfoDb_1.41.1         IRanges_2.39.2             </span></span>
@@ -738,13 +848,13 @@ exactly the same as before.</p>
 <span><span class="co">##  [22] minqa_1.2.8             RColorBrewer_1.1-3      abind_1.4-8            </span></span>
 <span><span class="co">##  [25] zlibbioc_1.51.1         ggcyto_1.33.0           purrr_1.0.2            </span></span>
 <span><span class="co">##  [28] rgl_1.3.1               nnet_7.3-19             pracma_2.4.4           </span></span>
-<span><span class="co">##  [31] tweenr_2.0.3            rappdirs_0.3.3          transport_0.15-2       </span></span>
+<span><span class="co">##  [31] tweenr_2.0.3            rappdirs_0.3.3          transport_0.15-4       </span></span>
 <span><span class="co">##  [34] GenomeInfoDbData_1.2.12 ggrepel_0.9.6           gdata_3.0.0            </span></span>
-<span><span class="co">##  [37] ellipse_0.5.0           pkgdown_2.1.0.9000      codetools_0.2-20       </span></span>
+<span><span class="co">##  [37] ellipse_0.5.0           pkgdown_2.1.1.9000      codetools_0.2-20       </span></span>
 <span><span class="co">##  [40] DelayedArray_0.31.11    ggforce_0.4.2           tidyselect_1.2.1       </span></span>
 <span><span class="co">##  [43] shape_1.4.6.1           UCSC.utils_1.1.0        farver_2.1.2           </span></span>
 <span><span class="co">##  [46] lme4_1.1-35.5           base64enc_0.1-3         jsonlite_1.8.8         </span></span>
-<span><span class="co">##  [49] e1071_1.7-14            mitml_0.4-5             Formula_1.2-5          </span></span>
+<span><span class="co">##  [49] e1071_1.7-16            mitml_0.4-5             Formula_1.2-5          </span></span>
 <span><span class="co">##  [52] survival_3.7-0          iterators_1.0.14        systemfonts_1.1.0      </span></span>
 <span><span class="co">##  [55] foreach_1.5.2           tools_4.4.1             ragg_1.3.3             </span></span>
 <span><span class="co">##  [58] snow_0.4-4              Rcpp_1.0.13             glue_1.7.0             </span></span>
@@ -769,7 +879,7 @@ exactly the same as before.</p>
 <span><span class="co">## [115] AnnotationDbi_1.67.0    desc_1.4.3              pillar_1.9.0           </span></span>
 <span><span class="co">## [118] grid_4.4.1              vctrs_0.6.5             car_3.1-2              </span></span>
 <span><span class="co">## [121] cytolib_2.17.0          jomo_2.7-6              cluster_2.1.6          </span></span>
-<span><span class="co">## [124] htmlTable_2.4.3         Rgraphviz_2.49.0        evaluate_0.24.0        </span></span>
+<span><span class="co">## [124] htmlTable_2.4.3         Rgraphviz_2.49.0        evaluate_1.0.0         </span></span>
 <span><span class="co">## [127] cli_3.6.3               compiler_4.4.1          rlang_1.1.4            </span></span>
 <span><span class="co">## [130] crayon_1.5.3            smacof_2.1-6            ncdfFlow_2.51.0        </span></span>
 <span><span class="co">## [133] labeling_0.4.3          plyr_1.8.9              fs_1.6.4               </span></span>
@@ -847,7 +957,7 @@ Benchmark Datasets in Bioconductor Object Formats.”</span>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.9000.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.9000.</p>
 </div>
 
       </footer>
