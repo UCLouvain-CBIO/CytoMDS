@@ -1,0 +1,4 @@
+url: https://uclouvain-cbio.github.io/CytoMDS/
+template:
+    bootstrap: 5
+    bootswatch: flatly
