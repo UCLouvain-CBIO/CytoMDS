@@ -4,72 +4,54 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Low Dimensional Projection of Cytometry Samples • CytoMDS</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
-<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Low Dimensional Projection of Cytometry Samples">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Low Dimensional Projection of Cytometry Samples">
 </head>
-<body data-spy="scroll" data-target="#toc">
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <div class="container template-article">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">CytoMDS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.3</span>
-      </span>
-    </div>
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="../articles/CytoMDS.html">Get started</a>
-</li>
-<li>
-  <a href="../reference/index.html">Reference</a>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
-</li>
+    <a class="navbar-brand me-2" href="../index.html">CytoMDS</a>
+
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="active nav-item"><a class="nav-link" href="../articles/CytoMDS.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://github.com/UCLouvain-CBIO/CytoMDS/" class="external-link">
-    <span class="fab fa-github fa-lg"></span>
-
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/UCLouvain-CBIO/CytoMDS/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
+</nav><div class="container template-article">
 
 
 
-      </header><div class="row">
-  <div class="col-md-9 contents">
-    <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Low Dimensional Projection of Cytometry
-Samples</h1>
+
+<div class="row">
+  <main id="main" class="col-md-9"><div class="page-header">
+
+      <h1>Low Dimensional Projection of Cytometry Samples</h1>
                         <h4 data-toc-skip class="author">Philippe
 Hauchamps</h4>
                                     <h4 data-toc-skip class="author">Laurent
@@ -77,8 +59,7 @@ Gatto</h4>
                         
       
       <small class="dont-index">Source: <a href="https://github.com/UCLouvain-CBIO/CytoMDS/blob/main/vignettes/CytoMDS.Rmd" class="external-link"><code>vignettes/CytoMDS.Rmd</code></a></small>
-      <div class="hidden name"><code>CytoMDS.Rmd</code></div>
-
+      <div class="d-none name"><code>CytoMDS.Rmd</code></div>
     </div>
 
     
@@ -104,7 +85,7 @@ Gatto</h4>
 <p>We now load the packages needed in the current vignette:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/lmweber/HDCytoData" class="external-link">HDCytoData</a></span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://uclouvain-cbio.github.io/CytoMDS" class="external-link">CytoMDS</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://uclouvain-cbio.github.io/CytoMDS">CytoMDS</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -285,11 +266,8 @@ an object of the <em>MDS</em> class. This object can be queried to get
 e.g. the number of dimensions that was effectively used, or the obtained
 pseudo RSquare, as shown in the following code chunk:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mdsObj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist</span>, seed <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in rgl.init(initValue, onlyNULL): RGL: unable to open X11 display</span></span></code></pre>
-<pre><code><span><span class="co">## Warning: 'rgl.init' failed, running with 'rgl.useNULL = TRUE'.</span></span></code></pre>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">show</span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">mdsObj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist</span>, seed <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="fu">show</span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## MDS object containing MDS projection (using Smacof algorithm)  data:</span></span>
 <span><span class="co">## Nb of dimensions:  4 </span></span>
 <span><span class="co">## Nb of points:  16 </span></span>
@@ -304,7 +282,7 @@ pseudo RSquare, as shown in the following code chunk:</p>
 <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code>. If no <code>phenoData</code> parameter
 is passed, then, by default, numbers are used as labels, and samples are
 represented as black dots.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CytoMDS_files/figure-html/plotMDS1_simplest-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>However, by providing a ‘phenoData’ dataframe to the
@@ -323,7 +301,7 @@ between 2 condition clusters highlights the strong biological signal
 differentiating these two groups of samples. Further in this vignette,
 we shall try to assign a user interpretation to this x axis direction
 (see ‘Aid to interpreting projection axes’ section).</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p12</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span></span>
 <span>    <span class="va">mdsObj</span>,</span>
 <span>    pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
@@ -336,7 +314,7 @@ we shall try to assign a user interpretation to this x axis direction
 <p>Given that 4 dimensions were used in the metric MDS algorithm, the
 user can visualize the MDS projection using any combination of two axes,
 for example axes 2 and 3n or 3 and 4, as below:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p23</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span></span>
 <span>    <span class="va">mdsObj</span>,</span>
 <span>    pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
@@ -398,7 +376,7 @@ are located on a straight line passing through the (0,0) and (1,1)
 points. In the below diagram, one can notice that all points are very
 near the ideal straight line, hence the distance projections can be
 trusted.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CytoMDS_files/figure-html/plotMDSShepard-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
@@ -411,7 +389,7 @@ to the user when calculating the MDS projection using
 <p>First, instead of letting the algorithm choose itself the number of
 dimensions, it is also possible to assign it explicitly, for example to
 2, as in below:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">mdsObj2</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist</span>, seed <span class="op">=</span> <span class="fl">0</span>, nDim <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span> <span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj2</span>,</span>
 <span>                 pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
@@ -433,7 +411,7 @@ target.</p>
 <p>The below example shows how to obtain a <em>pseudo R Square</em> of
 at least 0.99. As a result, the needed number of dimensions is now 6,
 instead of 4.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mdsObj3</span> <span class="op">&lt;-</span> <span class="fu">CytoMDS</span><span class="fu">::</span><span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDist</span>, seed <span class="op">=</span> <span class="fl">0</span>, targetPseudoRSq <span class="op">=</span> <span class="fl">0.99</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj3</span>,</span>
 <span>                 pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
@@ -444,7 +422,7 @@ instead of 4.</p>
 <p>The corresponding Shepard diagram is obtained as below, showing that
 the dots are even more concentrated around the ideal straight line, than
 before:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj3</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CytoMDS_files/figure-html/plotMDSShepard.Rsq99-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
@@ -478,11 +456,11 @@ correlation with the median of markers ‘CD4’, ‘CD33’, ‘CD20’, ‘pNF
 median of marker ‘HLA-DR’. The y axis has a strong negative correlation
 with the median of a number of markers: ‘CD123’, ‘pStat1’, ‘pStat5’,
 ‘pSHP2’, ‘pAkt’, ‘pZap70’ and ‘pPlcg2’.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">medians</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/channelSummaryStats.html">channelSummaryStats</a></span><span class="op">(</span><span class="va">BCRXL_fs_trans</span>, </span>
 <span>                               channels <span class="op">=</span> <span class="va">chLabels</span>, </span>
 <span>                               statFUNs <span class="op">=</span> <span class="va">median</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj</span>,</span>
 <span>                pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
 <span>                pDataForColour <span class="op">=</span> <span class="st">"group_id"</span>,</span>
@@ -501,7 +479,7 @@ the <code>arrowThreshold</code> argument. For example, in the below
 plot, the threshold is set set to 0.6, showing, for example, that x axis
 is also strongly negatively correlated with the median of ‘pS6’ and
 ‘CD7’ markers.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj</span>,</span>
 <span>                pData <span class="op">=</span> <span class="va">phenoData</span>,</span>
 <span>                pDataForColour <span class="op">=</span> <span class="st">"group_id"</span>,</span>
@@ -521,7 +499,7 @@ groups.</p>
 <p>In order to check this, we can use the
 <code>ggplotMarginalDensities</code> method provided in the
 <code>CytoMDS</code> package, as follows:</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotMarginalDensities.html">ggplotMarginalDensities</a></span><span class="op">(</span></span>
 <span>    <span class="va">BCRXL_fs_trans</span>, </span>
 <span>    channels <span class="op">=</span> <span class="va">chLabels</span>,</span>
@@ -547,7 +525,7 @@ standard deviations at once.</p>
 thanks to the <code><a href="../reference/ggplotSampleMDSWrapBiplots.html">ggplotSampleMDSWrapBiplots()</a></code> function, which
 internally calls <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> function several times,
 and arrange the obtained outputs on a single plot.</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">statFUNs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"median"</span> <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span>,</span>
 <span>             <span class="st">"Q25"</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">na.rm</span><span class="op">)</span> <span class="op">{</span></span>
 <span>                 <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span>, probs <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span>
@@ -559,7 +537,7 @@ and arrange the obtained outputs on a single plot.</p>
 <span><span class="va">chStats</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/channelSummaryStats.html">channelSummaryStats</a></span><span class="op">(</span><span class="va">BCRXL_fs_trans</span>,</span>
 <span>                               channels <span class="op">=</span> <span class="va">chLabels</span>, </span>
 <span>                               statFUNs <span class="op">=</span> <span class="va">statFUNs</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSWrapBiplots.html">ggplotSampleMDSWrapBiplots</a></span><span class="op">(</span></span>
 <span>    <span class="va">mdsObj</span>,</span>
 <span>    extVariableList <span class="op">=</span> <span class="va">chStats</span>,</span>
@@ -578,7 +556,7 @@ that the plot is hardly readable, due to too many arrows displayed.</p>
 the channel statistics, in order to better identify the strongly
 correlated ones. One example is provided below, showing the correlation
 between the axes and the standard deviation of each channel:</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stdDevs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"std dev of channels 1 to 6"</span> <span class="op">=</span> <span class="va">chStats</span><span class="op">[[</span><span class="st">"standard deviation"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>,</span>
 <span>    <span class="st">"std dev of channels 7 to 12"</span> <span class="op">=</span> <span class="va">chStats</span><span class="op">[[</span><span class="st">"standard deviation"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>,<span class="fl">7</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span>,</span>
@@ -644,7 +622,7 @@ parallelization of distance calculation.</p>
 required, we advise, as a preliminary step, to store the samples,
 previously scale transformed, on disk. Here we do it in a temporary
 directory.</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">storageLocation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">BCRXL_fs_trans</span><span class="op">)</span></span>
@@ -661,7 +639,7 @@ directory.</p>
 specifying a number of samples, a expression matrix loading function,
 and a <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">BiocParallel::SnowParam()</a></code> backbone for
 parallelization of the computations.</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bp</span> <span class="op">&lt;-</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam</a></span><span class="op">(</span></span>
 <span>    stop.on.error <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    progressbar <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -684,7 +662,7 @@ parallelization of the computations.</p>
 <span><span class="co">##   |                                                                              |                                                                      |   0%  |                                                                              |============                                                          |  17%  |                                                                              |=======================                                               |  33%  |                                                                              |===================================                                   |  50%  |                                                                              |===============================================                       |  67%  |                                                                              |==========================================================            |  83%  |                                                                              |======================================================================| 100%</span></span></code></pre>
 <p>The obtained distances - as shown in the below histogram - are
 exactly the same as before.</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">distVecLast</span> <span class="op">&lt;-</span> <span class="va">pwDistLast</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDistLast</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">distVecDFLast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVecLast</span><span class="op">)</span></span>
 <span><span class="va">pHistLast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDFLast</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -717,7 +695,7 @@ features. Samples are split into 2 groups: <code>conditionA</code> and
 <code>conditionB</code> with some increased expression std deviation for
 3 features in <code>conditionB</code>, compared to
 <code>conditionA</code>.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nSample</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span><span class="va">conditions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"conditionA"</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"conditionB"</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">nRow</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
@@ -744,11 +722,11 @@ features. Samples are split into 2 groups: <code>conditionA</code> and
 <p>We can now generate a pairwise sample distance matrix, based on the
 previously simulated matrix list, and show the corresponding
 histogram:</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pwDistExpr</span> <span class="op">&lt;-</span>  <span class="fu"><a href="../reference/pairwiseEMDDist.html">pairwiseEMDDist</a></span><span class="op">(</span></span>
 <span>    <span class="va">exprMatrixList</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">distVecExpr</span> <span class="op">&lt;-</span> <span class="va">pwDistExpr</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDistExpr</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">distVecDFExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVecExpr</span><span class="op">)</span></span>
 <span><span class="va">pHistExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDFExpr</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -760,7 +738,7 @@ histogram:</p>
 <p><img src="CytoMDS_files/figure-html/distExprMatShowHist-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>With the generated pairwise distance matrix, we can now proceed with
 the <code>CytoMDS</code> workflow, as in the previous examples:</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mdsObjExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeMetricMDS.html">computeMetricMDS</a></span><span class="op">(</span><span class="va">pwDistExpr</span>, seed <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="fu">show</span><span class="op">(</span><span class="va">mdsObjExpr</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## MDS object containing MDS projection (using Smacof algorithm)  data:</span></span>
@@ -769,7 +747,7 @@ the <code>CytoMDS</code> workflow, as in the previous examples:</p>
 <span><span class="co">## Stress:  0.065625 </span></span>
 <span><span class="co">## Pseudo RSquare:  0.972289 </span></span>
 <span><span class="co">## Goodness of fit:  0.995693</span></span></code></pre>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">phenoDataExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sampleId <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="va">nSample</span><span class="op">)</span>, cond <span class="op">=</span> <span class="va">conditions</span><span class="op">)</span></span>
 <span><span class="va">p12</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span></span>
 <span>    <span class="va">mdsObjExpr</span>,</span>
@@ -780,7 +758,7 @@ the <code>CytoMDS</code> workflow, as in the previous examples:</p>
 <span><span class="op">)</span></span>
 <span><span class="va">p12</span></span></code></pre></div>
 <p><img src="CytoMDS_files/figure-html/plotMDSExprMat-1.png" width="700" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">statFunctions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu">base</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span>,</span>
 <span>                      std_dev <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">)</span></span>
 <span><span class="va">chStatsExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/channelSummaryStats.html">channelSummaryStats</a></span><span class="op">(</span><span class="va">exprMatrixList</span>,</span>
@@ -804,7 +782,7 @@ the <code>CytoMDS</code> workflow, as in the previous examples:</p>
 </h2>
 <pre><code><span><span class="co">## R version 4.4.1 (2024-06-14)</span></span>
 <span><span class="co">## Platform: x86_64-pc-linux-gnu</span></span>
-<span><span class="co">## Running under: Ubuntu 22.04.4 LTS</span></span>
+<span><span class="co">## Running under: Ubuntu 22.04.5 LTS</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Matrix products: default</span></span>
 <span><span class="co">## BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
@@ -827,14 +805,14 @@ the <code>CytoMDS</code> workflow, as in the previous examples:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
 <span><span class="co">##  [1] patchwork_1.3.0             ggplot2_3.5.1              </span></span>
-<span><span class="co">##  [3] CytoMDS_1.1.3               HDCytoData_1.25.0          </span></span>
-<span><span class="co">##  [5] flowCore_2.17.0             SummarizedExperiment_1.35.1</span></span>
-<span><span class="co">##  [7] Biobase_2.65.1              GenomicRanges_1.57.1       </span></span>
-<span><span class="co">##  [9] GenomeInfoDb_1.41.1         IRanges_2.39.2             </span></span>
+<span><span class="co">##  [3] CytoMDS_1.1.4               HDCytoData_1.25.0          </span></span>
+<span><span class="co">##  [5] flowCore_2.17.0             SummarizedExperiment_1.35.4</span></span>
+<span><span class="co">##  [7] Biobase_2.65.1              GenomicRanges_1.57.2       </span></span>
+<span><span class="co">##  [9] GenomeInfoDb_1.41.2         IRanges_2.39.2             </span></span>
 <span><span class="co">## [11] S4Vectors_0.43.2            MatrixGenerics_1.17.0      </span></span>
 <span><span class="co">## [13] matrixStats_1.4.1           ExperimentHub_2.13.1       </span></span>
-<span><span class="co">## [15] AnnotationHub_3.13.3        BiocFileCache_2.13.0       </span></span>
-<span><span class="co">## [17] dbplyr_2.5.0                BiocGenerics_0.51.1        </span></span>
+<span><span class="co">## [15] AnnotationHub_3.13.3        BiocFileCache_2.13.2       </span></span>
+<span><span class="co">## [17] dbplyr_2.5.0                BiocGenerics_0.51.3        </span></span>
 <span><span class="co">## [19] BiocStyle_2.33.1           </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
@@ -847,48 +825,46 @@ the <code>CytoMDS</code> workflow, as in the previous examples:</p>
 <span><span class="co">##  [19] yaml_2.3.10             plotrix_3.8-4           DBI_1.2.3              </span></span>
 <span><span class="co">##  [22] minqa_1.2.8             RColorBrewer_1.1-3      abind_1.4-8            </span></span>
 <span><span class="co">##  [25] zlibbioc_1.51.1         ggcyto_1.33.0           purrr_1.0.2            </span></span>
-<span><span class="co">##  [28] rgl_1.3.1               nnet_7.3-19             pracma_2.4.4           </span></span>
-<span><span class="co">##  [31] tweenr_2.0.3            rappdirs_0.3.3          transport_0.15-4       </span></span>
-<span><span class="co">##  [34] GenomeInfoDbData_1.2.12 ggrepel_0.9.6           gdata_3.0.0            </span></span>
-<span><span class="co">##  [37] ellipse_0.5.0           pkgdown_2.1.1.9000      codetools_0.2-20       </span></span>
-<span><span class="co">##  [40] DelayedArray_0.31.11    ggforce_0.4.2           tidyselect_1.2.1       </span></span>
-<span><span class="co">##  [43] shape_1.4.6.1           UCSC.utils_1.1.0        farver_2.1.2           </span></span>
-<span><span class="co">##  [46] lme4_1.1-35.5           base64enc_0.1-3         jsonlite_1.8.8         </span></span>
-<span><span class="co">##  [49] e1071_1.7-16            mitml_0.4-5             Formula_1.2-5          </span></span>
-<span><span class="co">##  [52] survival_3.7-0          iterators_1.0.14        systemfonts_1.1.0      </span></span>
-<span><span class="co">##  [55] foreach_1.5.2           tools_4.4.1             ragg_1.3.3             </span></span>
-<span><span class="co">##  [58] snow_0.4-4              Rcpp_1.0.13             glue_1.7.0             </span></span>
-<span><span class="co">##  [61] gridExtra_2.3           pan_1.9                 SparseArray_1.5.36     </span></span>
-<span><span class="co">##  [64] xfun_0.47               dplyr_1.1.4             withr_3.0.1            </span></span>
-<span><span class="co">##  [67] BiocManager_1.30.25     fastmap_1.2.0           boot_1.3-31            </span></span>
-<span><span class="co">##  [70] fansi_1.0.6             digest_0.6.37           R6_2.5.1               </span></span>
-<span><span class="co">##  [73] mime_0.12               mice_3.16.0             textshaping_0.4.0      </span></span>
-<span><span class="co">##  [76] colorspace_2.1-1        gtools_3.9.5            RSQLite_2.3.7          </span></span>
-<span><span class="co">##  [79] weights_1.0.4           utf8_1.2.4              tidyr_1.3.1            </span></span>
-<span><span class="co">##  [82] generics_0.1.3          hexbin_1.28.4           candisc_0.9.0          </span></span>
-<span><span class="co">##  [85] data.table_1.16.0       class_7.3-22            httr_1.4.7             </span></span>
-<span><span class="co">##  [88] htmlwidgets_1.6.4       S4Arrays_1.5.7          pkgconfig_2.0.3        </span></span>
-<span><span class="co">##  [91] gtable_0.3.5            blob_1.2.4              RProtoBufLib_2.17.0    </span></span>
-<span><span class="co">##  [94] XVector_0.45.0          htmltools_0.5.8.1       carData_3.0-5          </span></span>
-<span><span class="co">##  [97] bookdown_0.40           scales_1.3.0            heplots_1.7.0          </span></span>
-<span><span class="co">## [100] png_0.1-8               wordcloud_2.6           knitr_1.48             </span></span>
-<span><span class="co">## [103] rstudioapi_0.16.0       reshape2_1.4.4          checkmate_2.3.2        </span></span>
-<span><span class="co">## [106] nlme_3.1-166            curl_5.2.2              nloptr_2.1.1           </span></span>
-<span><span class="co">## [109] proxy_0.4-27            cachem_1.1.0            stringr_1.5.1          </span></span>
-<span><span class="co">## [112] BiocVersion_3.20.0      parallel_4.4.1          foreign_0.8-87         </span></span>
-<span><span class="co">## [115] AnnotationDbi_1.67.0    desc_1.4.3              pillar_1.9.0           </span></span>
-<span><span class="co">## [118] grid_4.4.1              vctrs_0.6.5             car_3.1-2              </span></span>
-<span><span class="co">## [121] cytolib_2.17.0          jomo_2.7-6              cluster_2.1.6          </span></span>
-<span><span class="co">## [124] htmlTable_2.4.3         Rgraphviz_2.49.0        evaluate_1.0.0         </span></span>
-<span><span class="co">## [127] cli_3.6.3               compiler_4.4.1          rlang_1.1.4            </span></span>
-<span><span class="co">## [130] crayon_1.5.3            smacof_2.1-6            ncdfFlow_2.51.0        </span></span>
-<span><span class="co">## [133] labeling_0.4.3          plyr_1.8.9              fs_1.6.4               </span></span>
-<span><span class="co">## [136] stringi_1.8.4           BiocParallel_1.39.0     nnls_1.5               </span></span>
-<span><span class="co">## [139] munsell_0.5.1           Biostrings_2.73.1       glmnet_4.1-8           </span></span>
-<span><span class="co">## [142] Matrix_1.7-0            bit64_4.0.5             CytoPipeline_1.5.1     </span></span>
-<span><span class="co">## [145] KEGGREST_1.45.1         highr_0.11              broom_1.0.6            </span></span>
-<span><span class="co">## [148] memoise_2.0.1           bslib_0.8.0             bit_4.0.5              </span></span>
-<span><span class="co">## [151] polynom_1.4-1</span></span></code></pre>
+<span><span class="co">##  [28] nnet_7.3-19             pracma_2.4.4            tweenr_2.0.3           </span></span>
+<span><span class="co">##  [31] rappdirs_0.3.3          transport_0.15-4        GenomeInfoDbData_1.2.13</span></span>
+<span><span class="co">##  [34] ggrepel_0.9.6           gdata_3.0.0             ellipse_0.5.0          </span></span>
+<span><span class="co">##  [37] pkgdown_2.1.1.9000      codetools_0.2-20        DelayedArray_0.31.14   </span></span>
+<span><span class="co">##  [40] ggforce_0.4.2           tidyselect_1.2.1        shape_1.4.6.1          </span></span>
+<span><span class="co">##  [43] UCSC.utils_1.1.0        farver_2.1.2            lme4_1.1-35.5          </span></span>
+<span><span class="co">##  [46] base64enc_0.1-3         jsonlite_1.8.9          e1071_1.7-16           </span></span>
+<span><span class="co">##  [49] mitml_0.4-5             Formula_1.2-5           survival_3.7-0         </span></span>
+<span><span class="co">##  [52] iterators_1.0.14        systemfonts_1.1.0       foreach_1.5.2          </span></span>
+<span><span class="co">##  [55] tools_4.4.1             ragg_1.3.3              snow_0.4-4             </span></span>
+<span><span class="co">##  [58] Rcpp_1.0.13             glue_1.8.0              gridExtra_2.3          </span></span>
+<span><span class="co">##  [61] pan_1.9                 SparseArray_1.5.44      xfun_0.48              </span></span>
+<span><span class="co">##  [64] dplyr_1.1.4             withr_3.0.1             BiocManager_1.30.25    </span></span>
+<span><span class="co">##  [67] fastmap_1.2.0           boot_1.3-31             fansi_1.0.6            </span></span>
+<span><span class="co">##  [70] digest_0.6.37           R6_2.5.1                mime_0.12              </span></span>
+<span><span class="co">##  [73] mice_3.16.0             textshaping_0.4.0       colorspace_2.1-1       </span></span>
+<span><span class="co">##  [76] gtools_3.9.5            RSQLite_2.3.7           weights_1.0.4          </span></span>
+<span><span class="co">##  [79] utf8_1.2.4              tidyr_1.3.1             generics_0.1.3         </span></span>
+<span><span class="co">##  [82] hexbin_1.28.4           data.table_1.16.2       class_7.3-22           </span></span>
+<span><span class="co">##  [85] httr_1.4.7              htmlwidgets_1.6.4       S4Arrays_1.5.10        </span></span>
+<span><span class="co">##  [88] pkgconfig_2.0.3         gtable_0.3.5            blob_1.2.4             </span></span>
+<span><span class="co">##  [91] RProtoBufLib_2.17.0     XVector_0.45.0          htmltools_0.5.8.1      </span></span>
+<span><span class="co">##  [94] bookdown_0.40           scales_1.3.0            png_0.1-8              </span></span>
+<span><span class="co">##  [97] wordcloud_2.6           knitr_1.48              rstudioapi_0.16.0      </span></span>
+<span><span class="co">## [100] reshape2_1.4.4          checkmate_2.3.2         nlme_3.1-166           </span></span>
+<span><span class="co">## [103] curl_5.2.3              nloptr_2.1.1            proxy_0.4-27           </span></span>
+<span><span class="co">## [106] cachem_1.1.0            stringr_1.5.1           BiocVersion_3.20.0     </span></span>
+<span><span class="co">## [109] parallel_4.4.1          foreign_0.8-87          AnnotationDbi_1.67.0   </span></span>
+<span><span class="co">## [112] desc_1.4.3              pillar_1.9.0            grid_4.4.1             </span></span>
+<span><span class="co">## [115] vctrs_0.6.5             cytolib_2.17.0          jomo_2.7-6             </span></span>
+<span><span class="co">## [118] cluster_2.1.6           htmlTable_2.4.3         Rgraphviz_2.49.1       </span></span>
+<span><span class="co">## [121] evaluate_1.0.1          cli_3.6.3               compiler_4.4.1         </span></span>
+<span><span class="co">## [124] rlang_1.1.4             crayon_1.5.3            smacof_2.1-7           </span></span>
+<span><span class="co">## [127] ncdfFlow_2.51.0         labeling_0.4.3          plyr_1.8.9             </span></span>
+<span><span class="co">## [130] fs_1.6.4                stringi_1.8.4           BiocParallel_1.39.0    </span></span>
+<span><span class="co">## [133] nnls_1.5                munsell_0.5.1           Biostrings_2.73.2      </span></span>
+<span><span class="co">## [136] glmnet_4.1-8            Matrix_1.7-0            bit64_4.5.2            </span></span>
+<span><span class="co">## [139] CytoPipeline_1.5.1      KEGGREST_1.45.1         highr_0.11             </span></span>
+<span><span class="co">## [142] broom_1.0.7             memoise_2.0.1           bslib_0.8.0            </span></span>
+<span><span class="co">## [145] bit_4.5.0               polynom_1.4-1</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -940,29 +916,22 @@ Benchmark Datasets in Bioconductor Object Formats.”</span>
 </div>
 </div>
 </div>
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-
-      </div>
-
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Philippe Hauchamps, Laurent Gatto.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by Philippe Hauchamps, Laurent Gatto.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.9000.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.9000.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
-
 
 
 
