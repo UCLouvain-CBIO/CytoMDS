@@ -1,5 +1,8 @@
 ## CytoMDS 1.3
 
+### CytoMDS 1.3.2
+(no devel yet)
+
 ### CytoMDS 1.3.1
 - corrected bug with nPoints() method of `MDS` class, due to slightly modified 
 behaviour of `dist` S3 class in R4.5.
