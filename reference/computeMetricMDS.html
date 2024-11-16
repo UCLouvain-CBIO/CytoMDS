@@ -125,24 +125,8 @@ maximum number of dimensions the search procedure is allowed to explore</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>a list with six elements:</p><ul><li><p><code>$pwDist</code> the initial pair-wise distance (same as input)</p></li>
-<li><p><code>$proj</code> the final configuration, i.e. the projected data matrix
-(<code>nSamples</code> rows, <code>nDim</code> columns) in <code>nDim</code> dimensions</p></li>
-<li><p><code>$projDist</code> the distance matrix of projected data</p></li>
-<li><p><code>stress</code> the global stress loss function final value
-obtained from the SMACOF algorithm</p></li>
-<li><p><code>spp</code> the stress per point obtained from the SMACOF algorithm, i.e.
-the contribution of each point to the stress loss function</p></li>
-<li><p><code>$RSq</code> R squares, for each d, from 1 to <code>nDim</code>:
-the (pseudo) R square when taking all dims from 1 to d.</p></li>
-<li><p><code>$GoF</code> Goodness of fit, for each d, from 1 to <code>nDim</code>:
-the goodness of fit indicator (b/w 0 and 1) when taking all dims from 1 to d.
-Note pseudo R square and goodness of fit indicators are essentially the
-same indicator, only the definition of total sum of squares differ:</p></li>
-<li><p>for pseudo RSq: TSS is calculated using the mean pairwise distance
-as minimum</p></li>
-<li><p>for goodness of fit: TSS is calculated using 0 as minimum</p></li>
-</ul></div>
+    <p>an object of S4 class <code>MDS</code></p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

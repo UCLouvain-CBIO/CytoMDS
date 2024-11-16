@@ -147,7 +147,12 @@ as a function of number of dimensions.
 <dt><code>GoF</code></dt>
 <dd><p><code>numeric</code>, vector of goodness of fit indicators,
 as a function of number of dimensions.
-<code>GoF[nDim]</code> is the global goodness of fit.</p></dd>
+<code>GoF[nDim]</code> is the global goodness of fit.</p>
+<p>Note pseudo R square and goodness of fit indicators are essentially the
+same indicator, only the definition of total sum of squares differ:</p><ul><li><p>for pseudo RSq: TSS is calculated using the mean pairwise distance
+as minimum</p></li>
+<li><p>for goodness of fit: TSS is calculated using 0 as minimum</p></li>
+</ul></dd>
 
 
 <dt><code>smacofRes</code></dt>
