@@ -93,7 +93,15 @@ as a function of number of dimensions.
 
 \item{\code{GoF}}{\code{numeric}, vector of goodness of fit indicators,
 as a function of number of dimensions.
-\code{GoF[nDim]} is the global goodness of fit.}
+\code{GoF[nDim]} is the global goodness of fit.
+
+Note pseudo R square and goodness of fit indicators are essentially the
+same indicator, only the definition of total sum of squares differ:
+\itemize{
+\item for pseudo RSq: TSS is calculated using the mean pairwise distance
+as minimum
+\item for goodness of fit: TSS is calculated using 0 as minimum
+}}
 
 \item{\code{smacofRes}}{an object of class 'smacofB' containing the algorithmic
 optimization results, for example stress and stress per point,

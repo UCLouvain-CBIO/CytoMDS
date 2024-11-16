@@ -45,12 +45,18 @@
 #' 
 #' @slot GoF `numeric`, vector of goodness of fit indicators,
 #' as a function of number of dimensions.
-#' `GoF[nDim]` is the global goodness of fit.
+#' `GoF[nDim]` is the global goodness of fit.   
+#' 
+#' Note pseudo R square and goodness of fit indicators are essentially the 
+#' same indicator, only the definition of total sum of squares differ:
+#' - for pseudo RSq: TSS is calculated using the mean pairwise distance 
+#' as minimum
+#' - for goodness of fit: TSS is calculated using 0 as minimum
 #' 
 #' @slot smacofRes an object of class 'smacofB' containing the algorithmic 
 #' optimization results, for example stress and stress per point, 
 #' as returned by `smacof::smacofSym()` method.
-#'
+#' 
 #' @exportClass MDS
 #' 
 #' @return nothing
@@ -168,7 +174,7 @@ nDim <- function(x) {
 #' @export
 nPoints <- function(x) {
     stopifnot(inherits(x, "MDS"))
-    return(dim(x@pwDist)[1])
+    return(attr(x@pwDist, "Size"))
 }
 
 #' @rdname MDS

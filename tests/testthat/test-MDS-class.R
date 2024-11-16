@@ -76,3 +76,12 @@ test_that("basic MDS class works", {
     smacofRes <- smacofRes(mdsObj)
     expect_equal(class(smacofRes), c("smacofB", "smacof"))
 })
+
+test_that("MDS object export and reimport works", {
+    outputFile <- base::tempfile()
+    saveRDS(object = mdsObj, file = outputFile)
+    mdsObj2 <- readRDS(file = outputFile)
+    ret <- validObject(mdsObj2)
+    expect_true(ret)
+})
+    

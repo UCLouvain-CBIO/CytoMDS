@@ -1487,25 +1487,7 @@ channelSummaryStats <- function(
 #' @param maxDim in case `nDim` is found iteratively, 
 #' maximum number of dimensions the search procedure is allowed to explore
 #' @param ... additional parameters passed to SMACOF algorithm
-#'
-#' @return a list with six elements:
-#' - `$pwDist` the initial pair-wise distance (same as input)
-#' - `$proj` the final configuration, i.e. the projected data matrix 
-#' (`nSamples` rows, `nDim` columns) in `nDim` dimensions
-#' - `$projDist` the distance matrix of projected data
-#' - `stress` the global stress loss function final value 
-#' obtained from the SMACOF algorithm
-#' - `spp` the stress per point obtained from the SMACOF algorithm, i.e.
-#' the contribution of each point to the stress loss function
-#' - `$RSq` R squares, for each d, from 1 to `nDim`:
-#' the (pseudo) R square when taking all dims from 1 to d.
-#' - `$GoF` Goodness of fit, for each d, from 1 to `nDim`:
-#' the goodness of fit indicator (b/w 0 and 1) when taking all dims from 1 to d.
-#' Note pseudo R square and goodness of fit indicators are essentially the 
-#' same indicator, only the definition of total sum of squares differ:
-#' - for pseudo RSq: TSS is calculated using the mean pairwise distance 
-#' as minimum
-#' - for goodness of fit: TSS is calculated using 0 as minimum
+#' @return an object of S4 class `MDS` 
 #' 
 #' @importFrom stats as.dist dist
 #' @export
