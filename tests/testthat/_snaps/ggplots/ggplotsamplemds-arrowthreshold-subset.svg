@@ -27,9 +27,9 @@
 </defs>
 <g clip-path='url(#cpNDMuMDZ8NjY1LjE0fDM4LjEyfDU0NS4xMQ==)'>
 <rect x='43.06' y='38.12' width='622.08' height='507.00' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<circle cx='327.68' cy='295.35' r='1.95' style='stroke-width: 0.71; stroke: #F8766D; fill: #F8766D;' />
-<circle cx='330.61' cy='286.58' r='1.95' style='stroke-width: 0.71; stroke: #F8766D; fill: #F8766D;' />
-<circle cx='370.89' cy='272.48' r='1.95' style='stroke-width: 0.71; stroke: #F8766D; fill: #F8766D;' />
+<circle cx='327.68' cy='295.35' r='1.42' style='stroke-width: 0.71; stroke: #F8766D; fill: #F8766D;' />
+<circle cx='330.61' cy='286.58' r='1.42' style='stroke-width: 0.71; stroke: #F8766D; fill: #F8766D;' />
+<circle cx='370.89' cy='272.48' r='1.42' style='stroke-width: 0.71; stroke: #F8766D; fill: #F8766D;' />
 <text x='310.03' y='294.43' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='25.79px' lengthAdjust='spacingAndGlyphs'>Agg1</text>
 <text x='343.26' y='282.02' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='25.79px' lengthAdjust='spacingAndGlyphs'>Agg2</text>
 <text x='377.48' y='267.92' text-anchor='middle' style='font-size: 11.04px; font-family: sans;' textLength='25.79px' lengthAdjust='spacingAndGlyphs'>Agg3</text>
@@ -62,7 +62,7 @@
 <rect x='676.10' y='275.31' width='38.42' height='32.61' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
 <text x='676.10' y='284.02' style='font-size: 11.00px; font-family: sans;' textLength='25.07px' lengthAdjust='spacingAndGlyphs'>grpId</text>
 <rect x='676.10' y='290.64' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<circle cx='684.74' cy='299.28' r='1.95' style='stroke-width: 0.71; stroke: #F8766D; fill: #F8766D;' />
+<circle cx='684.74' cy='299.28' r='1.42' style='stroke-width: 0.71; stroke: #F8766D; fill: #F8766D;' />
 <text x='698.86' y='302.31' style='font-size: 8.80px; font-family: sans;' textLength='15.66px' lengthAdjust='spacingAndGlyphs'>Agg</text>
 <text x='43.06' y='30.35' style='font-size: 11.00px; font-family: sans;' textLength='130.86px' lengthAdjust='spacingAndGlyphs'>(Pseudo R2 = 1; nDim = 4)</text>
 <text x='43.06' y='14.56' style='font-size: 13.20px; font-family: sans;' textLength='151.15px' lengthAdjust='spacingAndGlyphs'>Multi Dimensional Scaling</text>

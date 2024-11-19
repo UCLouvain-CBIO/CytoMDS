@@ -1,7 +1,7 @@
 ## CytoMDS 1.3
 
 ### CytoMDS 1.3.2
-(no devel yet)
+- added `pointSize` argument to `ggplotSampleMDS()`
 
 ### CytoMDS 1.3.1
 - corrected bug with nPoints() method of `MDS` class, due to slightly modified 

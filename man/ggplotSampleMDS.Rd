@@ -16,7 +16,8 @@ ggplotSampleMDS(
   pDataForShape,
   pDataForLabel,
   pDataForAdditionalLabelling,
-  sizeReflectingStress = FALSE,
+  pointSize = 1,
+  pointSizeReflectingStress = FALSE,
   title = "Multi Dimensional Scaling",
   displayPointLabels = TRUE,
   pointLabelSize = 3.88,
@@ -83,7 +84,10 @@ will be add to the ggplot mapping, as to make them available for
 Note this works only if biplot=FALSE, as biplots contain circle and arrows
 that are currently not supported under \code{ggplotly}.}
 
-\item{sizeReflectingStress}{if TRUE, size of points will appear
+\item{pointSize}{size of all points on the plots - only when
+\code{pointSizeReflectingStress} is FALSE.}
+
+\item{pointSizeReflectingStress}{if TRUE, size of points will appear
 proportional to stress by point, i.e. the bigger the sample point appears,
 the less accurate its representation is
 (in terms of distances w.r.t. other points)}
@@ -220,7 +224,7 @@ p12_Stress <- ggplotSampleMDS(
     pDataForColour = "grpId",
     pDataForLabel = "name",
     pDataForShape = "type",
-    sizeReflectingStress = TRUE)
+    pointSizeReflectingStress = TRUE)
 
 # try to associate axes with median of each channel
 # => use bi-plot

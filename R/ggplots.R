@@ -301,10 +301,12 @@ ggplotMarginalDensities <- function(
 #' *plotly* tooltipping. Should be an array of character of maximum length 3.
 #' Note this works only if biplot=FALSE, as biplots contain circle and arrows 
 #' that are currently not supported under `ggplotly`.
-#' @param sizeReflectingStress if TRUE, size of points will appear 
+#' @param pointSizeReflectingStress if TRUE, size of points will appear 
 #' proportional to stress by point, i.e. the bigger the sample point appears,
 #' the less accurate its representation is 
 #' (in terms of distances w.r.t. other points)
+#' @param pointSize size of all points on the plots - only when   
+#' `pointSizeReflectingStress` is FALSE. 
 #' @param title title to give to the plot
 #' @param displayPointLabels if TRUE, displays labels attached to points
 #' (see `pDataForLabels` for the setting of the label values)
@@ -426,7 +428,7 @@ ggplotMarginalDensities <- function(
 #'     pDataForColour = "grpId",
 #'     pDataForLabel = "name",
 #'     pDataForShape = "type",
-#'     sizeReflectingStress = TRUE)
+#'     pointSizeReflectingStress = TRUE)
 #' 
 #' # try to associate axes with median of each channel
 #' # => use bi-plot
@@ -469,7 +471,8 @@ ggplotSampleMDS <- function(
         pDataForShape,
         pDataForLabel,
         pDataForAdditionalLabelling,
-        sizeReflectingStress = FALSE,
+        pointSize = 1.0,
+        pointSizeReflectingStress = FALSE,
         title = "Multi Dimensional Scaling",
         displayPointLabels = TRUE,
         pointLabelSize = 3.88,
@@ -689,7 +692,7 @@ ggplotSampleMDS <- function(
             geomPointMapping,
             ggplot2::aes(shape = .data[[shapeVar]]))
     }
-    if (sizeReflectingStress) {
+    if (pointSizeReflectingStress) {
         geomPointMapping <- c(
             geomPointMapping,
             ggplot2::aes(size = .data[["stress"]]))
@@ -700,7 +703,13 @@ ggplotSampleMDS <- function(
         attr(geomPointMapping, "class") <- "uneval"
     }
     
-    p <- p + ggplot2::geom_point(mapping = geomPointMapping)
+    if (pointSizeReflectingStress) {
+        p <- p + ggplot2::geom_point(mapping = geomPointMapping)    
+    } else {
+        p <- p + ggplot2::geom_point(
+            mapping = geomPointMapping,
+            size = pointSize)
+    }
     
     if (displayPointLabels) {
         if (!is.character(pDataForLabel)) {

@@ -433,10 +433,22 @@ test_that("ggplotSampleMDS works", {
                          pDataForColour = "grpId",
                          pDataForLabel = "name",
                          pDataForShape = "type",
-                         sizeReflectingStress = TRUE,
+                         pointSizeReflectingStress = TRUE,
                          seed = 0)
 
     vdiffr::expect_doppelganger("ggplotSampleMDS with sizeReflectingStress",
+                                fig = p)
+    
+    p <- ggplotSampleMDS(mdsObj = mdsObj,
+                         pData = flowCore::pData(fsAll),
+                         projectionAxes = c(1,2),
+                         pDataForColour = "grpId",
+                         pDataForLabel = "name",
+                         pDataForShape = "type",
+                         pointSize = 2,
+                         seed = 0)
+
+    vdiffr::expect_doppelganger("ggplotSampleMDS with pointSize",
                                 fig = p)
 
     # use pData for additional labelling
