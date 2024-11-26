@@ -32,23 +32,23 @@ test_that("DistSum built with dist object works", {
     expect_equal(nFeatures(distObj), 1)
     expect_equal(distrNames(distObj), rownames(M))
     expect_null(featureNames(distObj))
-    
+
     dd <- getPWDist(distObj)
     expect_equal(dd, D)
-    
+
     dd2 <- getPWDist(distObj, whichFeatures = 1)
     expect_equal(dd2, dd)
-    
+
     expect_error(featureNames(distObj) <- c("ft1", "ft2"),
                  regexp = "new feature names should have same length")
     featureNames(distObj) <- "FT1"
     expect_equal(featureNames(distObj), "FT1")
-    
+
     expect_error(distrNames(distObj) <- c("D1", "D2"),
                  regexp = "new distribution names should have same length")
     distrNames(distObj) <- paste0("D", 1:nDistr)
     expect_equal(distrNames(distObj), paste0("D", 1:nDistr))
-    
+
 })
 
 test_that("DistSum built with list works", {
@@ -57,31 +57,30 @@ test_that("DistSum built with list works", {
     expect_equal(nFeatures(distObj), nFeat)
     expect_equal(distrNames(distObj), rownames(M))
     expect_equal(featureNames(distObj), colnames(M))
-    
+
     dd <- getPWDist(distObj)
     expect_equal(as.matrix(dd)[1,2], 9.58176716)
-    
+
     dd1 <- getPWDist(distObj, whichFeatures = 1)
     expect_equal(as.matrix(dd1)[4,5],0.02922822)
-    
+
     dd1bis <- getPWDist(distObj, whichFeatures = colnames(M)[1])
     expect_equal(dd1bis, dd1)
-    
+
     ddList <- lapply(colnames(M),
                      function(colname){
                          getPWDist(distObj, whichFeatures = colname)
                      })
-    
+
     ddSum <- Reduce(x = ddList,
                     f = function(x, y) x+y)
-    
+
     expect_equal(dd, ddSum)
-    
+
 
     ddPart <- getPWDist(distObj, whichFeatures = colnames(M)[1:2])
     dd2 <- getPWDist(distObj, whichFeatures = 2)
-    
+
     expect_equal(ddPart, dd1+dd2)
-    
+
 })
-    
