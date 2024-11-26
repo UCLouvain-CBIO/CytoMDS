@@ -1477,7 +1477,15 @@ channelSummaryStats <- function(
 #' looking for too big projection spaces. 
 #' @param pwDist (`nSamples` rows, `nSamples` columns), 
 #' previously calculated pairwise distances between samples, 
-#' must be provided as a full symmetric square matrix, with 0. diagonal
+#' can be provided as :
+#' - a `DistSum` object
+#' - a `dist` object
+#' - a full symmetric square matrix, with 0. diagonal
+#' @param whichChannels if `pwDist` has been provided as a `DistSum` object,
+#' a vector of channels to be included in the distances. 
+#' In that case the distances have been computed as a sum of unidimensional 
+#' distances for each channel, and the `DistSum` object allows to restrict 
+#' the channel sets to be included in the distance accounting
 #' @param nDim number of dimensions of projection, as input to SMACOF algorithm
 #' if not provided, will be found iteratively using `targetPseudoRSq`
 #' @param seed seed to be set when launching SMACOF algorithm 
@@ -1549,27 +1557,38 @@ channelSummaryStats <- function(
 #' 
 computeMetricMDS <- function(
         pwDist,
+        whichChannels = NULL,
         nDim = NULL,
         seed = NULL,
         targetPseudoRSq = 0.95,
         maxDim = 128,
         ...){
     
-    if (inherits(pwDist, "dist")) {
-        pwDist <- as.matrix(pwDist)
+    if (inherits(pwDist, "DistSum")) {
+        pwDist <- as.matrix(getPWDist(
+            pwDist, whichFeatures = whichChannels
+        ))
     } else {
-        dimensions <- dim(pwDist)
-        if (length(dimensions) != 2) {
-            stop("pwDist should be a square matrix")
+        if (!is.null(whichChannels)) {
+            warning("whichChannels parameter not taken into account as ",
+                    "`pwDist] is not a `DistSum` object")
         }
-        if(dimensions[1] != dimensions[2]) {
-            stop("pwDist should be a square matrix")
-        }
-        if (!is.numeric(pwDist)) {
-            stop("pwDist should be numeric")
+        if (inherits(pwDist, "dist")) {
+            pwDist <- as.matrix(pwDist)
+        } else {
+            dimensions <- dim(pwDist)
+            if (length(dimensions) != 2) {
+                stop("pwDist should be a square matrix")
+            }
+            if(dimensions[1] != dimensions[2]) {
+                stop("pwDist should be a square matrix")
+            }
+            if (!is.numeric(pwDist)) {
+                stop("pwDist should be numeric")
+            }
         }
     }
-    
+        
     # handle case when nDim not provided
     # in that case iteratively find it by aiming at target pseudoRSquare
     
