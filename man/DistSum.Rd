@@ -3,8 +3,6 @@
 \docType{class}
 \name{DistSum-class}
 \alias{DistSum-class}
-\alias{DistSum,dist-method}
-\alias{DistSum,list-method}
 \alias{show,DistSum-method}
 \alias{nDistr}
 \alias{nFeatures}
@@ -15,10 +13,6 @@
 \alias{getPWDist}
 \title{DistSum class}
 \usage{
-\S4method{DistSum}{dist}(object)
-
-\S4method{DistSum}{list}(object)
-
 \S4method{show}{DistSum}(object)
 
 nDistr(x)
@@ -64,19 +58,23 @@ of the symmetrix, 0 diagonal, matrix only.}
 \item{\code{pwDistPerDim}}{A \code{list} of \code{dist} objects storing the contribution
 of each dimension of the multidimensional distributions
 to the full distance matrix}
-
-\item{\code{featureNames}}{A \code{character} vector containing the feature names}
-
-\item{\code{distrNames}}{A \code{character} vector containing the distribution names}
 }}
 
 \examples{
 
-M <- matrix(data = rnorm(35), ncol = 7)
-rownames(M) <- paste0("feat", 1:5)
+nDistr <- 5
+nFeat <- 7
+
+M <- matrix(data = rnorm(nDistr * nFeat), ncol = nFeat)
+rownames(M) <- paste0("distr", 1:nDistr)
+colnames(M) <- paste0("feat", 1:nFeat)
+DList <- lapply(colnames(M),
+                FUN = function(colName) {
+                    dist(M[, colName, drop = FALSE])
+                })
+
+names(DList) <- colnames(M)
 D <- dist(M)
-
-
 
 
 }

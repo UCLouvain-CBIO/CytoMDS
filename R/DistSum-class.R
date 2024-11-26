@@ -31,23 +31,26 @@
 #' of each dimension of the multidimensional distributions
 #' to the full distance matrix
 #'
-#' @slot featureNames A `character` vector containing the feature names
-#' 
-#' @slot distrNames A `character` vector containing the distribution names 
-#'
 #' @exportClass DistSum
 #' 
 #' @return nothing
-#' 
 #' @examples
 #' 
-#' M <- matrix(data = rnorm(35), ncol = 7)
-#' rownames(M) <- paste0("feat", 1:5)
+#' nDistr <- 5
+#' nFeat <- 7
+#' 
+#' M <- matrix(data = rnorm(nDistr * nFeat), ncol = nFeat)
+#' rownames(M) <- paste0("distr", 1:nDistr)
+#' colnames(M) <- paste0("feat", 1:nFeat)
+#' DList <- lapply(colnames(M),
+#'                 FUN = function(colName) {
+#'                     dist(M[, colName, drop = FALSE])
+#'                 })
+#' 
+#' names(DList) <- colnames(M)
 #' D <- dist(M)
 #' 
 #' 
-#' 
-#'
 setClass("DistSum",
          slots = c(
              pwFullDist = "dist",
@@ -59,51 +62,51 @@ setClass("DistSum",
          )
 )
 
-setGeneric("DistSum", function(object, ...) {
-    standardGeneric("DistSum")
-})
-
-#' @rdname DistSum
-#' @export
-#'
-setMethod(
-    "DistSum", "dist",
-    function(object) {
-        newObj <- methods::new("DistSum",
-                               pwFullDist = object,
-                               pwDistPerDim = list(object))
-        
-        
-        if (isTRUE(methods::validObject(newObj))){
-            return(newObj)
-        }             
-    }
-)
-
-#' @rdname DistSum
-#' @export
-#'
-setMethod(
-    "DistSum", "list",
-    function(object) {
-        
-        
-        
-        pwFUllDist <- Reduce(
-            f = function(x, y){
-                x + y
-            },
-            x = object)
-        
-        newObj <- methods::new("DistSum",
-                               pwFullDist = pwFUllDist,
-                               pwDistPerDim = object)
-                     
-        if (isTRUE(methods::validObject(newObj))){
-            return(newObj)
-        }
-    }
-)
+# setGeneric("DistSum", function(object, ...) {
+#     standardGeneric("DistSum")
+# })
+# 
+# #' @rdname DistSum
+# #' @param object a `dist` containing the full distance matrix
+# #' @export
+# #'
+# setMethod(
+#     "DistSum", "dist",
+#     function(object) {
+#         newObj <- methods::new("DistSum",
+#                                pwFullDist = object,
+#                                pwDistPerDim = list(object))
+#         
+#         
+#         if (isTRUE(methods::validObject(newObj))){
+#             return(newObj)
+#         }             
+#     }
+# )
+# 
+# #' @rdname DistSum
+# #' @param object a list of which each element is a `dist` object representing
+# #' the distance matrix for one feature.
+# #' @export
+# #'
+# setMethod(
+#     "DistSum", "list",
+#     function(object) {
+#         pwFUllDist <- Reduce(
+#             f = function(x, y){
+#                 x + y
+#             },
+#             x = object)
+#         
+#         newObj <- methods::new("DistSum",
+#                                pwFullDist = pwFUllDist,
+#                                pwDistPerDim = object)
+#                      
+#         if (isTRUE(methods::validObject(newObj))){
+#             return(newObj)
+#         }
+#     }
+# )
 
 setValidity("DistSum", function(object) {
     nDistr <- nDistr(object)
