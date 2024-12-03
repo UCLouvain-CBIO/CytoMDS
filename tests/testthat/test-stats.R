@@ -1235,6 +1235,9 @@ test_that("computeMetricMDS works", {
                               channels = c("FSC-A", "SSC-A"),
                               verbose = FALSE)
     
+    as.matrix(pwDist)
+    featureNames(pwDist)
+    
     mdsObj <- computeMetricMDS(pwDist, nDim = 2, seed = 0)
     
     expect_equal(stress(mdsObj), 0.0203635387)

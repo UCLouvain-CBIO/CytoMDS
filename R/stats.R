@@ -581,7 +581,9 @@ EMDDist <- function(
         nRowBlock = nRowBlock)
     
     if (unidimHistograms) {
-        
+        # currently , this portion of code is the only one that is used: 
+        # distance is calculated as the sum of uni-dimensional distances
+        # and we use histograms generation as a first step to compute those
         if (verbose){
             message("Pre-calculating all histograms...")
         }
@@ -697,44 +699,48 @@ EMDDist <- function(
             nRows <- length(rowSeq)
             nCols <- length(colSeq)
             
-            pwDistMat <- vapply(
-                seq_along(colSeq),
-                FUN = function(j) {
-                    pwDistCol <- vapply(
-                        seq_along(rowSeq),
-                        FUN = function(i) {
+            nChannel <- ncol(distrs[[1]])
+            channels <- colnames(distrs[[1]])
+            
+            # list of list of unidimensional vector of distances per channel
+            pwDistLL <- lapply(
+                seq_along(rowSeq),
+                FUN = function(i) {
+                    pwDistL <- lapply(
+                        seq_along(colSeq),
+                        FUN = function(j) {
+                            # we only calcuale upper triangular distance matrix
                             if (colSeq[j] > rowSeq[i]) {
-                                pwDist <- sum(.distFromUnidimHistograms(
+                                pwDist <- .distFromUnidimHistograms(
                                     breaks = breaks,
                                     distr1 =
                                         distrs[[which(
                                             rowColSeqUnion == rowSeq[i])]],
                                     distr2 =
                                         distrs[[which(
-                                            rowColSeqUnion == colSeq[j])]]))
+                                            rowColSeqUnion == colSeq[j])]])
                                 if (verbose) {
                                     message(
                                         "i = ", rowSeq[i],
                                         "; j = ", colSeq[j],
-                                        "; dist = ", round(pwDist, 12))
+                                        "; sum(dist) = ", 
+                                        round(sum(pwDist), 12))
                                 }
                             } else {
-                                pwDist <- 0.
+                                pwDist <- rep(0., nChannel)
+                                names(pwDist) <- colnames(distrs[[1]])
                             }
                             pwDist
-                        },
-                        FUN.VALUE = numeric(1))
-                    pwDistCol
-                },
-                FUN.VALUE = numeric(nRows)
+                        }#,
+                        #FUN.VALUE = numeric(1)
+                    )
+                    pwDistL
+                }#,
+                #FUN.VALUE = numeric(nRows)
             )
             
-            # in case nRows is equal to 1, matrix is 'dropped' to vector
-            if (!is.matrix(pwDistMat)) {
-                pwDistMat <- matrix(pwDistMat, nrow = nRows)
-            }
-
-            pwDistMat
+            pwDistLL
+            
         } 
         
         pwDistByBlock <- BiocParallel::bplapply(
@@ -748,6 +754,11 @@ EMDDist <- function(
             verbose = verbose)
         
     } else {
+        # currently , this portion of code is not used: 
+        # here, the global distance is generated 
+        # in a general fashion and is not necessarily
+        # the sum of uni-dimensional distances
+        # therefore only one distance matrix (portion) is calculated
         handleOneBlock <- function(
         block,
         loadExprMatrixFUN,
@@ -797,12 +808,13 @@ EMDDist <- function(
                 verbose = verbose
             )
             
-            pwDistMat <- vapply(
-                seq_along(colSeq),
-                FUN = function(j) {
-                    pwDistCol <- vapply(
-                        seq_along(rowSeq),
-                        FUN = function(i) {
+            pwDistLL <- lapply(
+                seq_along(rowSeq),
+                FUN = function(i) {
+                    pwDistL <- lapply(
+                        seq_along(colSeq),
+                        FUN = function(j) {
+                            # only triangular part is calculated
                             if (colSeq[j] > rowSeq[i]) {
                                 pwDist <- .EMDDist(
                                     expr1 = expMatList[[
@@ -823,20 +835,14 @@ EMDDist <- function(
                             } else {
                                 pwDist <- 0.
                             }
+                            names(pwDist) <- "AllChannels"
                             pwDist
-                        },
-                        FUN.VALUE = numeric(1))
-                    pwDistCol
-                },
-                FUN.VALUE = numeric(nRows)
-            )
+                        })
+                    
+                    pwDistL
+                })
             
-            # in case nRows is equal to 1, matrix is 'dropped' to vector
-            if (!is.matrix(pwDistMat)) {
-                pwDistMat <- matrix(pwDistMat, nrow = nRows)
-            }
-            
-            pwDistMat
+            pwDistLL
         }
         
         pwDistByBlock <- BiocParallel::bplapply(
@@ -848,44 +854,55 @@ EMDDist <- function(
             loadExprMatrixFUNArgs = loadExprMatrixFUNArgs,
             channels = channels,
             verbose = verbose)
-        
     }
     
-    # re-arrange block results to create one single matrix
+    # re-arrange block results to create one single matrix (per feature)
     nRows <- rowRange[2] - rowRange[1] + 1
     nCols <- colRange[2] - colRange[1] + 1
-    
-    pwDist <- matrix(rep(0., nRows*nCols), nrow = nRows)
-    
-    for (b in seq_along(blocks2D)){
-        block <- blocks2D[[b]]
-        for (i in seq(block$rowMin, block$rowMax)) {
-            for (j in seq(block$colMin, block$colMax)) {
-                pwDist[i - rowRange[1] + 1, j - colRange[1] + 1] <- 
-                    pwDistByBlock[[b]][i - block$rowMin + 1,
-                                       j - block$colMin + 1]
-            }
-        }
-    }
-    
     rowSeq <- seq(rowRange[1], rowRange[2])
     colSeq <- seq(colRange[1], colRange[2])
     
-    rownames(pwDist) <- rowSeq
-    colnames(pwDist) <- colSeq
+    featureNames <- names(pwDistByBlock[[1]][[1]][[1]])
+    pwDistPerDim <- lapply(
+         seq_along(featureNames),
+         FUN = function(chIndex) {
+             pwDist <- matrix(rep(0., nRows*nCols), nrow = nRows)
+             
+             for (b in seq_along(blocks2D)){
+                 block <- blocks2D[[b]]
+                 for (i in seq(block$rowMin, block$rowMax)) {
+                     for (j in seq(block$colMin, block$colMax)) {
+                         pwDist[i - rowRange[1] + 1, j - colRange[1] + 1] <- 
+                             pwDistByBlock[[b]][[i - block$rowMin + 1]][[j - block$colMin + 1]][chIndex]
+                     }
+                 }
+             }
+             
+             rownames(pwDist) <- rowSeq
+             colnames(pwDist) <- colSeq
+             
+             # apply symmetry for lower triangular part of matrix 
+             # NOTE we do it only if rowSeq is identical to colSeq. 
+             # If not, it means we are working on a not symmetrical block, 
+             # hence we might not have the info at our disposal to fill in the parts 
+             # that belong to the low triangle of the distance matrix.
+             
+             if (rowRange[1] == colRange[1] && rowRange[2] == colRange[[2]]) {
+                 pwDist <- pwDist + t(pwDist)      
+             }
+             
+             pwDist
+         }
+    )
+    names(pwDistPerDim) <- featureNames
     
-    # apply symmetry for lower triangular part of matrix 
-    # NOTE we do it only if rowSeq is identical to colSeq. 
-    # If not, it means we are working on a not symmetrical block, 
-    # hence we might not have the info at our disposal to fill in the parts 
-    # that belong to the low triangle of the distance matrix.
-
-    if (rowRange[1] == colRange[1] && rowRange[2] == colRange[[2]]) {
-        pwDist <- pwDist + t(pwDist)      
-    }
+    distObj <- DistSum(object = pwDistPerDim)
     
-    return(pwDist)
+    distObj
+    
 }
+    
+    
 
 #' @title Pairwise Earth Mover's Distance calculation
 #' @description Computation of all EMD between pairs of flowFrames belonging
@@ -1563,11 +1580,8 @@ computeMetricMDS <- function(
         targetPseudoRSq = 0.95,
         maxDim = 128,
         ...){
-    
     if (inherits(pwDist, "DistSum")) {
-        pwDist <- as.matrix(getPWDist(
-            pwDist, whichFeatures = whichChannels
-        ))
+        pwDist <- as.matrix(pwDist, whichFeatures = whichChannels)
     } else {
         if (!is.null(whichChannels)) {
             warning("whichChannels parameter not taken into account as ",
@@ -1575,20 +1589,20 @@ computeMetricMDS <- function(
         }
         if (inherits(pwDist, "dist")) {
             pwDist <- as.matrix(pwDist)
-        } else {
-            dimensions <- dim(pwDist)
-            if (length(dimensions) != 2) {
-                stop("pwDist should be a square matrix")
-            }
-            if(dimensions[1] != dimensions[2]) {
-                stop("pwDist should be a square matrix")
-            }
-            if (!is.numeric(pwDist)) {
-                stop("pwDist should be numeric")
-            }
-        }
+        } 
     }
-        
+    
+    dimensions <- dim(pwDist)
+    if (length(dimensions) != 2) {
+        stop("pwDist has more than 2 dimensions, it should be a square matrix")
+    }
+    if(dimensions[1] != dimensions[2]) {
+        stop("pwDist is not square")
+    }
+    if (!is.numeric(pwDist)) {
+        stop("pwDist should be numeric")
+    }
+    
     # handle case when nDim not provided
     # in that case iteratively find it by aiming at target pseudoRSquare
     
