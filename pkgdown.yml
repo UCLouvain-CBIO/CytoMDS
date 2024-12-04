@@ -1,9 +1,9 @@
 pandoc: '3.5'
 pkgdown: 2.1.1.9000
-pkgdown_sha: b779635fe2b911ac8911f5560161b07ab3641979
+pkgdown_sha: dfa28bef27858bd442334b5cce8f645d555914be
 articles:
   CytoMDS: CytoMDS.html
-last_built: 2024-11-26T10:10Z
+last_built: 2024-12-04T15:45Z
 urls:
   reference: https://uclouvain-cbio.github.io/CytoMDS/reference
   article: https://uclouvain-cbio.github.io/CytoMDS/articles

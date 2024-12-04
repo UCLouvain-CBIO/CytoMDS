@@ -33,7 +33,7 @@ looking for too big projection spaces."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">CytoMDS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,6 +81,7 @@ looking for too big projection spaces.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">computeMetricMDS</span><span class="op">(</span></span>
 <span>  <span class="va">pwDist</span>,</span>
+<span>  whichChannels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nDim <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  targetPseudoRSq <span class="op">=</span> <span class="fl">0.95</span>,</span>
@@ -96,7 +97,18 @@ looking for too big projection spaces.</p>
 <dl><dt id="arg-pwdist">pwDist<a class="anchor" aria-label="anchor" href="#arg-pwdist"></a></dt>
 <dd><p>(<code>nSamples</code> rows, <code>nSamples</code> columns),
 previously calculated pairwise distances between samples,
-must be provided as a full symmetric square matrix, with 0. diagonal</p></dd>
+can be provided as :</p><ul><li><p>a <code>DistSum</code> object</p></li>
+<li><p>a <code>dist</code> object</p></li>
+<li><p>a full symmetric square matrix, with 0. diagonal</p></li>
+</ul></dd>
+
+
+<dt id="arg-whichchannels">whichChannels<a class="anchor" aria-label="anchor" href="#arg-whichchannels"></a></dt>
+<dd><p>if <code>pwDist</code> has been provided as a <code>DistSum</code> object,
+a vector of channels to be included in the distances.
+In that case the distances have been computed as a sum of unidimensional
+distances for each channel, and the <code>DistSum</code> object allows to restrict
+the channel sets to be included in the distance accounting</p></dd>
 
 
 <dt id="arg-ndim">nDim<a class="anchor" aria-label="anchor" href="#arg-ndim"></a></dt>
