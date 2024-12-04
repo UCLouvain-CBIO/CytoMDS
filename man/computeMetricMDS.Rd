@@ -6,6 +6,7 @@
 \usage{
 computeMetricMDS(
   pwDist,
+  whichChannels = NULL,
   nDim = NULL,
   seed = NULL,
   targetPseudoRSq = 0.95,
@@ -16,7 +17,18 @@ computeMetricMDS(
 \arguments{
 \item{pwDist}{(\code{nSamples} rows, \code{nSamples} columns),
 previously calculated pairwise distances between samples,
-must be provided as a full symmetric square matrix, with 0. diagonal}
+can be provided as :
+\itemize{
+\item a \code{DistSum} object
+\item a \code{dist} object
+\item a full symmetric square matrix, with 0. diagonal
+}}
+
+\item{whichChannels}{if \code{pwDist} has been provided as a \code{DistSum} object,
+a vector of channels to be included in the distances.
+In that case the distances have been computed as a sum of unidimensional
+distances for each channel, and the \code{DistSum} object allows to restrict
+the channel sets to be included in the distance accounting}
 
 \item{nDim}{number of dimensions of projection, as input to SMACOF algorithm
 if not provided, will be found iteratively using \code{targetPseudoRSq}}
