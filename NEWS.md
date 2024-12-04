@@ -1,7 +1,8 @@
 ## CytoMDS 1.3
 
 ### CytoMDS 1.3.3
-(no devel yet)
+- implemented `DimSum` class to store distance matrices computed as the sum
+of marker contributions
 
 ### CytoMDS 1.3.2
 - added `pointSize` argument to `ggplotSampleMDS()`
