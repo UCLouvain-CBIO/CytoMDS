@@ -580,6 +580,9 @@ EMDDist <- function(
         colRange = colRange, 
         nRowBlock = nRowBlock)
     
+    # will store the feature names of the DistSum object at the end
+    usedFeatureNames <- NULL
+    
     if (unidimHistograms) {
         # currently , this portion of code is the only one that is used: 
         # distance is calculated as the sum of uni-dimensional distances
@@ -682,6 +685,11 @@ EMDDist <- function(
         
         # reorganize multivariate distributions in a single list
         distrs <- unlist(distribBlockList, recursive = FALSE)
+        
+        if (length(distrs) > 0) {
+            # should always be the case since nSamples > 0
+            usedFeatureNames <- colnames(distrs[[1]])   
+        }
         
         if (verbose){
             message("Calculating pairwise distances between histograms...")
@@ -800,6 +808,11 @@ EMDDist <- function(
                         }
                         exprMat <- exprMat[, channels, drop=FALSE]
                     }
+                    # set used feature names if not done yet 
+                    # (for DistSum object output)
+                    if (is.null(usedFeatureNames)) {
+                        usedFeatureNames <- colnames(exprMat)    
+                    }
                     exprMat
                 },
                 loadExprMatrixFUN = loadExprMatrixFUN,
@@ -862,9 +875,9 @@ EMDDist <- function(
     rowSeq <- seq(rowRange[1], rowRange[2])
     colSeq <- seq(colRange[1], colRange[2])
     
-    featureNames <- names(pwDistByBlock[[1]][[1]][[1]])
+    
     pwDistPerDim <- lapply(
-         seq_along(featureNames),
+         seq_along(usedFeatureNames),
          FUN = function(chIndex) {
              pwDist <- matrix(rep(0., nRows*nCols), nrow = nRows)
              
@@ -894,12 +907,13 @@ EMDDist <- function(
              pwDist
          }
     )
-    names(pwDistPerDim) <- featureNames
+    
+    # set feature names for use into DistSum object
+    names(pwDistPerDim) <- usedFeatureNames
     
     distObj <- DistSum(object = pwDistPerDim)
     
     distObj
-    
 }
     
     

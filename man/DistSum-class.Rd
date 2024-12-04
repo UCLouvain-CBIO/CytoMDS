@@ -9,6 +9,7 @@
 \alias{DistSum,list-method}
 \alias{dim,DistSum-method}
 \alias{dimnames,DistSum-method}
+\alias{dimnames<-,DistSum,character-method}
 \alias{dimnames<-,DistSum,ANY-method}
 \alias{ncol,DistSum-method}
 \alias{colnames,DistSum-method}
@@ -19,6 +20,10 @@
 \alias{nFeatures}
 \alias{featureNames,DistSum-method}
 \alias{featureNames<-,DistSum-method}
+\alias{[,DistSum,ANY,ANY,ANY-method}
+\alias{[,DistSum,ANY,ANY,missing-method}
+\alias{[,DistSum,ANY,missing,ANY-method}
+\alias{[,DistSum,ANY,missing,missing-method}
 \alias{as.matrix,DistSum-method}
 \title{DistSum class}
 \usage{
@@ -31,6 +36,8 @@
 \S4method{dim}{DistSum}(x)
 
 \S4method{dimnames}{DistSum}(x)
+
+\S4method{dimnames}{DistSum,character}(x) <- value
 
 \S4method{dimnames}{DistSum,ANY}(x) <- value
 
@@ -52,6 +59,14 @@ nFeatures(x)
 
 \S4method{featureNames}{DistSum}(object) <- value
 
+\S4method{[}{DistSum,ANY,ANY,ANY}(x, i, j, ..., drop = TRUE)
+
+\S4method{[}{DistSum,ANY,ANY,missing}(x, i, j, ..., drop = TRUE)
+
+\S4method{[}{DistSum,ANY,missing,ANY}(x, i, j, ..., drop = TRUE)
+
+\S4method{[}{DistSum,ANY,missing,missing}(x, i, j, ..., drop = TRUE)
+
 \S4method{as.matrix}{DistSum}(x, whichFeatures = NULL)
 }
 \arguments{
@@ -60,6 +75,14 @@ nFeatures(x)
 \item{x}{a \code{DistSum} object}
 
 \item{value}{the new feature names to be assigned}
+
+\item{i}{the array index}
+
+\item{j}{the column index}
+
+\item{...}{other arguments (not used)}
+
+\item{drop}{if TRUE, decrease the nb of dimensions when possible}
 
 \item{whichFeatures}{either an array of feature names,
 or an array of feature indices, or NULL
@@ -106,6 +129,8 @@ FUN = function(colName) {
 })
 
 D <- Reduce(x = DList, f = function(A, B) A + B)
+
+names(DList) <- colnames(M)
 
 # Example of creating of a DistSum object based on the full distance matrix
 distObj1 <- DistSum(D)

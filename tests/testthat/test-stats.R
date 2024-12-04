@@ -456,7 +456,7 @@ test_that("pairwiseEMDDist with fs works", {
         minRange = -10,
         maxRange = 10)
     expect_equal(dim(pwDist), c(1,1))
-    expect_equal(pwDist[1,1], 0.)
+    expect_equal(as.matrix(pwDist)[1,1], 0.)
     
     pwDist <- pairwiseEMDDist(
         x = OMIP021Trans,
@@ -464,6 +464,21 @@ test_that("pairwiseEMDDist with fs works", {
         binSize = 0.05,
         minRange = -10,
         maxRange = 10)
+    expect_equal(dim(pwDist), c(2,2))
+    expect_equal(pwDist[1,1], 0.)
+    expect_equal(pwDist[1,2], 0.1551)
+    expect_equal(pwDist[2,1], 0.1551)
+    expect_equal(pwDist[2,2], 0.)
+    
+    # now calculate the distance with all channels
+    # and select later
+    pwDist <- pairwiseEMDDist(
+        x = OMIP021Trans,
+        channels = NULL,
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10)
+    pwDist <- as.matrix(pwDist, whichFeatures = c("FSC-A", "SSC-A"))
     expect_equal(dim(pwDist), c(2,2))
     expect_equal(pwDist[1,1], 0.)
     expect_equal(pwDist[1,2], 0.1551)
@@ -535,7 +550,7 @@ test_that("pairwiseEMDDist with fs works", {
     expect_equal(length(msg), 22)
     expect_equal(msg[5], "Calculating histogram for file 2...\n")
     expect_equal(msg[10], "Loading file 5...\n")
-    expect_equal(msg[21], "i = 3; j = 5; dist = 0.01813\n")
+    expect_equal(msg[21], "i = 3; j = 5; sum(dist) = 0.01813\n")
     
     expect_equal(dim(pwDist4), c(5,4))
     expect_equal(pwDist4[1,1], 0.1551)
@@ -562,12 +577,29 @@ test_that("pairwiseEMDDist with expr matrix works", {
     expect_equal(dim(pwDist), c(1,1))
     expect_equal(pwDist[1,1], 0.)
     
+    exprList <- list(sample1 = expr1, sample2 = expr2)
+    
     pwDist <- pairwiseEMDDist(
-        x = list(expr1, expr2),
+        x = exprList,
         channels = c("FSC-A", "SSC-A"),
         binSize = 0.05,
         minRange = -10,
         maxRange = 10)
+    expect_equal(dim(pwDist), c(2,2))
+    expect_equal(pwDist[1,1], 0.)
+    expect_equal(pwDist[1,2], 0.1551)
+    expect_equal(pwDist[2,1], 0.1551)
+    expect_equal(pwDist[2,2], 0.)
+    
+    # now calculate the distance with all channels
+    # and select later
+    pwDist <- pairwiseEMDDist(
+        x = list(expr1, expr2),
+        channels = NULL,
+        binSize = 0.05,
+        minRange = -10,
+        maxRange = 10)
+    pwDist <- as.matrix(pwDist, whichFeatures = c("FSC-A", "SSC-A"))
     expect_equal(dim(pwDist), c(2,2))
     expect_equal(pwDist[1,1], 0.)
     expect_equal(pwDist[1,2], 0.1551)
@@ -641,7 +673,7 @@ test_that("pairwiseEMDDist with expr matrix works", {
     expect_equal(length(msg), 22)
     expect_equal(msg[5], "Calculating histogram for file 2...\n")
     expect_equal(msg[10], "Loading file 5...\n")
-    expect_equal(msg[21], "i = 3; j = 5; dist = 0.01813\n")
+    expect_equal(msg[21], "i = 3; j = 5; sum(dist) = 0.01813\n")
     
     expect_equal(dim(pwDist4), c(5,4))
     expect_equal(pwDist4[1,1], 0.1551)
@@ -1235,9 +1267,6 @@ test_that("computeMetricMDS works", {
                               channels = c("FSC-A", "SSC-A"),
                               verbose = FALSE)
     
-    as.matrix(pwDist)
-    featureNames(pwDist)
-    
     mdsObj <- computeMetricMDS(pwDist, nDim = 2, seed = 0)
     
     expect_equal(stress(mdsObj), 0.0203635387)
@@ -1245,6 +1274,18 @@ test_that("computeMetricMDS works", {
         11.111867, 13.086625, 4.448069, 37.334795, 34.018645)
     names(tgtspp) <- 1:5
     expect_equal(spp(mdsObj), tgtspp)
+    
+    # do the same but with the full distance object, 
+    # and select channels in computeMetricMDS
+    pwDistFull <- pairwiseEMDDist(fsAll, 
+                                  channels = NULL,
+                                  verbose = TRUE)
+    
+    mdsObjFull <- computeMetricMDS(pwDistFull, nDim = 2, seed = 0,
+                                   whichChannels = c("FSC-A", "SSC-A"))
+    expect_equal(stress(mdsObjFull), 0.0203635387)
+    expect_equal(spp(mdsObjFull), tgtspp)
+    
     
     # with no user provided nDim, but (implicit) target pseudo rsquare = 0.95
     mdsObj2 <- computeMetricMDS(pwDist, seed = 0)

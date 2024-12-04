@@ -59,6 +59,8 @@
 #' 
 #' D <- Reduce(x = DList, f = function(A, B) A + B)
 #' 
+#' names(DList) <- colnames(M)
+#' 
 #' # Example of creating of a DistSum object based on the full distance matrix
 #' distObj1 <- DistSum(D)
 #' show(distObj1)
@@ -102,6 +104,7 @@ setClass("DistSum",
          )
 )
 
+#' @importFrom methods is
 .isValid <- function(object) {
     nc <- ncol(object)
     nr <- nrow(object)
@@ -155,7 +158,7 @@ setClass("DistSum",
                               "not null dimensions while pwFullDist ",
                               "has null dimensions"))
             }
-            if (!equal(dim(item), dims)) {
+            if (!identical(dim(item), dims)) {
                 return(paste0("pwDistPerDim list contains matrices with ",
                               "dimensions not equal to pwFullDist dimensions"))
             }
@@ -259,7 +262,7 @@ setMethod(
 #' @param value the new dimension names to be assigned
 #' @export
 setMethod(
-    "dimnames<-", "DistSum",
+    "dimnames<-", c(x = "DistSum", value = "character"),
     function(x, value) {
         dimnames(x@pwFullDist) <- value
         lapply(x@pwDistPerDim,
@@ -267,7 +270,26 @@ setMethod(
                    dimnames(mat) <- value
                    mat
                })
-        if (isTRUE(methods::validObject(x))) return(x)
+        if (isTRUE(methods::validObject(x)))
+            return(x)
+    }
+)
+
+#' @rdname DistSum-class
+#' @param x a `DistSum` object
+#' @param value the new dimension names to be assigned
+#' @export
+setMethod(
+    "dimnames<-", c(x = "DistSum", value = "ANY"),
+    function(x, value) {
+        dimnames(x@pwFullDist) <- value
+        lapply(x@pwDistPerDim,
+               FUN = function(mat) {
+                  dimnames(mat) <- value
+                   mat
+               })
+        if (isTRUE(methods::validObject(x)))
+            return(x)
     }
 )
 
@@ -388,6 +410,54 @@ setMethod(
     }
 )
 
+#' @rdname DistSum-class
+#' @param x a `DistSum` object
+#' @param i the row index
+#' @param j the column index
+#' @param ... other arguments (not used)
+#' @param drop if TRUE, decrease the nb of dimensions when possible
+#' @export
+setMethod(
+    '[', c(x = "DistSum", i = "ANY", j = "ANY", drop = "ANY"),
+    function(x, i, j, ..., drop) {
+        .as.matrix(x)[i = i, j = j, ..., drop = drop]
+    })
+
+#' @rdname DistSum-class
+#' @param x a `DistSum` object
+#' @param i the row index
+#' @param j the column index
+#' @param ... other arguments (not used)
+#' @export
+setMethod(
+    '[', c(x = "DistSum", i = "ANY", j = "ANY", drop = "missing"),
+    function(x, i, j, ...) {
+        .as.matrix(x)[i = i, j = j, ...]
+    })
+
+#' @rdname DistSum-class
+#' @param x a `DistSum` object
+#' @param i the array index
+#' @param drop if TRUE, decrease the nb of dimensions when possible
+#' @param ... other arguments (not used)
+#' @export
+setMethod(
+    '[', c(x = "DistSum", i = "ANY", j = "missing", drop = "ANY"),
+    function(x, i, j, ..., drop) {
+        .as.matrix(x)[i = i, ..., drop = drop]
+    })
+
+#' @rdname DistSum-class
+#' @param x a `DistSum` object
+#' @param i the array index
+#' @param ... other arguments (not used)
+#' @export
+setMethod(
+    '[', c(x = "DistSum", i = "ANY", j = "missing", drop = "missing"),
+    function(x, i, j, ...) {
+        .as.matrix(x)[i = i, ...]
+    })
+
 .as.matrix <- function(x, whichFeatures = NULL) {
     stopifnot(inherits(x, "DistSum"))
     if (is.null(whichFeatures)) {
@@ -448,12 +518,6 @@ setMethod(
 setMethod(
     "as.matrix", "DistSum",
     function(x, whichFeatures = NULL){
-        # dotdotdot <- list(...)
-        # if(exists(dotdotdot$whichFeatures)) {
-        #     return(.as.matrix(x, whichFeatures = dotdotdot$whichFeatures))    
-        # } else {
-        #     return(.as.matrix(x))
-        # }
         return(.as.matrix(x, whichFeatures = whichFeatures))
     }
 )
