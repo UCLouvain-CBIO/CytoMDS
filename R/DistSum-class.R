@@ -102,8 +102,6 @@ setClass("DistSum",
 
 #' @importFrom methods is
 .isValid <- function(object) {
-    nc <- ncol(object)
-    nr <- nrow(object)
     cnames <- colnames(object)
     rnames <- rownames(object)
     if (!is.null(cnames)) {
@@ -118,45 +116,39 @@ setClass("DistSum",
             return("duplicate row names found")
         }
     }
-    if (nc * nr > 0) {
-        nFeat <- nFeatures(object)
-        if (nFeat > 0) {
-            featNames <- featureNames(object)
-            if (!is.null(featNames)) {
-                if (length(unique(featNames)) !=
-                    length(featNames)) {
-                    return("duplicate feature names found")
-                }
-                if (length(featNames) != nFeat) {
-                    return(paste0("length of featureNames array does not ",
-                                  "returned number of features"))
-                }
+    nFeat <- nFeatures(object)
+    if (nFeat > 0) {
+        featNames <- featureNames(object)
+        if (!is.null(featNames)) {
+            if (length(unique(featNames)) !=
+                length(featNames)) {
+                return("duplicate feature names found")
             }
-        } else {
-            return("no features found in DistSum object")
+            if (length(featNames) != nFeat) {
+                return(paste0("length of featureNames array does not ",
+                              "returned number of features"))
+            }
         }
+    } else {
+        return("no features found in DistSum object")
     }
     
-    # check classes of slot list elements
-    ret <- lapply(
-        object@pwDistPerFeature,
-        FUN = function(item, dims, dimNames) {
-            if (!is(item, "matrix")) {
-                return(paste0("pwDistPerFeature list contains other objects ",
-                              "than `matrix` objects"))
-            }
-            if (!identical(dim(item), dims)) {
-                return(paste0("pwDistPerFeature list contains matrices with ",
-                              "different dimensions"))
-            }
-            if (!identical(dimnames(item), dimnames)) {
-                return(paste0("pwDistPerFeature list contains matrices with ",
-                              "different dim names"))
-            }
-        },
-        dims = dim(object@pwDistPerFeature[[1]]),
-        dimNames = dimnames(object@pwDistPerFeature[[1]]))
     
+    # check classes of slot list elements
+    for (item in object@pwDistPerFeature) {
+        if (!is(item, "matrix")) {
+            return(paste0("pwDistPerFeature list contains other objects ",
+                          "than `matrix` objects"))
+        }
+        if (!identical(dim(item), dim(object))) {
+            return(paste0("pwDistPerFeature list contains matrices with ",
+                          "different dimensions"))
+        }
+        if (!identical(dimnames(item), dimnames(object))) {
+            return(paste0("pwDistPerFeature list contains matrices with ",
+                          "different dim names"))
+        }
+    }
     return(TRUE)
 }
 
@@ -166,20 +158,23 @@ setValidity("DistSum", function(object) {
 
 #' @rdname DistSum-class
 #' @param object a `DistSum` object
-#'
 #' @importMethodsFrom methods show
+#' @importFrom methods validObject
 setMethod(
     "show", "DistSum",
     function(object) {
-        cat("`DistSum` object containing pairwise distances", 
-            "between distributions\n", 
-            "and their decomposition as a sum of feature contributions\n")
-        cat("Matrix dimensions: ", dim(object), "\n")
-        if (ncol(object) * nrow(object) > 0) {
+        retVal <- methods::validObject(object)
+        if (isTRUE(retVal)) {
+            cat("`DistSum` object containing pairwise distances", 
+                "between distributions\n", 
+                "and their decomposition as a sum of feature contributions\n")
+            cat("Matrix dimensions: ", dim(object), "\n")
             cat("Nb of features: ", nFeatures(object), "\n")
             cat("Feature names: ", featureNames(object), "\n")
             cat("Full distance matrix: \n")
             print(.as.matrix(object))
+        } else {
+            stop("Invalid object: ", retVal)
         }
     }
 )

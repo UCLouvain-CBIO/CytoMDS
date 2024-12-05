@@ -26,10 +26,8 @@ DList <- lapply(colnames(M),
                         M[, colName, drop = FALSE]))
                     D
                 })
-
-D <- Reduce(x = DList, f = function(A, B) A + B)
-
 names(DList) <- colnames(M)
+D <- Reduce(x = DList, f = function(A, B) A + B)
 
 test_that("DistSum built with matrix object works", {
     distObj <- DistSum(D)
@@ -141,5 +139,13 @@ test_that("DistSum built with list works", {
     
     expect_equal(ddPart, dd1+dd2)
     
-
 })
+
+test_that("DistSum degenerated subsetting gives error", {
+    distObj <- DistSum(DList)
+    sel <- upper.tri(distObj)
+    expect_equal(sum(sel), 10)
+    expect_error(distObj[sel],
+                 regexp = "contains other objects than `matrix` objects")
+})
+
