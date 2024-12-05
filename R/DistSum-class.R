@@ -27,14 +27,12 @@
 #' distributions, when the distance is calculated as a sum of marginal 
 #' distribution distances.
 #' 
-#' @slot pwFullDist A `matrix`, storing the full pairwise distance matrix, 
-#' calculated as the sum of the distances per dimension (feature). 
-#' Note this matrix is not necessarily a square symmetric matrix, 
-#' as it could be occasionally used to store blocks of the distance matrix. 
-#' 
 #' @slot pwDistPerFeature A `list` of `matrix` objects storing the contribution
 #' of each feature (dimension) of the multidimensional distributions
-#' to the full pairwise distance matrix
+#' to the full pairwise distance matrix. 
+#' Note these matrices are not necessarily square symmetric matrices, 
+#' as the `DistSum` could be occasionally used to store a given block of 
+#' a bigger distance matrix. 
 #'
 #' @exportClass DistSum
 #' 
@@ -95,11 +93,9 @@
 
 setClass("DistSum",
          slots = c(
-             pwFullDist = "matrix",
              pwDistPerFeature = "list"
          ),
          prototype = list(
-             pwFullDist = matrix(numeric()),
              pwDistPerFeature = list()
          )
 )
@@ -141,29 +137,25 @@ setClass("DistSum",
         }
     }
     
-    #check classes of main objects
-    if (!is(object@pwFullDist, "matrix")) {
-        return("pwFullDist object is not a `matrix` object")
-    }
-    
+    # check classes of slot list elements
     ret <- lapply(
         object@pwDistPerFeature,
-        FUN = function(item, dims) {
+        FUN = function(item, dims, dimNames) {
             if (!is(item, "matrix")) {
                 return(paste0("pwDistPerFeature list contains other objects ",
                               "than `matrix` objects"))
             }
-            if (is.null(dims) && !is.null(dim(item))) {
-                return(paste0("pwDistPerFeature list contains matrices with ",
-                              "not null dimensions while pwFullDist ",
-                              "has null dimensions"))
-            }
             if (!identical(dim(item), dims)) {
                 return(paste0("pwDistPerFeature list contains matrices with ",
-                              "dimensions not equal to pwFullDist dimensions"))
+                              "different dimensions"))
+            }
+            if (!identical(dimnames(item), dimnames)) {
+                return(paste0("pwDistPerFeature list contains matrices with ",
+                              "different dim names"))
             }
         },
-        dims = dim(object@pwDistPerFeature))
+        dims = dim(object@pwDistPerFeature[[1]]),
+        dimNames = dimnames(object@pwDistPerFeature[[1]]))
     
     return(TRUE)
 }
@@ -198,12 +190,12 @@ setGeneric("DistSum", function(object, ...) {
 
 #' @rdname DistSum-class
 #' @param object a `dist` object containing the full distance matrix
+#' @importFrom methods validObject
 #' @export
 setMethod("DistSum",
           "matrix",
           function(object) {
               newObj <- methods::new("DistSum",
-                                     pwFullDist = object,
                                      pwDistPerFeature = list(object))
 
 
@@ -215,18 +207,12 @@ setMethod("DistSum",
 #' @rdname DistSum-class
 #' @param object a `list` of which each element is a `dist` object representing
 #' the distance matrix for one feature.
+#' @importFrom methods validObject
 #' @export
 setMethod(
     "DistSum", "list",
     function(object) {
-        pwFUllDist <- Reduce(
-            f = function(x, y){
-                x + y
-            },
-            x = object)
-        
         newObj <- methods::new("DistSum",
-                               pwFullDist = pwFUllDist,
                                pwDistPerFeature = object)
         
         if (isTRUE(methods::validObject(newObj))){
@@ -241,7 +227,10 @@ setMethod(
 setMethod(
     "dim", "DistSum",
     function(x) {
-        dd <- dim(x@pwFullDist)
+        dd <- NULL
+        if (length(x@pwDistPerFeature) > 0) {
+            dd <- dim(x@pwDistPerFeature[[1]])    
+        }
         return(dd)
     }
 )
@@ -252,7 +241,7 @@ setMethod(
 setMethod(
     "dimnames", "DistSum",
     function(x) {
-        dn <- dimnames(x@pwFullDist)
+        dn <- dimnames(x@pwDistPerFeature[[1]])
         return(dn)
     }
 )
@@ -260,17 +249,18 @@ setMethod(
 #' @rdname DistSum-class
 #' @param x a `DistSum` object
 #' @param value the new dimension names to be assigned
+#' @importFrom methods validObject
 #' @export
 setMethod(
     "dimnames<-", c(x = "DistSum", value = "list"),
     function(x, value) {
-        
-        dimnames(x@pwFullDist) <- value
-        lapply(x@pwDistPerFeature,
-               FUN = function(mat) {
-                   dimnames(mat) <- value
-                   mat
-               })
+        x@pwDistPerFeature <- lapply(
+            x@pwDistPerFeature,
+            FUN = function(mat) {
+                dimnames(mat) <- value
+                mat
+            })
+            
         if (isTRUE(methods::validObject(x)))
             return(x)
     }
@@ -279,16 +269,18 @@ setMethod(
 #' @rdname DistSum-class
 #' @param x a `DistSum` object
 #' @param value the new dimension names to be assigned
+#' @importFrom methods validObject
 #' @export
 setMethod(
     "dimnames<-", c(x = "DistSum", value = "ANY"),
     function(x, value) {
-        dimnames(x@pwFullDist) <- value
-        lapply(x@pwDistPerFeature,
-               FUN = function(mat) {
-                  dimnames(mat) <- value
-                   mat
-               })
+        x@pwDistPerFeature <- lapply(
+            x@pwDistPerFeature,
+            FUN = function(mat) {
+                dimnames(mat) <- value
+                mat
+            })
+               
         if (isTRUE(methods::validObject(x)))
             return(x)
     }
@@ -300,7 +292,7 @@ setMethod(
 setMethod(
     "ncol", "DistSum",
     function(x) {
-        nc <- ncol(x@pwFullDist)
+        nc <- ncol(x@pwDistPerFeature[[1]])
         return(nc)
     }
 )
@@ -311,7 +303,7 @@ setMethod(
 setMethod(
     "colnames", "DistSum",
     function(x) {
-        cn <- colnames(x@pwFullDist)
+        cn <- colnames(x@pwDistPerFeature[[1]])
         return(cn)
     }
 )
@@ -319,16 +311,18 @@ setMethod(
 #' @rdname DistSum-class
 #' @param x a `DistSum` object
 #' @param value the new column names to be assigned
+#' @importFrom methods validObject
 #' @export
 setMethod(
     "colnames<-", "DistSum",
     function(x, value) {
-        colnames(x@pwFullDist) <- value
-        lapply(x@pwDistPerFeature,
-               FUN = function(mat) {
-                   colnames(mat) <- value
-                   mat
-               })
+        x@pwDistPerFeature <- lapply(
+            x@pwDistPerFeature,
+            FUN = function(mat) {
+                colnames(mat) <- value
+                mat
+            })
+               
         if (isTRUE(methods::validObject(x))) return(x)
     }
 )
@@ -339,7 +333,7 @@ setMethod(
 setMethod(
     "nrow", "DistSum",
     function(x) {
-        nr <- nrow(x@pwFullDist)
+        nr <- nrow(x@pwDistPerFeature[[1]])
         return(nr)
     }
 )
@@ -350,7 +344,7 @@ setMethod(
 setMethod(
     "rownames", "DistSum",
     function(x) {
-        rn <- rownames(x@pwFullDist)
+        rn <- rownames(x@pwDistPerFeature[[1]])
         return(rn)
     }
 )
@@ -358,16 +352,18 @@ setMethod(
 #' @rdname DistSum-class
 #' @param x a `DistSum` object
 #' @param value the new column names to be assigned
+#' @importFrom methods validObject
 #' @export
 setMethod(
     "rownames<-", "DistSum",
     function(x, value) {
-        rownames(x@pwFullDist) <- value
-        lapply(x@pwDistPerFeature,
-               FUN = function(mat) {
-                   rownames(mat) <- value
-                   mat
-               })
+        x@pwDistPerFeature <- lapply(
+            x@pwDistPerFeature,
+            FUN = function(mat) {
+                rownames(mat) <- value
+                mat
+            })
+               
         if (isTRUE(methods::validObject(x))) return(x)
     }
 )
@@ -395,6 +391,7 @@ setMethod(
 #' @param object a `DistSum` object
 #' @param value the new feature names to be assigned
 #' @importMethodsFrom Biobase featureNames<-
+#' @importFrom methods validObject
 #' @export
 setMethod(
     "featureNames<-", "DistSum",
@@ -416,21 +413,23 @@ setMethod(
 #' @param i the row index
 #' @param j the column index
 #' @param ... other arguments (not used)
-#' @param drop if TRUE, decrease the nb of dimensions when possible
+#' @param drop not supported (set to FALSE)
+#' @importFrom methods validObject
 #' @export
 setMethod(
     '[', c(x = "DistSum", i = "ANY", j = "ANY", drop = "ANY"),
     function(x, i, j, ..., drop) {
         # note 'drop' should always set to false to keep slots as matrices and
         # list of matrices
-        x@pwFullDist <- x@pwFullDist[i = i, j = j, ..., drop = FALSE]
         x@pwDistPerFeature <- lapply(
             x@pwDistPerFeature,
             FUN = function(mat){
                 mat[i = i, j = j, ..., drop = FALSE]
             }
         )
-        return(x)
+        if (isTRUE(methods::validObject(x))) {
+            return(x)    
+        }
     })
 
 #' @rdname DistSum-class
@@ -438,67 +437,74 @@ setMethod(
 #' @param i the row index
 #' @param j the column index
 #' @param ... other arguments (not used)
+#' @importFrom methods validObject
 #' @export
 setMethod(
     '[', c(x = "DistSum", i = "ANY", j = "ANY", drop = "missing"),
     function(x, i, j, ...) {
         # note 'drop' should always set to false to keep slots as matrices and
         # list of matrices
-        x@pwFullDist <- x@pwFullDist[i = i, j = j, ..., drop = FALSE]
         x@pwDistPerFeature <- lapply(
             x@pwDistPerFeature,
             FUN = function(mat){
                 mat[i = i, j = j, ..., drop = FALSE]
             }
         )
-        return(x)
+        if (isTRUE(methods::validObject(x))) {
+            return(x)    
+        }
     })
 
 #' @rdname DistSum-class
 #' @param x a `DistSum` object
 #' @param i the array index
-#' @param drop if TRUE, decrease the nb of dimensions when possible
+#' @param drop not supported (set to FALSE)
 #' @param ... other arguments (not used)
+#' @importFrom methods validObject
 #' @export
 setMethod(
     '[', c(x = "DistSum", i = "ANY", j = "missing", drop = "ANY"),
     function(x, i, j, ..., drop) {
         # note 'drop' should always set to false to keep slots as matrices and
         # list of matrices
-        x@pwFullDist <- x@pwFullDist[i = i, ..., drop = FALSE]
         x@pwDistPerFeature <- lapply(
             x@pwDistPerFeature,
             FUN = function(mat){
                 mat[i = i, ..., drop = FALSE]
             }
         )
-        return(x)
+        if (isTRUE(methods::validObject(x))) {
+            return(x)    
+        }
     })
 
 #' @rdname DistSum-class
 #' @param x a `DistSum` object
 #' @param i the array index
 #' @param ... other arguments (not used)
+#' @importFrom methods validObject
 #' @export
 setMethod(
     '[', c(x = "DistSum", i = "ANY", j = "missing", drop = "missing"),
     function(x, i, j, ...) {
         # note 'drop' should always set to false to keep slots as matrices and
         # list of matrices
-        x@pwFullDist <- x@pwFullDist[i = i, ..., drop = FALSE]
         x@pwDistPerFeature <- lapply(
             x@pwDistPerFeature,
             FUN = function(mat){
                 mat[i = i, ..., drop = FALSE]
             }
         )
-        return(x)
+        if (isTRUE(methods::validObject(x))) {
+            return(x)    
+        }
+        
     })
 
 .as.matrix <- function(x, whichFeatures = NULL) {
     stopifnot(inherits(x, "DistSum"))
     if (is.null(whichFeatures)) {
-        return(x@pwFullDist)
+        whichFeatures <- seq(nFeatures(x))
     } else {
         if (length(unique(whichFeatures)) != length(whichFeatures)) {
             stop("whichFeatures array should not contain duplicates")
@@ -531,18 +537,15 @@ setMethod(
             stop("whichFeatures should be either NULL, a character vector, ",
                  "or a vector of indices")
         }
-        if (length(whichFeatures) == nFeatures(x)) {
-            return (x@pwFullDist)
-        } else {
-            dd <- Reduce(
-                f = function(x, y){
-                    x + y
-                },
-                x = x@pwDistPerFeature[whichFeatures])
-            
-            return(dd)
-        }
     }
+    
+    dd <- Reduce(
+        f = function(x, y){
+            x + y
+        },
+        x = x@pwDistPerFeature[whichFeatures])
+    
+    return(dd)    
 }
 
 #' @rdname DistSum-class

@@ -82,7 +82,7 @@ nFeatures(x)
 
 \item{...}{other arguments (not used)}
 
-\item{drop}{if TRUE, decrease the nb of dimensions when possible}
+\item{drop}{not supported (set to FALSE)}
 
 \item{whichFeatures}{either an array of feature names,
 or an array of feature indices, or NULL
@@ -100,14 +100,12 @@ distribution distances.
 \section{Slots}{
 
 \describe{
-\item{\code{pwFullDist}}{A \code{matrix}, storing the full pairwise distance matrix,
-calculated as the sum of the distances per dimension (feature).
-Note this matrix is not necessarily a square symmetric matrix,
-as it could be occasionally used to store blocks of the distance matrix.}
-
 \item{\code{pwDistPerFeature}}{A \code{list} of \code{matrix} objects storing the contribution
 of each feature (dimension) of the multidimensional distributions
-to the full pairwise distance matrix}
+to the full pairwise distance matrix.
+Note these matrices are not necessarily square symmetric matrices,
+as the \code{DistSum} could be occasionally used to store a given block of
+a bigger distance matrix.}
 }}
 
 \examples{
