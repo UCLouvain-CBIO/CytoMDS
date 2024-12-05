@@ -262,8 +262,9 @@ setMethod(
 #' @param value the new dimension names to be assigned
 #' @export
 setMethod(
-    "dimnames<-", c(x = "DistSum", value = "character"),
+    "dimnames<-", c(x = "DistSum", value = "list"),
     function(x, value) {
+        
         dimnames(x@pwFullDist) <- value
         lapply(x@pwDistPerFeature,
                FUN = function(mat) {

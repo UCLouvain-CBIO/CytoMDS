@@ -165,21 +165,23 @@ pwDist <- pairwiseEMDDist(
     channels = chMarkers,
     verbose = FALSE
 )
+pwDistMatrix <- as.matrix(pwDist)
 ```
 
-The calculated distance is a symmetric square matrix, with as many rows 
-(columns) as input samples 
+The return value of the `pairwiseEMDDist` function is a `DistSum` object.
+We can use the `as.matrix()` method to to convert this object into a matrix, 
+here a symmetric square matrix, with as many rows (columns) as input samples 
 (extract shown here below for the scale-transformed *Bodenmiller2012* dataset).
 
 ```{r distShow}
-round(pwDist[1:10, 1:10], 2)
+round(pwDistMatrix[1:10, 1:10], 2)
 ```
 
 One relevant way to visualize this distance matrix is to draw the histogram 
 of pairwise distances, as shown in the below plot. 
 
 ```{r distShowHist, fig.align='center', fig.wide = TRUE}
-distVec <- pwDist[upper.tri(pwDist)]
+distVec <- pwDistMatrix[upper.tri(pwDist)]
 distVecDF <- data.frame(dist = distVec)
 pHist <- ggplot(distVecDF, mapping = aes(x=dist)) + 
     geom_histogram(fill = "darkgrey", col = "black", bins = 15) + 
@@ -194,10 +196,11 @@ pHist
 Once the pairwise distance matrix has been calculated, computing the *Multi 
 Dimensional Scaling (MDS)* projection is done 
 by calling the `computeMetricMDS()` function. In its simplest form, only 
-the distance matrix needs to be passed to the function. 
-In that case, the number of dimensions to use in the MDS is automatically 
-set in order to reach a specific value for a projection quality indicator, 
-i.e. the *target pseudo R square*, which in turn is set by default to 0.95 
+the distance `DistSum` object (or a distance matrix) needs to be passed 
+to the function. In that case, the number of dimensions to use in the MDS 
+is automatically set in order to reach a specific value 
+for a projection quality indicator, i.e. the *target pseudo R square*, 
+which in turn is set by default to 0.95 
 (see Quality of projection - diagnostic tools section).  
 
 Note that the *Smacof* algorithm [@De_Leeuw2009-aw], 
@@ -256,7 +259,7 @@ p12
 
 Given that 4 dimensions were used in the metric MDS algorithm, the user can 
 visualize the MDS projection using any combination of two axes, 
-for example axes 2 and 3n or 3 and 4, as below:
+for example axes 2 and 3, or 3 and 4, as below:
 
 ```{r plotMDS_colours_shapes_2_3_4, fig.align='center', fig.width = 9, fig.height = 12}
 p23 <- ggplotSampleMDS(
@@ -552,8 +555,8 @@ computer RAM, the `pairwiseEMDDist()` function allows for an alternative input
 mode, where:
 - the input samples are NOT provided directly via a `flowCore::flowSet`, or  
 a list of expression matrices, but
-- the user provides the nb of samples, and a user-written flow frame loading 
-function that will be called to dynamically load the *i*th sample 
+- the user provides the nb of samples, and a user-written expression matrix 
+loading function that will be called to dynamically load the *i*th sample 
 - as an expression matrix - upon request, and optionally additional arguments.
 
 Typically, the expression matrix loading function provided by the user shall 
@@ -619,7 +622,8 @@ The obtained distances - as shown in the below histogram - are exactly
 the same as before.
 
 ```{r dist1ShowHistAgain, fig.align='center', fig.wide = TRUE}
-distVecLast <- pwDistLast[upper.tri(pwDistLast)]
+pwDistLastMat <- as.matrix(pwDistLast)
+distVecLast <- pwDistLastMat[upper.tri(pwDistLastMat)]
 distVecDFLast <- data.frame(dist = distVecLast)
 pHistLast <- ggplot(distVecDFLast, mapping = aes(x=dist)) +
     geom_histogram(fill = "darkgrey", col = "black", bins = 15) +
@@ -687,7 +691,8 @@ pwDistExpr <-  pairwiseEMDDist(
 ```
 
 ```{r distExprMatShowHist, fig.align='center', fig.wide = TRUE}
-distVecExpr <- pwDistExpr[upper.tri(pwDistExpr)]
+pwDistExprmat <- as.matrix(pwDistExpr)
+distVecExpr <- pwDistExprmat[upper.tri(pwDistExprmat)]
 distVecDFExpr <- data.frame(dist = distVecExpr)
 pHistExpr <- ggplot(distVecDFExpr, mapping = aes(x=dist)) +
     geom_histogram(fill = "darkgrey", col = "black", bins = 15) +

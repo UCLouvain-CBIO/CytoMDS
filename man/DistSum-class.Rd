@@ -9,7 +9,7 @@
 \alias{DistSum,list-method}
 \alias{dim,DistSum-method}
 \alias{dimnames,DistSum-method}
-\alias{dimnames<-,DistSum,character-method}
+\alias{dimnames<-,DistSum,list-method}
 \alias{dimnames<-,DistSum,ANY-method}
 \alias{ncol,DistSum-method}
 \alias{colnames,DistSum-method}
@@ -37,7 +37,7 @@
 
 \S4method{dimnames}{DistSum}(x)
 
-\S4method{dimnames}{DistSum,character}(x) <- value
+\S4method{dimnames}{DistSum,list}(x) <- value
 
 \S4method{dimnames}{DistSum,ANY}(x) <- value
 
