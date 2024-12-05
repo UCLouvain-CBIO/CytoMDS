@@ -464,6 +464,9 @@ test_that("pairwiseEMDDist with fs works", {
         binSize = 0.05,
         minRange = -10,
         maxRange = 10)
+    
+    pwDist <- as.matrix(pwDist)
+    
     expect_equal(dim(pwDist), c(2,2))
     expect_equal(pwDist[1,1], 0.)
     expect_equal(pwDist[1,2], 0.1551)
@@ -478,6 +481,7 @@ test_that("pairwiseEMDDist with fs works", {
         binSize = 0.05,
         minRange = -10,
         maxRange = 10)
+    
     pwDist <- as.matrix(pwDist, whichFeatures = c("FSC-A", "SSC-A"))
     expect_equal(dim(pwDist), c(2,2))
     expect_equal(pwDist[1,1], 0.)
@@ -509,6 +513,9 @@ test_that("pairwiseEMDDist with fs works", {
         minRange = -10,
         maxRange = 10,
         verbose = FALSE)
+    
+    pwDist2 <- as.matrix(pwDist2)
+    
     expect_equal(dim(pwDist2), c(3,2))
     expect_equal(pwDist2[1,1], 0.07241)
     expect_equal(pwDist2[1,2], 0.08347)
@@ -527,6 +534,8 @@ test_that("pairwiseEMDDist with fs works", {
         minRange = -10,
         maxRange = 10,
         verbose = FALSE)
+    
+    pwDist3 <- as.matrix(pwDist3)
     
     expect_equal(dim(pwDist3), c(5,4))
     expect_equal(pwDist3[1,1], 0.1551)
@@ -552,6 +561,8 @@ test_that("pairwiseEMDDist with fs works", {
     expect_equal(msg[10], "Loading file 5...\n")
     expect_equal(msg[21], "i = 3; j = 5; sum(dist) = 0.01813\n")
     
+    pwDist4 <- as.matrix(pwDist4)
+    
     expect_equal(dim(pwDist4), c(5,4))
     expect_equal(pwDist4[1,1], 0.1551)
     expect_equal(pwDist4[1,2], 0.07132)
@@ -574,6 +585,9 @@ test_that("pairwiseEMDDist with expr matrix works", {
         binSize = 0.05,
         minRange = -10,
         maxRange = 10)
+    
+    pwDist <- as.matrix(pwDist)
+    
     expect_equal(dim(pwDist), c(1,1))
     expect_equal(pwDist[1,1], 0.)
     
@@ -585,6 +599,9 @@ test_that("pairwiseEMDDist with expr matrix works", {
         binSize = 0.05,
         minRange = -10,
         maxRange = 10)
+    
+    pwDist <- as.matrix(pwDist)
+    
     expect_equal(dim(pwDist), c(2,2))
     expect_equal(pwDist[1,1], 0.)
     expect_equal(pwDist[1,2], 0.1551)
@@ -632,6 +649,9 @@ test_that("pairwiseEMDDist with expr matrix works", {
         minRange = -10,
         maxRange = 10,
         verbose = FALSE)
+    
+    pwDist2 <- as.matrix(pwDist2)
+    
     expect_equal(dim(pwDist2), c(3,2))
     expect_equal(pwDist2[1,1], 0.07241)
     expect_equal(pwDist2[1,2], 0.08347)
@@ -651,6 +671,8 @@ test_that("pairwiseEMDDist with expr matrix works", {
         maxRange = 10,
         verbose = FALSE)
     
+    pwDist3 <- as.matrix(pwDist3)
+    
     expect_equal(dim(pwDist3), c(5,4))
     expect_equal(pwDist3[1,1], 0.1551)
     expect_equal(pwDist3[1,2], 0.07132)
@@ -669,6 +691,8 @@ test_that("pairwiseEMDDist with expr matrix works", {
         minRange = -10,
         maxRange = 10,
         verbose = TRUE))
+    
+    pwDist4 <- as.matrix(pwDist4)
     
     expect_equal(length(msg), 22)
     expect_equal(msg[5], "Calculating histogram for file 2...\n")
@@ -701,6 +725,8 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
         minRange = -10,
         maxRange = 10,
         BPPARAM = bp))
+    
+    pwDist <- as.matrix(pwDist)
 
     expect_equal(dim(pwDist), c(2,2))
     expect_equal(pwDist[1,1], 0.)
@@ -737,6 +763,8 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
             minRange = -10,
             maxRange = 10,
             BPPARAM = bp))
+    
+    pwDist2 <- as.matrix(pwDist2)
 
     expect_equal(dim(pwDist2), c(3,2))
     expect_equal(pwDist2[1,1], 0.07241)
@@ -755,6 +783,8 @@ test_that("pairwiseEMDDist works with fs and BiocParallel", {
         minRange = -10,
         maxRange = 10,
         BPPARAM = bp))
+    
+    pwDist3 <- as.matrix(pwDist3)
 
     expect_equal(dim(pwDist3), c(2,2))
     expect_equal(pwDist3[1,1], 0.07241)
@@ -785,6 +815,8 @@ test_that("pairwiseEMDDist works with expr matrix and BiocParallel", {
         minRange = -10,
         maxRange = 10,
         BPPARAM = bp))
+    
+    pwDist <- as.matrix(pwDist)
     
     expect_equal(dim(pwDist), c(2,2))
     expect_equal(pwDist[1,1], 0.)
@@ -824,6 +856,8 @@ test_that("pairwiseEMDDist works with expr matrix and BiocParallel", {
         maxRange = 10,
         BPPARAM = bp))
     
+    pwDist2 <- as.matrix(pwDist2)
+    
     expect_equal(dim(pwDist2), c(3,2))
     expect_equal(pwDist2[1,1], 0.07241)
     expect_equal(pwDist2[1,2], 0.08347)
@@ -841,6 +875,8 @@ test_that("pairwiseEMDDist works with expr matrix and BiocParallel", {
         minRange = -10,
         maxRange = 10,
         BPPARAM = bp))
+    
+    pwDist3 <- as.matrix(pwDist3)
     
     expect_equal(dim(pwDist3), c(2,2))
     expect_equal(pwDist3[1,1], 0.07241)
@@ -871,6 +907,8 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
         channels = c("FSC-A", "SSC-A"),
         verbose = FALSE)
     
+    pwDist <- as.matrix(pwDist)
+    
     expect_equal(dim(pwDist), c(10,10))
     expect_equal(pwDist[1,2], 0.07070)
     expect_equal(pwDist[1,7], 0.14340)
@@ -900,6 +938,8 @@ test_that("pairwiseEMDDist dynamic memory loading simulation", {
         BPPARAM = bp,
         BPOPTIONS = BiocParallel::bpoptions(
             packages = c("flowCore", "CytoPipeline"))))
+    
+    pwDist2 <- as.matrix(pwDist2)
     
     # Note it is normal that the computed distances are different 
     # from the ones obtained when not using BiocParallel.

@@ -103,11 +103,11 @@ distribution distances.
 \item{\code{pwFullDist}}{A \code{matrix}, storing the full pairwise distance matrix,
 calculated as the sum of the distances per dimension (feature).
 Note this matrix is not necessarily a square symmetric matrix,
-as it could be ocasionally used to store blocks of the distance matrix.}
+as it could be occasionally used to store blocks of the distance matrix.}
 
-\item{\code{pwDistPerDim}}{A \code{list} of \code{matrix} objects storing the contribution
-of each dimension (feature) of the multidimensional distributions
-to the full distance matrix}
+\item{\code{pwDistPerFeature}}{A \code{list} of \code{matrix} objects storing the contribution
+of each feature (dimension) of the multidimensional distributions
+to the full pairwise distance matrix}
 }}
 
 \examples{
