@@ -214,12 +214,15 @@ section.</p>
 <span>    <span class="va">BCRXL_fs_trans</span>,</span>
 <span>    channels <span class="op">=</span> <span class="va">chMarkers</span>,</span>
 <span>    verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>The calculated distance is a symmetric square matrix, with as many
-rows (columns) as input samples (extract shown here below for the
-scale-transformed <em>Bodenmiller2012</em> dataset).</p>
+<span><span class="op">)</span></span>
+<span><span class="va">pwDistMatrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">pwDist</span><span class="op">)</span></span></code></pre></div>
+<p>The return value of the <code>pairwiseEMDDist</code> function is a
+<code>DistSum</code> object. We can use the <code><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix()</a></code>
+method to to convert this object into a matrix, here a symmetric square
+matrix, with as many rows (columns) as input samples (extract shown here
+below for the scale-transformed <em>Bodenmiller2012</em> dataset).</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pwDist</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span>, <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pwDistMatrix</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span>, <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##        1     2     3     4     5     6     7     8     9    10</span></span>
 <span><span class="co">## 1   0.00 10.46  4.30 11.18  6.39 12.69  7.11 11.85  5.88 10.13</span></span>
 <span><span class="co">## 2  10.46  0.00 10.91  3.16 11.45  6.06 13.17 10.61  9.61  6.08</span></span>
@@ -234,7 +237,7 @@ scale-transformed <em>Bodenmiller2012</em> dataset).</p>
 <p>One relevant way to visualize this distance matrix is to draw the
 histogram of pairwise distances, as shown in the below plot.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">distVec</span> <span class="op">&lt;-</span> <span class="va">pwDist</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDist</span><span class="op">)</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">distVec</span> <span class="op">&lt;-</span> <span class="va">pwDistMatrix</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDist</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">distVecDF</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVec</span><span class="op">)</span></span>
 <span><span class="va">pHist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDF</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span>, bins <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span> </span>
@@ -251,11 +254,12 @@ histogram of pairwise distances, as shown in the below plot.</p>
 <p>Once the pairwise distance matrix has been calculated, computing the
 <em>Multi Dimensional Scaling (MDS)</em> projection is done by calling
 the <code><a href="../reference/computeMetricMDS.html">computeMetricMDS()</a></code> function. In its simplest form, only
-the distance matrix needs to be passed to the function. In that case,
-the number of dimensions to use in the MDS is automatically set in order
-to reach a specific value for a projection quality indicator, i.e. the
-<em>target pseudo R square</em>, which in turn is set by default to 0.95
-(see Quality of projection - diagnostic tools section).</p>
+the distance <code>DistSum</code> object (or a distance matrix) needs to
+be passed to the function. In that case, the number of dimensions to use
+in the MDS is automatically set in order to reach a specific value for a
+projection quality indicator, i.e. the <em>target pseudo R square</em>,
+which in turn is set by default to 0.95 (see Quality of projection -
+diagnostic tools section).</p>
 <p>Note that the <em>Smacof</em> algorithm <span class="citation">(Leeuw
 and Mair 2009)</span>, used to compute the MDS projection, is
 stochastic, so it is sensitive to the ‘seed’ used. Therefore, in cases
@@ -313,7 +317,7 @@ we shall try to assign a user interpretation to this x axis direction
 <p><img src="CytoMDS_files/figure-html/plotMDS_colours_shapes_1_2-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Given that 4 dimensions were used in the metric MDS algorithm, the
 user can visualize the MDS projection using any combination of two axes,
-for example axes 2 and 3n or 3 and 4, as below:</p>
+for example axes 2 and 3, or 3 and 4, as below:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p23</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span></span>
 <span>    <span class="va">mdsObj</span>,</span>
@@ -599,8 +603,8 @@ available computer RAM, the <code><a href="../reference/pairwiseEMDDist.html">pa
 allows for an alternative input mode, where: - the input samples are NOT
 provided directly via a <code><a href="https://rdrr.io/pkg/flowCore/man/flowSet-class.html" class="external-link">flowCore::flowSet</a></code>, or<br>
 a list of expression matrices, but - the user provides the nb of
-samples, and a user-written flow frame loading function that will be
-called to dynamically load the <em>i</em>th sample - as an expression
+samples, and a user-written expression matrix loading function that will
+be called to dynamically load the <em>i</em>th sample - as an expression
 matrix - upon request, and optionally additional arguments.</p>
 <p>Typically, the expression matrix loading function provided by the
 user shall describe how to read the <em>i</em>th sample from disk.</p>
@@ -663,7 +667,8 @@ parallelization of the computations.</p>
 <p>The obtained distances - as shown in the below histogram - are
 exactly the same as before.</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">distVecLast</span> <span class="op">&lt;-</span> <span class="va">pwDistLast</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDistLast</span><span class="op">)</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">pwDistLastMat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">pwDistLast</span><span class="op">)</span></span>
+<span><span class="va">distVecLast</span> <span class="op">&lt;-</span> <span class="va">pwDistLastMat</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDistLastMat</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">distVecDFLast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVecLast</span><span class="op">)</span></span>
 <span><span class="va">pHistLast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDFLast</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span>, bins <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span></span>
@@ -727,7 +732,8 @@ histogram:</p>
 <span>    <span class="va">exprMatrixList</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">distVecExpr</span> <span class="op">&lt;-</span> <span class="va">pwDistExpr</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDistExpr</span><span class="op">)</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">pwDistExprmat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">pwDistExpr</span><span class="op">)</span></span>
+<span><span class="va">distVecExpr</span> <span class="op">&lt;-</span> <span class="va">pwDistExprmat</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">upper.tri</a></span><span class="op">(</span><span class="va">pwDistExprmat</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">distVecDFExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="va">distVecExpr</span><span class="op">)</span></span>
 <span><span class="va">pHistExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">distVecDFExpr</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span>, bins <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span></span>
@@ -808,7 +814,7 @@ the <code>CytoMDS</code> workflow, as in the previous examples:</p>
 <span><span class="co">##  [3] CytoMDS_1.3.3               HDCytoData_1.27.0          </span></span>
 <span><span class="co">##  [5] flowCore_2.19.0             SummarizedExperiment_1.37.0</span></span>
 <span><span class="co">##  [7] Biobase_2.67.0              GenomicRanges_1.59.1       </span></span>
-<span><span class="co">##  [9] GenomeInfoDb_1.43.2         IRanges_2.41.1             </span></span>
+<span><span class="co">##  [9] GenomeInfoDb_1.43.2         IRanges_2.41.2             </span></span>
 <span><span class="co">## [11] S4Vectors_0.45.2            MatrixGenerics_1.19.0      </span></span>
 <span><span class="co">## [13] matrixStats_1.4.1           ExperimentHub_2.15.0       </span></span>
 <span><span class="co">## [15] AnnotationHub_3.15.0        BiocFileCache_2.15.0       </span></span>

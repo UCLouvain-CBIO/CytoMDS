@@ -61,7 +61,7 @@ distribution distances.</p>
 <span><span class="co"># S4 method for class 'DistSum'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S4 method for class 'DistSum,character'</span></span>
+<span><span class="co"># S4 method for class 'DistSum,list'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">value</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'DistSum,ANY'</span></span>
@@ -138,7 +138,7 @@ distribution distances.</p>
 
 
 <dt id="arg-drop">drop<a class="anchor" aria-label="anchor" href="#arg-drop"></a></dt>
-<dd><p>if TRUE, decrease the nb of dimensions when possible</p></dd>
+<dd><p>not supported (set to FALSE)</p></dd>
 
 
 <dt id="arg-whichfeatures">whichFeatures<a class="anchor" aria-label="anchor" href="#arg-whichfeatures"></a></dt>
@@ -156,17 +156,13 @@ If not NULL, <code>whichFeatures</code> array should not contain duplicates</p><
     <h2 id="slots">Slots<a class="anchor" aria-label="anchor" href="#slots"></a></h2>
 
 
-<dl><dt><code>pwFullDist</code></dt>
-<dd><p>A <code>matrix</code>, storing the full pairwise distance matrix,
-calculated as the sum of the distances per dimension (feature).
-Note this matrix is not necessarily a square symmetric matrix,
-as it could be ocasionally used to store blocks of the distance matrix.</p></dd>
-
-
-<dt><code>pwDistPerDim</code></dt>
+<dl><dt><code>pwDistPerFeature</code></dt>
 <dd><p>A <code>list</code> of <code>matrix</code> objects storing the contribution
-of each dimension (feature) of the multidimensional distributions
-to the full distance matrix</p></dd>
+of each feature (dimension) of the multidimensional distributions
+to the full pairwise distance matrix.
+Note these matrices are not necessarily square symmetric matrices,
+as the <code>DistSum</code> could be occasionally used to store a given block of
+a bigger distance matrix.</p></dd>
 
 
 </dl></div>
