@@ -106,7 +106,9 @@ distribution distances.</p>
 <span><span class="va">x</span><span class="op">[</span><span class="va">i</span>, <span class="va">j</span>, <span class="va">...</span>, drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'DistSum'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">x</span>, whichFeatures <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">x</span>, whichFeatures <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">distByFeature</span><span class="op">(</span><span class="va">distObj</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -147,11 +149,18 @@ or an array of feature indices, or NULL
 If NULL, the full distance (for all features) will be returned
 If not NULL, <code>whichFeatures</code> array should not contain duplicates</p></dd>
 
+
+<dt id="arg-distobj">distObj<a class="anchor" aria-label="anchor" href="#arg-distobj"></a></dt>
+<dd><p>a <code>DistSum</code> object</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>nothing</p>
-    </div>
+<p>a data.frame, with 3 columns:</p><ul><li><p>featureName : self explainatory</p></li>
+<li><p>distanceContrib : unidimensional distance along the corresponding feature</p></li>
+<li><p>percentage : percentage of feture distance w.r.t. full distance</p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="slots">Slots<a class="anchor" aria-label="anchor" href="#slots"></a></h2>
 
@@ -245,6 +254,9 @@ a bigger distance matrix.</p></dd>
 <span class="r-in"><span><span class="co"># getting partial distance for feature 1 &amp; 2</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">ddPart</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">distObj2</span>, whichFeatures <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">M</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># getting distance by feature</span></span></span>
+<span class="r-in"><span><span class="va">DF</span> <span class="op">&lt;-</span> <span class="fu">distByFeature</span><span class="op">(</span><span class="va">distObj2</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
