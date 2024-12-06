@@ -1,8 +1,11 @@
 ## CytoMDS 1.3
 
 ### CytoMDS 1.3.3
-- implemented `DimSum` class to store distance matrices computed as the sum
+- `DistSum` class to store distance matrices computed as the sum
 of marker contributions
+- `ggplotDistDeatureImportance()` now can be used to create a stacked bar ggplot 
+object, displaying feature importance in a distance matrix 
+(extracted from a `DistSum` object)
 
 ### CytoMDS 1.3.2
 - added `pointSize` argument to `ggplotSampleMDS()`

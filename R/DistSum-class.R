@@ -90,6 +90,9 @@
 #' # getting partial distance for feature 1 & 2
 #' 
 #' ddPart <- as.matrix(distObj2, whichFeatures = colnames(M)[1:2])
+#' 
+#' # getting distance by feature
+#' DF <- distByFeature(distObj2)
 
 setClass("DistSum",
          slots = c(
@@ -556,6 +559,33 @@ setMethod(
         return(.as.matrix(x, whichFeatures = whichFeatures))
     }
 )
+
+#' @rdname DistSum-class
+#' @param distObj a `DistSum` object
+#' @param whichFeatures either an array of feature names, 
+#' or an array of feature indices, or NULL
+#' If NULL, the full distance (for all features) will be returned
+#' If not NULL, `whichFeatures` array should not contain duplicates
+#' @return a data.frame, with 3 columns:   
+#' - featureName : self explainatory
+#' - distanceContrib : unidimensional distance along the corresponding feature
+#' - percentage : percentage of feture distance w.r.t. full distance
+#' @export
+distByFeature <- function(distObj) {
+    stopifnot(is(distObj, "DistSum"))
+    dbf <- vapply(
+        X = distObj@pwDistPerFeature,
+        FUN = sum,
+        FUN.VALUE = 1.0
+    )
+    df <- data.frame(
+        featureName = featureNames(distObj),
+        distanceContrib = dbf,
+        percentage = 100*dbf/sum(dbf))
+    
+    rownames(df) <- NULL
+    df
+}
 
     
 

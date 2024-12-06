@@ -25,6 +25,7 @@
 \alias{[,DistSum,ANY,missing,ANY-method}
 \alias{[,DistSum,ANY,missing,missing-method}
 \alias{as.matrix,DistSum-method}
+\alias{distByFeature}
 \title{DistSum class}
 \usage{
 \S4method{show}{DistSum}(object)
@@ -68,6 +69,8 @@ nFeatures(x)
 \S4method{[}{DistSum,ANY,missing,missing}(x, i, j, ..., drop = TRUE)
 
 \S4method{as.matrix}{DistSum}(x, whichFeatures = NULL)
+
+distByFeature(distObj)
 }
 \arguments{
 \item{object}{a \code{DistSum} object}
@@ -88,9 +91,18 @@ nFeatures(x)
 or an array of feature indices, or NULL
 If NULL, the full distance (for all features) will be returned
 If not NULL, \code{whichFeatures} array should not contain duplicates}
+
+\item{distObj}{a \code{DistSum} object}
 }
 \value{
 nothing
+
+a data.frame, with 3 columns:
+\itemize{
+\item featureName : self explainatory
+\item distanceContrib : unidimensional distance along the corresponding feature
+\item percentage : percentage of feture distance w.r.t. full distance
+}
 }
 \description{
 Class representing pairwise distances between multiple multidimensional
@@ -161,4 +173,7 @@ dd1bis <- as.matrix(distObj2, whichFeatures = "feat1")
 # getting partial distance for feature 1 & 2
 
 ddPart <- as.matrix(distObj2, whichFeatures = colnames(M)[1:2])
+
+# getting distance by feature
+DF <- distByFeature(distObj2)
 }

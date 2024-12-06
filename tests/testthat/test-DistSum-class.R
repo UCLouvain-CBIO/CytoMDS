@@ -149,3 +149,17 @@ test_that("DistSum degenerated subsetting gives error", {
                  regexp = "contains other objects than `matrix` objects")
 })
 
+test_that("distByFeature works", {
+    distObj <- DistSum(DList)
+    DF <- distByFeature(distObj)
+    expect_equal(dim(DF), c(7,3))
+    expect_equal(DF$featureName, paste0("feat", seq(nFeat)))
+    expect_equal(round(DF$distanceContrib, 4),
+                 c(18.3688, 23.2759, 17.4283, 25.3689, 
+                   35.3184, 17.8015, 17.5720))
+    expect_equal(round(DF$percentage, 4),
+                 c(11.8406, 15.0038, 11.2344, 16.3529, 
+                   22.7664, 11.4750, 11.3270))
+})
+
+

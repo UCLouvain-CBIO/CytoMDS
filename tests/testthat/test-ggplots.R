@@ -169,6 +169,12 @@ test_that("ggplotMarginalDensities works", {
         fig = p)
 })
 
+test_that("ggplotDistFeatureImportance works", {
+    p <- ggplotDistFeatureImportance(pwDist)
+    vdiffr::expect_doppelganger("ggplotDistFeatureImportance",
+                                fig = p)
+})
+
 test_that("ggplotSampleMDS works", {
 
     mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)

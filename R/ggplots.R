@@ -258,6 +258,84 @@ ggplotMarginalDensities <- function(
     p 
 } 
 
+#' @title Plot of feature relative importance in distance
+#' @description `ggplotDistFeatureImportance` uses ggplot2 
+#' to provide a stacked bar plot of feature importance in a distance matrix.   
+#' @param distObj a DistSum object.
+#' @export
+#' 
+#' @seealso [pairwiseEMDDist]
+#' 
+#' @return a ggplot object
+#' 
+#' @examples
+#' 
+#' library(CytoPipeline)
+#' 
+#' data(OMIP021Samples)
+#' 
+#' # estimate scale transformations 
+#' # and transform the whole OMIP021Samples
+#' 
+#' transList <- estimateScaleTransforms(
+#'     ff = OMIP021Samples[[1]],
+#'     fluoMethod = "estimateLogicle",
+#'     scatterMethod = "linearQuantile",
+#'     scatterRefMarker = "BV785 - CD3")
+#' 
+#' OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+#'     OMIP021Samples, 
+#'     transList)
+#' 
+#' # As there are only 2 samples in OMIP021Samples dataset,
+#' # we create artificial samples that are random combinations of both samples
+#' 
+#' ffList <- c(
+#'     flowCore::flowSet_to_list(OMIP021Trans),
+#'     lapply(3:5,
+#'            FUN = function(i) {
+#'                aggregateAndSample(
+#'                    OMIP021Trans,
+#'                    seed = 10*i,
+#'                    nTotalEvents = 5000)[,1:22]
+#'            }))
+#' 
+#' fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+#' names(ffList) <- fsNames
+#' 
+#' fsAll <- as(ffList,"flowSet")
+#' 
+#' flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
+#' flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
+#' 
+#' # calculate all pairwise distances
+#' 
+#' pwDist <- pairwiseEMDDist(fsAll, 
+#'                              channels = c("FSC-A", "SSC-A"),
+#'                              verbose = FALSE)
+#'                              
+#' p <- ggplotDistFeatureImportance(pwDist)
+#'                              
+ggplotDistFeatureImportance <- function(distObj) {
+    DF <- distByFeature(distObj)
+    DF$featureName <- 
+        factor(DF$featureName, 
+               levels = DF$featureName[order(DF$percentage, decreasing = FALSE)])
+    DF$dum <- factor(1)
+    p <- ggplot(data = DF, aes(fill = .data[["featureName"]], 
+                               x = .data[["dum"]], 
+                               y = .data[["percentage"]])) + 
+        geom_bar(stat = "identity") + 
+        guides(fill = guide_legend(title = "feature")) + 
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank()) + 
+        labs(title = "Feature importance in distance matrix")
+    
+    p
+}
+
+
 #' @title Plot of Metric MDS object
 #' @description `ggplotSampleMDS` uses ggplot2 
 #' to provide plots of Metric MDS results.   
