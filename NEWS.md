@@ -3,7 +3,7 @@
 ### CytoMDS 1.3.3
 - `DistSum` class to store distance matrices computed as the sum
 of marker contributions
-- `ggplotDistDeatureImportance()` now can be used to create a stacked bar ggplot 
+- `ggplotDistFeatureImportance()` now can be used to create a stacked bar ggplot 
 object, displaying feature importance in a distance matrix 
 (extracted from a `DistSum` object)
 
