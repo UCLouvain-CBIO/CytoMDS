@@ -155,8 +155,8 @@ test_that("distByFeature works", {
     expect_equal(dim(DF), c(7,3))
     expect_equal(DF$featureName, paste0("feat", seq(nFeat)))
     expect_equal(round(DF$distanceContrib, 4),
-                 c(18.3688, 23.2759, 17.4283, 25.3689, 
-                   35.3184, 17.8015, 17.5720))
+                 c(0.9184, 1.1638, 0.8714, 1.2684, 
+                   1.7659, 0.8901, 0.8786))
     expect_equal(round(DF$percentage, 4),
                  c(11.8406, 15.0038, 11.2344, 16.3529, 
                    22.7664, 11.4750, 11.3270))

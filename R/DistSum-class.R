@@ -575,7 +575,9 @@ distByFeature <- function(distObj) {
     stopifnot(is(distObj, "DistSum"))
     dbf <- vapply(
         X = distObj@pwDistPerFeature,
-        FUN = sum,
+        FUN = function(mat) {
+            mean(mat[upper.tri(mat)])
+        },
         FUN.VALUE = 1.0
     )
     df <- data.frame(

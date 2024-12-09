@@ -325,7 +325,7 @@ ggplotDistFeatureImportance <- function(distObj) {
     p <- ggplot(data = DF, aes(fill = .data[["featureName"]], 
                                x = .data[["dum"]], 
                                y = .data[["percentage"]])) + 
-        geom_bar(stat = "identity") + 
+        geom_bar(stat = "identity", colour = "black") + 
         guides(fill = guide_legend(title = "feature")) + 
         theme(axis.title.x=element_blank(),
               axis.text.x=element_blank(),
