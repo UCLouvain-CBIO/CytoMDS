@@ -143,7 +143,9 @@ BCRXL_fs_trans <- transform(
 ```
 
 
-# Calculating distances between samples
+# Pairwise sample Earth Mover's Distances
+
+## Calculating distances between samples
 
 We can now calculate pairwise *Earth Mover's Distances (EMD)* 
 between all samples of our dataset.   
@@ -187,6 +189,26 @@ pHist <- ggplot(distVecDF, mapping = aes(x=dist)) +
     geom_histogram(fill = "darkgrey", col = "black", bins = 15) + 
     theme_bw() + ggtitle("EMD distances for Bodenmiller2012 dataset")
 pHist
+```
+
+## Individual marker contribution in the distance matrix
+
+Since in *CytoMDS*, the *EMD* is calculated as an approximation, summing over
+the one-dimensional marginal marker unidimensional distributions, 
+it is possible to obtain an individual contribution of each marker 
+to the distance matrix. This can be done using the `distByFeature()` method: 
+
+```{r distByFeatureTable}
+DF <- distByFeature(pwDist)
+DF[order(DF$percentage, decreasing = TRUE),]
+```
+
+These individual marker contributions can also be displayed visually, using 
+the `ggplotDistFeatureImportance()` method: 
+
+```{r distByFeaturePlot, fig.align='center', fig.wide = TRUE}
+pBar <- ggplotDistFeatureImportance(pwDist)
+pBar
 ```
 
 # Metric Multidimensional scaling
