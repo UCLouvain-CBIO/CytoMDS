@@ -1,5 +1,8 @@
 ## CytoMDS 1.3
 
+### CytoMDS 1.3.4
+- corrected plotly tool_tips (`pDataForAdditionalLabelling`)
+
 ### CytoMDS 1.3.3
 - `DistSum` class to store distance matrices computed as the sum
 of marker contributions

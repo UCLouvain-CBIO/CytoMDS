@@ -717,17 +717,17 @@ ggplotSampleMDS <- function(
         if (length(pDataForAdditionalLabelling) >= 1) {
             mainAesMapping <- 
                 c(mainAesMapping,
-                  ggplot2::aes(text = .data[[pDataForAdditionalLabelling[1]]]))
+                  ggplot2::aes(text2 = .data[[pDataForAdditionalLabelling[1]]]))
         }
         if (length(pDataForAdditionalLabelling) >= 2) {
             mainAesMapping <- 
                 c(mainAesMapping,
-                  ggplot2::aes(text2 = .data[[pDataForAdditionalLabelling[2]]]))
+                  ggplot2::aes(text3 = .data[[pDataForAdditionalLabelling[2]]]))
         }
         if (length(pDataForAdditionalLabelling) >= 3) {
             mainAesMapping <- 
                 c(mainAesMapping,
-                  ggplot2::aes(text3 = .data[[pDataForAdditionalLabelling[3]]]))
+                  ggplot2::aes(text4 = .data[[pDataForAdditionalLabelling[3]]]))
         }
         
         # avoids error message: mapping should be created with `aes()`
