@@ -1,5 +1,9 @@
 ## CytoMDS 1.3
 
+### CytoMDS 1.3.5
+- removed contraint (max = 3)
+on nb of plotly tool_tips variables (`pDataForAdditionalLabelling`)
+
 ### CytoMDS 1.3.4
 - corrected plotly tool_tips (`pDataForAdditionalLabelling`)
 

@@ -375,8 +375,8 @@ ggplotDistFeatureImportance <- function(distObj) {
 #' If missing, point labels will be set equal to point names defined in 
 #' MDS object (if not NULL, otherwise no labels will be set). 
 #' @param pDataForAdditionalLabelling (optional) which `pData` variable(s)
-#' will be add to the ggplot mapping, as to make them available for 
-#' *plotly* tooltipping. Should be an array of character of maximum length 3.
+#' will be added to the ggplot mapping, as to make them available for 
+#' *plotly* tooltipping. Should be an array of character.
 #' Note this works only if biplot=FALSE, as biplots contain circle and arrows 
 #' that are currently not supported under `ggplotly`.
 #' @param pointSizeReflectingStress if TRUE, size of points will appear 
@@ -409,7 +409,7 @@ ggplotDistFeatureImportance <- function(distObj) {
 #' @param ... additional parameters passed to `ggrepel::geom_text_repel()` 
 #' (if used)
 #' @importFrom stats as.dist dist lm 
-#' @importFrom rlang .data
+#' @importFrom rlang .data sym
 #' 
 #' @export
 #' 
@@ -702,37 +702,53 @@ ggplotSampleMDS <- function(
         nDim,
         ")")
     
-    mainAesMapping <- ggplot2::aes(
-        x = .data[["x"]],
-        y = .data[["y"]])
+    # Character vectors for aesthetic keys and values
+    mainAesKeys <- c("x", "y")
+    mainAesValues <- c("x", "y")
     
-    maxAdditionalLabellingMapping <- 3
     if (!missing(pDataForAdditionalLabelling) && !biplot) {
         if (!is.character(pDataForAdditionalLabelling)) {
             stop("pDataForAdditionalLabelling should be a character")
         }
-        if (length(pDataForAdditionalLabelling) > maxAdditionalLabellingMapping) {
-            stop("pDataForAdditionalLabelling length should be maximum 3")
-        }
-        if (length(pDataForAdditionalLabelling) >= 1) {
-            mainAesMapping <- 
-                c(mainAesMapping,
-                  ggplot2::aes(text2 = .data[[pDataForAdditionalLabelling[1]]]))
-        }
-        if (length(pDataForAdditionalLabelling) >= 2) {
-            mainAesMapping <- 
-                c(mainAesMapping,
-                  ggplot2::aes(text3 = .data[[pDataForAdditionalLabelling[2]]]))
-        }
-        if (length(pDataForAdditionalLabelling) >= 3) {
-            mainAesMapping <- 
-                c(mainAesMapping,
-                  ggplot2::aes(text4 = .data[[pDataForAdditionalLabelling[3]]]))
+        # remove from pDataForAdditionalLabelling :
+        # 'x', 'y', pDataForColour, pDataForShape, pDataForLabel and 'stress'
+        # to avoid possible duplicates
+        toRemove <- c("x", "y")
+        
+        if (!missing(pDataForColour)) {
+            toRemove <- union(toRemove, pDataForColour)
         }
         
-        # avoids error message: mapping should be created with `aes()`
-        attr(mainAesMapping, "class") <- "uneval"
+        if (!missing(pDataForShape)) {
+            toRemove <- union(toRemove, pDataForShape)
+        }
+        
+        if (displayPointLabels && !missing(pDataForLabel)) {
+            toRemove <- union(toRemove, pDataForLabel)
+        }
+        if (pointSizeReflectingStress) {
+            toRemove <- union(toRemove, "stress")
+        }
+        
+        pDataForAdditionalLabelling <- setdiff(pDataForAdditionalLabelling, 
+                                               toRemove)
+        
+        if (length(pDataForAdditionalLabelling) > 0) {
+            nAdditionalAes <- length(pDataForAdditionalLabelling) 
+            mainAesKeys <- c(mainAesKeys, 
+                             paste0("text", 1+seq_len(
+                                 length(pDataForAdditionalLabelling))))
+            mainAesValues <- c(mainAesValues, pDataForAdditionalLabelling)
+        }
     }
+    
+    # dynamically create an aes mapping
+    mainAesList <- lapply(mainAesValues, FUN = function(val) {
+        rlang::sym(val)
+    })
+    names(mainAesList) <- mainAesKeys
+    
+    mainAesMapping <- do.call(aes, mainAesList)
     
     rangeMin <- min(proj)
     rangeMax <- max(proj)

@@ -79,8 +79,8 @@ If missing, point labels will be set equal to point names defined in
 MDS object (if not NULL, otherwise no labels will be set).}
 
 \item{pDataForAdditionalLabelling}{(optional) which \code{pData} variable(s)
-will be add to the ggplot mapping, as to make them available for
-\emph{plotly} tooltipping. Should be an array of character of maximum length 3.
+will be added to the ggplot mapping, as to make them available for
+\emph{plotly} tooltipping. Should be an array of character.
 Note this works only if biplot=FALSE, as biplots contain circle and arrows
 that are currently not supported under \code{ggplotly}.}
 
