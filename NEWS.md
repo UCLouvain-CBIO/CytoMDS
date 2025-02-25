@@ -1,5 +1,9 @@
 ## CytoMDS 1.3
 
+### CytoMDS 1.3.6
+- `ggplotMarginalDensities()`: corrected a bug when channels were specified as
+marker names. 
+
 ### CytoMDS 1.3.5
 - removed contraint (max = 3)
 on nb of plotly tool_tips variables (`pDataForAdditionalLabelling`)

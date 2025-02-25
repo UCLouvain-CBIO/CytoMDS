@@ -18,21 +18,23 @@ ggplotMarginalDensities(
 \arguments{
 \item{x}{a \code{flowCore::flowSet} (or a single \code{flowCore::flowFrame})}
 
-\item{sampleSubset}{(optional) a logical vector, of size \code{nrow(pData)},
-which is by construction the nb of samples, indicating which samples to keep
-in the plot. Typically it is obtained through the evaluation of
-a logical condition on \code{pData} rows.}
+\item{sampleSubset}{(optional) a logical vector, of the same length as \code{x},
+indicating which flow frames to keep in the plot.
+Typically it is obtained through the evaluation of a logical condition
+the rows of \code{phenoData(fs)}.}
 
-\item{channels}{(optional)}
+\item{channels}{(optional) - can be indices, or channel names, or markers.}
 
-\item{pDataForColour}{(optional) which \code{phenoData(fs)} variable
+\item{pDataForColour}{(optional) which variable of \code{phenoData(fs)}
 will be used as colour aesthetic. Should be a character.}
 
-\item{pDataForGroup}{(optional) which \code{phenoData(fs)} variable
-will be used as group aesthetic. Should be a character.}
+\item{pDataForGroup}{(optional) which variable of \code{phenoData(fs)}
+will be used as group aesthetic. Should be a character.
+A separate marginal density will be calculated for each group and
+overlaid on the same channel density plots.}
 
 \item{nEventInSubsample}{how many event to take
-(per flowFrame of the flowSet).}
+(per flowFrame of the flowSet) for marginal density approximation.}
 
 \item{seed}{if not null, used in subsampling.}
 
@@ -45,10 +47,8 @@ a ggplot object
 \description{
 \code{ggplotMarginalDensities} uses ggplot2
 to draw plots of marginal densities of selected channels of a flowSet.
-If the flowSet contains several flowFrames, all events are concatenated
-together.
-By default, a pseudo Rsquare projection quality indicator,
-and the number of dimensions of the MDS projection are provided in sub-title
+If the flowSet contains several flowFrames, events are concatenated
+together per group, or all together in the absence of groups.
 }
 \examples{
 

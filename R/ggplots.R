@@ -16,22 +16,22 @@
 #' @title Plot of channel intensity marginal densities
 #' @description `ggplotMarginalDensities` uses ggplot2 
 #' to draw plots of marginal densities of selected channels of a flowSet.
-#' If the flowSet contains several flowFrames, all events are concatenated 
-#' together.    
-#' By default, a pseudo Rsquare projection quality indicator, 
-#' and the number of dimensions of the MDS projection are provided in sub-title
+#' If the flowSet contains several flowFrames, events are concatenated 
+#' together per group, or all together in the absence of groups.     
 #' @param x a `flowCore::flowSet` (or a single `flowCore::flowFrame`)
-#' @param sampleSubset (optional) a logical vector, of size `nrow(pData)`, 
-#' which is by construction the nb of samples, indicating which samples to keep 
-#' in the plot. Typically it is obtained through the evaluation of 
-#' a logical condition on `pData` rows.   
-#' @param channels (optional) 
-#' @param pDataForColour (optional) which `phenoData(fs)` variable
+#' @param sampleSubset (optional) a logical vector, of the same length as `x`, 
+#' indicating which flow frames to keep in the plot. 
+#' Typically it is obtained through the evaluation of a logical condition 
+#' the rows of `phenoData(fs)`.   
+#' @param channels (optional) - can be indices, or channel names, or markers.
+#' @param pDataForColour (optional) which variable of `phenoData(fs)` 
 #' will be used as colour aesthetic. Should be a character.
-#' @param pDataForGroup (optional) which `phenoData(fs)` variable
+#' @param pDataForGroup (optional) which variable of `phenoData(fs)` 
 #' will be used as group aesthetic. Should be a character.
+#' A separate marginal density will be calculated for each group and 
+#' overlaid on the same channel density plots.
 #' @param nEventInSubsample how many event to take 
-#' (per flowFrame of the flowSet).
+#' (per flowFrame of the flowSet) for marginal density approximation.
 #' @param seed if not null, used in subsampling.
 #' @param transList a `flowCore::transformList` that will be applied 
 #' before plotting.
@@ -168,28 +168,34 @@ ggplotMarginalDensities <- function(
         }
     }
     
+    nChannels <- length(channels)
     
-    channelLabels <- vapply(channels,
+    channelInfos <- lapply(channels,
                        FUN = function(ch, fr){
                            chmk <- flowCore::getChannelMarker(fr, ch)
                            if (is.null(chmk)) {
                                stop("channel ", ch, " not found in expr matrix")
                            }
-                           label <- chmk$name
+                           name <- chmk$name
+                           label <- name
                            if (!is.na(chmk$desc) && 
                                !toupper(chmk$desc) == "EMPTY"){
                                label <- chmk$desc
                            }
-                           label
+                           list(name = name, label = label)
                        },
-                       FUN.VALUE = " ",
                        fr = fs[[1]])
     
-    nChannels <- length(channels)
+    channelNames <- vapply(channelInfos,
+                           FUN = function(chi) chi$name,
+                           FUN.VALUE = " ")
+    channelLabels <- vapply(channelInfos,
+                            FUN = function(chi) chi$label,
+                            FUN.VALUE = " ")
     
     DFList <- mapply(
         seq_len(nSamples),
-        FUN = function(i, fs, channelLabels, nEventInSubsample, seed){
+        FUN = function(i, fs, channels, channelLabels, nEventInSubsample, seed){
             nEvents <- flowCore::nrow(fs[[i]])
             chosenEvents <- 0
             if (nEventInSubsample < nEvents) {
@@ -215,6 +221,7 @@ ggplotMarginalDensities <- function(
         },
         MoreArgs = list(
             fs = fs,
+            channels = channelNames,
             channelLabels = channelLabels,
             nEventInSubsample = nEventInSubsample,
             seed = seed),

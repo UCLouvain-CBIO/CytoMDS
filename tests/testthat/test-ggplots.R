@@ -80,6 +80,18 @@ test_that("ggplotMarginalDensities works", {
         "ggplotMarginalDensities with channels with transList",
         fig = p)
     
+    selChannels <- c("FSC-A", "SSC-A", "BV785 - CD3", "APCCy7 - CD4")
+    p <- ggplotMarginalDensities(
+        OMIP021Samples,
+        channels = selChannels,
+        pDataForGroup = "Donor",
+        pDataForColour = "Donor",
+        transList = transList
+    )
+    vdiffr::expect_doppelganger(
+        "ggplotMarginalDensities with markers with transList",
+        fig = p)
+    
     p <- ggplotMarginalDensities(
         fsAll
     )
