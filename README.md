@@ -33,8 +33,8 @@ If you use `CytoMDS` in your research, please use the following citation:
 
 >Hauchamps, Philippe, Simon Delandre, Stephane T. Temmerman, 
 > Dan Lin, and Laurent Gatto. 2024. 
-> “Visual Quality Control with CytoMDS, a Bioconductor Package 
-> for Low Dimensional Representation of Cytometry Sample Distances.” 
-> bioRxiv. https://doi.org/10.1101/2024.07.01.601465.
+> “Visual quality control with CytoMDS, a Bioconductor package 
+> for low dimensional representation of cytometry sample distances.” 
+> _Cytometry A_, *107*(3), 177-186.
 
 or run `citation("CytoMDS")` to get the bibtex entry.

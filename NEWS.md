@@ -1,5 +1,8 @@
 ## CytoMDS 1.3
 
+### CytoMDS 1.3.7
+- changed package citation (and in README.md) to peer reviewed journal article
+
 ### CytoMDS 1.3.6
 - `ggplotMarginalDensities()`: corrected a bug when channels were specified as
 marker names. 
