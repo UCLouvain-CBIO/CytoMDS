@@ -3,7 +3,7 @@ pkgdown: 2.1.2.9000
 pkgdown_sha: 99457e7fa7f36696ae743b06aca59c0fdd97a7d6
 articles:
   CytoMDS: CytoMDS.html
-last_built: 2025-05-15T07:51Z
+last_built: 2025-05-15T10:14Z
 urls:
   reference: https://uclouvain-cbio.github.io/CytoMDS/reference
   article: https://uclouvain-cbio.github.io/CytoMDS/articles
