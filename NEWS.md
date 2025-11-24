@@ -1,5 +1,6 @@
 ## CytoMDS 1.7
-(no devel)
+### CytoMDS 1.7.1
+- fixed unti tests with new version of ggplot2
 
 ## CytoMDS 1.5
 (no devel)

@@ -1,6 +1,6 @@
 Package: CytoMDS
 Title: Low Dimensions projection of cytometry samples
-Version: 1.7.0
+Version: 1.7.1
 Authors@R:
     c(person(given = "Philippe",
              family = "Hauchamps",
