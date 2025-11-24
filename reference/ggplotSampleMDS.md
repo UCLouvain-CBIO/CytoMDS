@@ -1,0 +1,322 @@
+# Plot of Metric MDS object
+
+`ggplotSampleMDS` uses ggplot2 to provide plots of Metric MDS results.
+By default, a pseudo Rsquare projection quality indicator, and the
+number of dimensions of the MDS projection are provided in sub-title
+
+## Usage
+
+``` r
+ggplotSampleMDS(
+  mdsObj,
+  pData,
+  sampleSubset,
+  projectionAxes = c(1, 2),
+  biplot = FALSE,
+  biplotType = c("correlation", "regression"),
+  extVariables,
+  pDataForColour,
+  pDataForShape,
+  pDataForLabel,
+  pDataForAdditionalLabelling,
+  pointSize = 1,
+  pointSizeReflectingStress = FALSE,
+  title = "Multi Dimensional Scaling",
+  displayPointLabels = TRUE,
+  pointLabelSize = 3.88,
+  repelPointLabels = TRUE,
+  displayArrowLabels = TRUE,
+  arrowLabelSize = 3.88,
+  repelArrowLabels = FALSE,
+  arrowThreshold = 0.8,
+  flipXAxis = FALSE,
+  flipYAxis = FALSE,
+  displayPseudoRSq = TRUE,
+  ...
+)
+```
+
+## Arguments
+
+- mdsObj:
+
+  a MDS object, output of the
+  [`computeMetricMDS()`](https://uclouvain-cbio.github.io/CytoMDS/reference/computeMetricMDS.md)
+  method.
+
+- pData:
+
+  (optional) a data.frame providing user input sample data. These can be
+  design of experiment variables, phenotype data per sample,... and will
+  be used to highlight sample categories in the plot and/or for
+  subsetting.
+
+- sampleSubset:
+
+  (optional) a logical vector, of size `nrow(pData)`, which is by
+  construction the nb of samples, indicating which samples to keep in
+  the plot. Typically it is obtained through the evaluation of a logical
+  condition on `pData` rows.
+
+- projectionAxes:
+
+  which two axes should be plotted (should be a numeric vector of length
+  2)
+
+- biplot:
+
+  if TRUE, adds projection of external variables
+
+- biplotType:
+
+  type of biplot used:
+
+  - if "correlation", projection of external variables will be according
+    to Pearson correlations w.r.t. projection axes (arrow x & y
+    coordinates)
+
+  - if "regression", a linear regression of external variables using the
+    2 projection axes as explanatory variables is performed, and the
+    projection of external variables will be according to regression
+    coefficients (arrow direction) and R square of regression (arrow
+    size)
+
+- extVariables:
+
+  are used to generate a biplot these are the external variables that
+  will be used in the biplot. They should be provided as a matrix with
+  named columns corresponding to the variables. The number of rows
+  should be the same as the number of samples. The matrix might contain
+  some NA's, in that case only complete rows will be used to calculate
+  biplot arrows.
+
+- pDataForColour:
+
+  (optional) which `pData` variable will be used as colour aesthetic.
+  Should be a character.
+
+- pDataForShape:
+
+  (optional) which `pData` variable will be used as shape aesthetic.
+  Should be a character.
+
+- pDataForLabel:
+
+  (optional) which `pData` variable will be used as point labels in the
+  plot. Should be a character. If missing, point labels will be set
+  equal to point names defined in MDS object (if not NULL, otherwise no
+  labels will be set).
+
+- pDataForAdditionalLabelling:
+
+  (optional) which `pData` variable(s) will be added to the ggplot
+  mapping, as to make them available for *plotly* tooltipping. Should be
+  an array of character. Note this works only if biplot=FALSE, as
+  biplots contain circle and arrows that are currently not supported
+  under `ggplotly`.
+
+- pointSize:
+
+  size of all points on the plots - only when
+  `pointSizeReflectingStress` is FALSE.
+
+- pointSizeReflectingStress:
+
+  if TRUE, size of points will appear proportional to stress by point,
+  i.e. the bigger the sample point appears, the less accurate its
+  representation is (in terms of distances w.r.t. other points)
+
+- title:
+
+  title to give to the plot
+
+- displayPointLabels:
+
+  if TRUE, displays labels attached to points (see `pDataForLabels` for
+  the setting of the label values)
+
+- pointLabelSize:
+
+  size of point labels (default: 3.88 as in `geom_text()`)
+
+- repelPointLabels:
+
+  if TRUE, uses
+  [`ggrepel::geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+  instead of
+  [`ggplot2::geom_text()`](https://ggplot2.tidyverse.org/reference/geom_text.html)
+  (try to split the labels such that they do not overlap) for the points
+
+- displayArrowLabels:
+
+  if TRUE, displays arrows labels (only with biplot)
+
+- arrowLabelSize:
+
+  size of arrow labels (default: 3.88 as in `geom_text()`)
+
+- repelArrowLabels:
+
+  if TRUE, uses
+  [`ggrepel::geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+  instead of
+  [`ggplot2::geom_text()`](https://ggplot2.tidyverse.org/reference/geom_text.html)
+  for the arrows (only with biplot)
+
+- arrowThreshold:
+
+  (only with biplot), arrows will be made barely visible if their length
+  is (in absolute value) less than this threshold.
+
+- flipXAxis:
+
+  if TRUE, take the opposite of x values (provided as it might ease low
+  dimensional projection comparisons)
+
+- flipYAxis:
+
+  if TRUE, take the opposite of y values (provided as it might ease low
+  dimensional projection comparisons)
+
+- displayPseudoRSq:
+
+  if TRUE, display pseudo RSquare in subtitle, on top of nb of
+  dimensions
+
+- ...:
+
+  additional parameters passed to
+  [`ggrepel::geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+  (if used)
+
+## Value
+
+a ggplot object
+
+## See also
+
+[ggplotSampleMDSWrapBiplots](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotSampleMDSWrapBiplots.md),
+[ggplotSampleMDSShepard](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotSampleMDSShepard.md),
+[computeMetricMDS](https://uclouvain-cbio.github.io/CytoMDS/reference/computeMetricMDS.md)
+
+## Examples
+
+``` r
+
+library(CytoPipeline)
+
+data(OMIP021Samples)
+
+# estimate scale transformations 
+# and transform the whole OMIP021Samples
+
+transList <- estimateScaleTransforms(
+    ff = OMIP021Samples[[1]],
+    fluoMethod = "estimateLogicle",
+    scatterMethod = "linearQuantile",
+    scatterRefMarker = "BV785 - CD3")
+
+OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+    OMIP021Samples, 
+    transList)
+
+# As there are only 2 samples in OMIP021Samples dataset,
+# we create artificial samples that are random combinations of both samples
+
+ffList <- c(
+    flowCore::flowSet_to_list(OMIP021Trans),
+    lapply(3:5,
+           FUN = function(i) {
+               aggregateAndSample(
+                   OMIP021Trans,
+                   seed = 10*i,
+                   nTotalEvents = 5000)[,1:22]
+           }))
+
+fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+names(ffList) <- fsNames
+
+fsAll <- as(ffList,"flowSet")
+
+flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
+flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
+
+# calculate all pairwise distances
+
+pwDist <- pairwiseEMDDist(fsAll, 
+                             channels = c("FSC-A", "SSC-A"),
+                             verbose = FALSE)
+
+# compute Metric MDS object with explicit number of dimensions
+mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
+
+dim <- nDim(mdsObj) # should be 4
+
+#' # compute Metric MDS object by reaching a target pseudo RSquare
+mdsObj2 <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
+
+
+
+# plot mds projection on axes 1 and 2,
+# use 'grpId' for colour, 'type' for shape, and no label 
+
+p_12 <- ggplotSampleMDS(
+    mdsObj = mdsObj,
+    pData = flowCore::pData(fsAll),
+    projectionAxes = c(1,2),
+    pDataForColour = "grpId",
+    pDataForShape = "type")
+
+# plot mds projection on axes 3 and 4,
+# use 'grpId' for colour, and 'name' as point label
+
+p_34 <- ggplotSampleMDS(
+    mdsObj = mdsObj,
+    pData = flowCore::pData(fsAll),
+    projectionAxes = c(3,4),
+    pDataForColour = "grpId",
+    pDataForLabel = "name")
+
+# plot mds projection on axes 1 and 2,
+# use 'group' for colour, 'type' for shape, and 'name' as point label
+# have sample point size reflecting 'stress'
+# i.e. quality of projection w.r.t. distances to other points
+
+p12_Stress <- ggplotSampleMDS(
+    mdsObj = mdsObj,
+    pData = flowCore::pData(fsAll),
+    projectionAxes = c(1,2),
+    pDataForColour = "grpId",
+    pDataForLabel = "name",
+    pDataForShape = "type",
+    pointSizeReflectingStress = TRUE)
+
+# try to associate axes with median of each channel
+# => use bi-plot
+
+extVars <- channelSummaryStats(
+    fsAll,
+    channels = c("FSC-A", "SSC-A"),
+    statFUNs = stats::median)
+
+
+bp_12 <- ggplotSampleMDS(
+    mdsObj = mdsObj,
+    pData = flowCore::pData(fsAll),
+    projectionAxes = c(1,2),
+    biplot = TRUE,
+    extVariables = extVars,
+    pDataForColour = "grpId",
+    pDataForShape = "type",
+    seed = 0)
+
+bp_34 <- ggplotSampleMDS(
+    mdsObj = mdsObj,
+    pData = flowCore::pData(fsAll),
+    projectionAxes = c(3,4),
+    biplot = TRUE,
+    extVariables = extVars,
+    pDataForColour = "grpId",
+    pDataForLabel = "name",
+    seed = 0)
+```

@@ -1,0 +1,111 @@
+# Low Dimensional Projection of Cytometry Samples
+
+[![Project Status: Active – The project has reached a stable, usable
+state and is being actively
+developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![R-CMD-check-bioc](https://github.com/UCLouvain-CBIO/CytoMDS/workflows/R-CMD-check-bioc/badge.svg)](https://github.com/UCLouvain-CBIO/CytoMDS/actions?query=workflow%3AR-CMD-check-bioc)
+[![license](https://img.shields.io/badge/license-GPL3.0-blue)](https://opensource.org/licenses/GPL-3.0)
+[![codecov.io](https://codecov.io/github/UCLouvain-CBIO/CytoMDS/coverage.svg?branch=main)](https://codecov.io/github/UCLouvain-CBIO/CytoMDS?branch=main)
+
+The `CytoMDS` package implements a low dimensional visualization of a
+set of cytometry samples, in order to visually assess the ‘distances’
+between them. This, in turn, can greatly help the user to identify
+quality issues like batch effects or outlier samples, and/or check the
+presence of potential sample clusters that might align with the
+experimental design.
+
+The `CytoMDS` algorithm combines, on the one hand, the concept of Earth
+Mover’s Distance (EMD), a.k.a. Wasserstein metric and, on the other
+hand, the Multi Dimensional Scaling (MDS) algorithm for the low
+dimensional projection.
+
+Also, the package provides some diagnostic tools for both checking the
+quality of the MDS projection, as well as tools to help with the
+interpretation of the axes of the projection.
+
+### License
+
+The `CytoMDS` code is provided under [GPL license version 3.0 or
+higher](https://opensource.org/licenses/GPL-3.0). The documentation,
+including the manual pages and the vignettes, are distributed under a
+[CC BY-SA 4.0 license](https://creativecommons.org/licenses/by-sa/4.0/).
+
+### Citation
+
+If you use `CytoMDS` in your research, please use the following
+citation:
+
+> Hauchamps, Philippe, Simon Delandre, Stephane T. Temmerman, Dan Lin,
+> and Laurent Gatto. 2024. “Visual quality control with CytoMDS, a
+> Bioconductor package for low dimensional representation of cytometry
+> sample distances.” *Cytometry A*, *107*(3), 177-186.
+
+or run `citation("CytoMDS")` to get the bibtex entry.
+
+# Package index
+
+## All functions
+
+- [`show(`*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`DistSum(`*`<matrix>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`DistSum(`*`<list>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`dim(`*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`dimnames(`*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`` `dimnames<-`( ``*`<DistSum>`*`,`*`<list>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`` `dimnames<-`( ``*`<DistSum>`*`,`*`<ANY>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`ncol(`*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`colnames(`*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`` `colnames<-`( ``*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`nrow(`*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`rownames(`*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`` `rownames<-`( ``*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`nFeatures()`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`featureNames(`*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`` `featureNames<-`( ``*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`` `[`( ``*`<DistSum>`*`,`*`<ANY>`*`,`*`<ANY>`*`,`*`<ANY>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`` `[`( ``*`<DistSum>`*`,`*`<ANY>`*`,`*`<ANY>`*`,`*`<missing>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`` `[`( ``*`<DistSum>`*`,`*`<ANY>`*`,`*`<missing>`*`,`*`<ANY>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`` `[`( ``*`<DistSum>`*`,`*`<ANY>`*`,`*`<missing>`*`,`*`<missing>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`as.matrix(`*`<DistSum>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  [`distByFeature()`](https://uclouvain-cbio.github.io/CytoMDS/reference/DistSum-class.md)
+  : DistSum class
+- [`EMDDist()`](https://uclouvain-cbio.github.io/CytoMDS/reference/EMDDist.md)
+  : Calculate Earth Mover's distance between two samples
+- [`show(`*`<MDS>`*`)`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`nDim()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`nPoints()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`pwDist()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`projections()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`projDist()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`stress()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`spp()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`eigenVals()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`pctvar()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`RSq()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`RSqVec()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`GoF()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  [`smacofRes()`](https://uclouvain-cbio.github.io/CytoMDS/reference/MDS.md)
+  : MDS class
+- [`channelSummaryStats()`](https://uclouvain-cbio.github.io/CytoMDS/reference/channelSummaryStats.md)
+  : Summary statistics per channel computation
+- [`computeMetricMDS()`](https://uclouvain-cbio.github.io/CytoMDS/reference/computeMetricMDS.md)
+  : metric MDS projection of sample
+- [`ggplotDistFeatureImportance()`](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotDistFeatureImportance.md)
+  : Plot of feature relative importance in distance
+- [`ggplotMarginalDensities()`](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotMarginalDensities.md)
+  : Plot of channel intensity marginal densities
+- [`ggplotSampleMDS()`](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotSampleMDS.md)
+  : Plot of Metric MDS object
+- [`ggplotSampleMDSShepard()`](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotSampleMDSShepard.md)
+  : Plot of Metric MDS object - Shepard diagram
+- [`ggplotSampleMDSWrapBiplots()`](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotSampleMDSWrapBiplots.md)
+  : SampleMDS biplot wrapping
+- [`pairwiseEMDDist()`](https://uclouvain-cbio.github.io/CytoMDS/reference/pairwiseEMDDist.md)
+  : Pairwise Earth Mover's Distance calculation
+
+# Articles
+
+### All vignettes
+
+- [Low Dimensional Projection of Cytometry
+  Samples](https://uclouvain-cbio.github.io/CytoMDS/articles/CytoMDS.md):

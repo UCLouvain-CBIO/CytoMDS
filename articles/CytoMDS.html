@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">CytoMDS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -246,7 +246,7 @@ histogram of pairwise distances, as shown in the below plot.</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"darkgrey"</span>, col <span class="op">=</span> <span class="st">"black"</span>, bins <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"EMD distances for Bodenmiller2012 dataset"</span><span class="op">)</span></span>
 <span><span class="va">pHist</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/distShowHist-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/distShowHist-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="individual-marker-contribution-in-the-distance-matrix">Individual marker contribution in the distance matrix<a class="anchor" aria-label="anchor" href="#individual-marker-contribution-in-the-distance-matrix"></a>
@@ -289,7 +289,7 @@ using the <code><a href="../reference/ggplotDistFeatureImportance.html">ggplotDi
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pBar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggplotDistFeatureImportance.html">ggplotDistFeatureImportance</a></span><span class="op">(</span><span class="va">pwDist</span><span class="op">)</span></span>
 <span><span class="va">pBar</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/distByFeaturePlot-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/distByFeaturePlot-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -335,7 +335,7 @@ is passed, then, by default, numbers are used as labels, and samples are
 represented as black dots.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS</a></span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDS1_simplest-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/plotMDS1_simplest-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 <p>However, by providing a ‘phenoData’ dataframe to the
 <code><a href="../reference/ggplotSampleMDS.html">ggplotSampleMDS()</a></code> function, the corresponding variables can
 be used for highlighting sample points with different colours and/or
@@ -361,7 +361,7 @@ we shall try to assign a user interpretation to this x axis direction
 <span>    pDataForLabel <span class="op">=</span> <span class="st">"patient_id"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">p12</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDS_colours_shapes_1_2-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/plotMDS_colours_shapes_1_2-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 <p>Given that 4 dimensions were used in the metric MDS algorithm, the
 user can visualize the MDS projection using any combination of two axes,
 for example axes 2 and 3, or 3 and 4, as below:</p>
@@ -382,7 +382,7 @@ for example axes 2 and 3, or 3 and 4, as below:</p>
 <span>    pDataForLabel <span class="op">=</span> <span class="st">"patient_id"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">p23</span> <span class="op">/</span> <span class="va">p34</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDS_colours_shapes_2_3_4-1.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/plotMDS_colours_shapes_2_3_4-1.png" class="r-plt" width="864" style="display: block; margin: auto;"></p>
 <p>These plots reveal two important findings: 1. Dots of the 2 samples
 groups are well-mixed in both views, showing that the biological
 difference between the two sample groups is mainly concentrated along
@@ -429,7 +429,7 @@ near the ideal straight line, hence the distance projections can be
 trusted.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDSShepard-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/plotMDSShepard-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="additional-options-for-the-mds-projection">Additional options for the MDS projection<a class="anchor" aria-label="anchor" href="#additional-options-for-the-mds-projection"></a>
@@ -448,7 +448,7 @@ dimensions, it is also possible to assign it explicitly, for example to
 <span>                 pDataForColour <span class="op">=</span> <span class="st">"group_id"</span>,</span>
 <span>                 pDataForLabel <span class="op">=</span> <span class="st">"patient_id"</span>,</span>
 <span>                 flipYAxis <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/MDSCalc.nDim2-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/MDSCalc.nDim2-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 <p>Note that the obtained projection on 2 axes, although similar, is not
 exactly the same as the one obtained when visualizing the first two axis
 of the MDS projection obtained before, with 4 dimensions. Actually, this
@@ -469,13 +469,13 @@ instead of 4.</p>
 <span>                 projectionAxes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span>
 <span>                 pDataForColour <span class="op">=</span> <span class="st">"group_id"</span>,</span>
 <span>                 pDataForLabel <span class="op">=</span> <span class="st">"patient_id"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/MDSCalc.Rsq99-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/MDSCalc.Rsq99-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 <p>The corresponding Shepard diagram is obtained as below, showing that
 the dots are even more concentrated around the ideal straight line, than
 before:</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggplotSampleMDSShepard.html">ggplotSampleMDSShepard</a></span><span class="op">(</span><span class="va">mdsObj3</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDSShepard.Rsq99-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/plotMDSShepard.Rsq99-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="aid-to-interpreting-projection-axes">Aid to interpreting projection axes<a class="anchor" aria-label="anchor" href="#aid-to-interpreting-projection-axes"></a>
@@ -520,7 +520,7 @@ with the median of a number of markers: ‘CD123’, ‘pStat1’, ‘pStat5’,
 <span>                repelArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                biplot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                extVariables <span class="op">=</span> <span class="va">medians</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDS_biplot-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/plotMDS_biplot-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 <p>Note that, on the bi-plots, only the arrows of length greater or
 equal to a specific threshold (by default set at 0.8) are represented,
 in order to not overwhelm the plot with arrows, especially when the
@@ -540,7 +540,7 @@ is also strongly negatively correlated with the median of ‘pS6’ and
 <span>                biplot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                extVariables <span class="op">=</span> <span class="va">medians</span>,</span>
 <span>                arrowThreshold <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDS_biplot_0.6-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/plotMDS_biplot_0.6-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 <p>In terms of biological interpretation, since the x axis is the
 direction along which there is a clear separation between stimulated and
 (reference) un-stimulated samples, the biplot suggests that channels for
@@ -556,7 +556,7 @@ groups.</p>
 <span>    channels <span class="op">=</span> <span class="va">chLabels</span>,</span>
 <span>    pDataForColour <span class="op">=</span> <span class="st">"group_id"</span>,</span>
 <span>    pDataForGroup <span class="op">=</span> <span class="st">"sample_id"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMarginalDensities-1.png" width="700" style="display: block; margin: auto;">
+<p><img src="CytoMDS_files/figure-html/plotMarginalDensities-1.png" class="r-plt" width="700" style="display: block; margin: auto;">
 And indeed, we can notice that the Reference samples (in red) tend to
 show higher intensity values for markers ‘pNFkB’, ‘pp38’, ‘CD4’, ‘CD20’,
 ‘CD33’, ‘pSlp76’, ‘pBtk’, while BCR-XL stimulated samples (in blue) tend
@@ -599,7 +599,7 @@ and arrange the obtained outputs on a single plot.</p>
 <span>    displayArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    repelArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    displayLegend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDS_biplot_facetting-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/plotMDS_biplot_facetting-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 <p>Sometimes, as is the case on the plots below, a high number of
 channel statistics are strongly correlated with the bi-plot axes, so
 that the plot is hardly readable, due to too many arrows displayed.</p>
@@ -624,7 +624,7 @@ between the axes and the standard deviation of each channel:</p>
 <span>    displayPointLabels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    displayArrowLabels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    repelArrowLabels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDS_biplot_stddev-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/plotMDS_biplot_stddev-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
@@ -724,7 +724,7 @@ exactly the same as before.</p>
 <span>        <span class="st">"EMD distances for Bodenmiller2012 dataset"</span>, </span>
 <span>        subtitle <span class="op">=</span>  <span class="st">"on the fly memory loading and parallel computation"</span><span class="op">)</span></span>
 <span><span class="va">pHistLast</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/dist1ShowHistAgain-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/dist1ShowHistAgain-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -788,7 +788,7 @@ histogram:</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span></span>
 <span>        <span class="st">"EMD distances for simulated expression matrices"</span><span class="op">)</span></span>
 <span><span class="va">pHistExpr</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/distExprMatShowHist-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/distExprMatShowHist-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 <p>With the generated pairwise distance matrix, we can now proceed with
 the <code>CytoMDS</code> workflow, as in the previous examples:</p>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
@@ -810,7 +810,7 @@ the <code>CytoMDS</code> workflow, as in the previous examples:</p>
 <span>    pDataForLabel <span class="op">=</span> <span class="st">"sampleId"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">p12</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/plotMDSExprMat-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/plotMDSExprMat-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">statFunctions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu">base</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span>,</span>
 <span>                      std_dev <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">)</span></span>
@@ -828,14 +828,14 @@ the <code>CytoMDS</code> workflow, as in the previous examples:</p>
 <span>    arrowThreshold <span class="op">=</span> <span class="fl">0.9</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">p</span></span></code></pre></div>
-<p><img src="CytoMDS_files/figure-html/biplotsMDSExprMat-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="CytoMDS_files/figure-html/biplotsMDSExprMat-1.png" class="r-plt" width="700" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<pre><code><span><span class="co">## R version 4.5.1 (2025-06-13)</span></span>
+<pre><code><span><span class="co">## R Under development (unstable) (2025-11-22 r89050)</span></span>
 <span><span class="co">## Platform: x86_64-pc-linux-gnu</span></span>
-<span><span class="co">## Running under: Ubuntu 24.04.2 LTS</span></span>
+<span><span class="co">## Running under: Ubuntu 24.04.3 LTS</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Matrix products: default</span></span>
 <span><span class="co">## BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
@@ -857,82 +857,80 @@ the <code>CytoMDS</code> workflow, as in the previous examples:</p>
 <span><span class="co">## [8] base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">##  [1] patchwork_1.3.1             ggplot2_3.5.2              </span></span>
-<span><span class="co">##  [3] CytoMDS_1.5.0               HDCytoData_1.29.0          </span></span>
-<span><span class="co">##  [5] flowCore_2.21.0             SummarizedExperiment_1.39.1</span></span>
-<span><span class="co">##  [7] Biobase_2.69.0              GenomicRanges_1.61.1       </span></span>
-<span><span class="co">##  [9] Seqinfo_0.99.2              IRanges_2.43.0             </span></span>
-<span><span class="co">## [11] S4Vectors_0.47.0            MatrixGenerics_1.21.0      </span></span>
-<span><span class="co">## [13] matrixStats_1.5.0           ExperimentHub_2.99.5       </span></span>
-<span><span class="co">## [15] AnnotationHub_3.99.6        BiocFileCache_2.99.5       </span></span>
-<span><span class="co">## [17] dbplyr_2.5.0                BiocGenerics_0.55.1        </span></span>
-<span><span class="co">## [19] generics_0.1.4              BiocStyle_2.37.1           </span></span>
+<span><span class="co">##  [1] patchwork_1.3.2             ggplot2_4.0.1              </span></span>
+<span><span class="co">##  [3] CytoMDS_1.7.1               HDCytoData_1.31.0          </span></span>
+<span><span class="co">##  [5] flowCore_2.23.0             SummarizedExperiment_1.41.0</span></span>
+<span><span class="co">##  [7] Biobase_2.71.0              GenomicRanges_1.63.0       </span></span>
+<span><span class="co">##  [9] Seqinfo_1.1.0               IRanges_2.45.0             </span></span>
+<span><span class="co">## [11] S4Vectors_0.49.0            MatrixGenerics_1.23.0      </span></span>
+<span><span class="co">## [13] matrixStats_1.5.0           ExperimentHub_3.1.0        </span></span>
+<span><span class="co">## [15] AnnotationHub_4.1.0         BiocFileCache_3.1.0        </span></span>
+<span><span class="co">## [17] dbplyr_2.5.1                BiocGenerics_0.57.0        </span></span>
+<span><span class="co">## [19] generics_0.1.4              BiocStyle_2.39.0           </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
-<span><span class="co">##   [1] splines_4.5.1        filelock_1.0.3       tibble_3.3.0        </span></span>
-<span><span class="co">##   [4] polyclip_1.10-7      graph_1.87.0         XML_3.99-0.18       </span></span>
+<span><span class="co">##   [1] splines_4.6.0        filelock_1.0.3       tibble_3.3.0        </span></span>
+<span><span class="co">##   [4] polyclip_1.10-7      graph_1.89.0         XML_3.99-0.20       </span></span>
 <span><span class="co">##   [7] rpart_4.1.24         lifecycle_1.0.4      httr2_1.2.1         </span></span>
-<span><span class="co">##  [10] Rdpack_2.6.4         doParallel_1.0.17    flowWorkspace_4.21.0</span></span>
+<span><span class="co">##  [10] Rdpack_2.6.4         doParallel_1.0.17    flowWorkspace_4.23.0</span></span>
 <span><span class="co">##  [13] lattice_0.22-7       MASS_7.3-65          backports_1.5.0     </span></span>
-<span><span class="co">##  [16] magrittr_2.0.3       Hmisc_5.2-3          sass_0.4.10         </span></span>
-<span><span class="co">##  [19] rmarkdown_2.29       jquerylib_0.1.4      yaml_2.3.10         </span></span>
-<span><span class="co">##  [22] plotrix_3.8-4        DBI_1.2.3            minqa_1.2.8         </span></span>
-<span><span class="co">##  [25] RColorBrewer_1.1-3   abind_1.4-8          ggcyto_1.37.0       </span></span>
-<span><span class="co">##  [28] purrr_1.1.0          nnet_7.3-20          pracma_2.4.4        </span></span>
+<span><span class="co">##  [16] magrittr_2.0.4       Hmisc_5.2-4          sass_0.4.10         </span></span>
+<span><span class="co">##  [19] rmarkdown_2.30       jquerylib_0.1.4      yaml_2.3.10         </span></span>
+<span><span class="co">##  [22] plotrix_3.8-13       DBI_1.2.3            minqa_1.2.8         </span></span>
+<span><span class="co">##  [25] RColorBrewer_1.1-3   abind_1.4-8          ggcyto_1.39.0       </span></span>
+<span><span class="co">##  [28] purrr_1.2.0          nnet_7.3-20          pracma_2.4.6        </span></span>
 <span><span class="co">##  [31] tweenr_2.0.3         rappdirs_0.3.3       transport_0.15-4    </span></span>
 <span><span class="co">##  [34] ggrepel_0.9.6        gdata_3.0.1          ellipse_0.5.0       </span></span>
-<span><span class="co">##  [37] pkgdown_2.1.3.9000   codetools_0.2-20     DelayedArray_0.35.2 </span></span>
+<span><span class="co">##  [37] pkgdown_2.2.0.9000   codetools_0.2-20     DelayedArray_0.37.0 </span></span>
 <span><span class="co">##  [40] ggforce_0.5.0        tidyselect_1.2.1     shape_1.4.6.1       </span></span>
 <span><span class="co">##  [43] farver_2.1.2         lme4_1.1-37          base64enc_0.1-3     </span></span>
 <span><span class="co">##  [46] jsonlite_2.0.0       e1071_1.7-16         mitml_0.4-5         </span></span>
 <span><span class="co">##  [49] Formula_1.2-5        survival_3.8-3       iterators_1.0.14    </span></span>
-<span><span class="co">##  [52] systemfonts_1.2.3    foreach_1.5.2        tools_4.5.1         </span></span>
-<span><span class="co">##  [55] ragg_1.4.0           snow_0.4-4           Rcpp_1.1.0          </span></span>
+<span><span class="co">##  [52] systemfonts_1.3.1    foreach_1.5.2        tools_4.6.0         </span></span>
+<span><span class="co">##  [55] ragg_1.5.0           snow_0.4-4           Rcpp_1.1.0          </span></span>
 <span><span class="co">##  [58] glue_1.8.0           gridExtra_2.3        pan_1.9             </span></span>
-<span><span class="co">##  [61] SparseArray_1.9.1    xfun_0.52            dplyr_1.1.4         </span></span>
-<span><span class="co">##  [64] withr_3.0.2          BiocManager_1.30.26  fastmap_1.2.0       </span></span>
-<span><span class="co">##  [67] boot_1.3-31          digest_0.6.37        R6_2.6.1            </span></span>
-<span><span class="co">##  [70] mice_3.18.0          textshaping_1.0.1    colorspace_2.1-1    </span></span>
-<span><span class="co">##  [73] gtools_3.9.5         RSQLite_2.4.2        weights_1.1.2       </span></span>
+<span><span class="co">##  [61] SparseArray_1.11.4   xfun_0.54            dplyr_1.1.4         </span></span>
+<span><span class="co">##  [64] withr_3.0.2          BiocManager_1.30.27  fastmap_1.2.0       </span></span>
+<span><span class="co">##  [67] boot_1.3-32          digest_0.6.39        R6_2.6.1            </span></span>
+<span><span class="co">##  [70] mice_3.18.0          textshaping_1.0.4    colorspace_2.1-2    </span></span>
+<span><span class="co">##  [73] gtools_3.9.5         RSQLite_2.4.4        weights_1.1.2       </span></span>
 <span><span class="co">##  [76] tidyr_1.3.1          hexbin_1.28.5        data.table_1.17.8   </span></span>
 <span><span class="co">##  [79] class_7.3-23         httr_1.4.7           htmlwidgets_1.6.4   </span></span>
-<span><span class="co">##  [82] S4Arrays_1.9.1       pkgconfig_2.0.3      gtable_0.3.6        </span></span>
-<span><span class="co">##  [85] blob_1.2.4           RProtoBufLib_2.21.0  XVector_0.49.0      </span></span>
-<span><span class="co">##  [88] htmltools_0.5.8.1    bookdown_0.43        scales_1.4.0        </span></span>
-<span><span class="co">##  [91] png_0.1-8            wordcloud_2.6        reformulas_0.4.1    </span></span>
-<span><span class="co">##  [94] knitr_1.50           rstudioapi_0.17.1    reshape2_1.4.4      </span></span>
-<span><span class="co">##  [97] checkmate_2.3.2      nlme_3.1-168         curl_6.4.0          </span></span>
-<span><span class="co">## [100] nloptr_2.2.1         proxy_0.4-27         cachem_1.1.0        </span></span>
-<span><span class="co">## [103] stringr_1.5.1        BiocVersion_3.22.0   parallel_4.5.1      </span></span>
-<span><span class="co">## [106] foreign_0.8-90       AnnotationDbi_1.71.1 desc_1.4.3          </span></span>
-<span><span class="co">## [109] pillar_1.11.0        grid_4.5.1           vctrs_0.6.5         </span></span>
-<span><span class="co">## [112] cytolib_2.21.0       jomo_2.7-6           cluster_2.1.8.1     </span></span>
-<span><span class="co">## [115] htmlTable_2.4.3      Rgraphviz_2.53.0     evaluate_1.0.4      </span></span>
-<span><span class="co">## [118] cli_3.6.5            compiler_4.5.1       rlang_1.1.6         </span></span>
-<span><span class="co">## [121] crayon_1.5.3         smacof_2.1-7         ncdfFlow_2.55.0     </span></span>
-<span><span class="co">## [124] labeling_0.4.3       plyr_1.8.9           fs_1.6.6            </span></span>
-<span><span class="co">## [127] stringi_1.8.7        BiocParallel_1.43.4  nnls_1.6            </span></span>
-<span><span class="co">## [130] Biostrings_2.77.2    glmnet_4.1-10        Matrix_1.7-3        </span></span>
-<span><span class="co">## [133] bit64_4.6.0-1        CytoPipeline_1.9.0   KEGGREST_1.49.1     </span></span>
-<span><span class="co">## [136] rbibutils_2.3        broom_1.0.9          memoise_2.0.1       </span></span>
-<span><span class="co">## [139] bslib_0.9.0          bit_4.6.0            polynom_1.4-1</span></span></code></pre>
+<span><span class="co">##  [82] S4Arrays_1.11.0      pkgconfig_2.0.3      gtable_0.3.6        </span></span>
+<span><span class="co">##  [85] blob_1.2.4           RProtoBufLib_2.23.0  S7_0.2.1            </span></span>
+<span><span class="co">##  [88] XVector_0.51.0       htmltools_0.5.8.1    bookdown_0.45       </span></span>
+<span><span class="co">##  [91] scales_1.4.0         png_0.1-8            wordcloud_2.6       </span></span>
+<span><span class="co">##  [94] reformulas_0.4.2     knitr_1.50           rstudioapi_0.17.1   </span></span>
+<span><span class="co">##  [97] reshape2_1.4.5       checkmate_2.3.3      nlme_3.1-168        </span></span>
+<span><span class="co">## [100] curl_7.0.0           nloptr_2.2.1         proxy_0.4-27        </span></span>
+<span><span class="co">## [103] cachem_1.1.0         stringr_1.6.0        BiocVersion_3.23.1  </span></span>
+<span><span class="co">## [106] parallel_4.6.0       foreign_0.8-90       AnnotationDbi_1.73.0</span></span>
+<span><span class="co">## [109] desc_1.4.3           pillar_1.11.1        grid_4.6.0          </span></span>
+<span><span class="co">## [112] vctrs_0.6.5          cytolib_2.23.0       jomo_2.7-6          </span></span>
+<span><span class="co">## [115] cluster_2.1.8.1      htmlTable_2.4.3      Rgraphviz_2.55.0    </span></span>
+<span><span class="co">## [118] evaluate_1.0.5       cli_3.6.5            compiler_4.6.0      </span></span>
+<span><span class="co">## [121] rlang_1.1.6          crayon_1.5.3         smacof_2.1-7        </span></span>
+<span><span class="co">## [124] ncdfFlow_2.57.0      labeling_0.4.3       plyr_1.8.9          </span></span>
+<span><span class="co">## [127] fs_1.6.6             stringi_1.8.7        BiocParallel_1.45.0 </span></span>
+<span><span class="co">## [130] nnls_1.6             Biostrings_2.79.2    glmnet_4.1-10       </span></span>
+<span><span class="co">## [133] Matrix_1.7-4         bit64_4.6.0-1        CytoPipeline_1.11.0 </span></span>
+<span><span class="co">## [136] KEGGREST_1.51.1      rbibutils_2.4        broom_1.0.10        </span></span>
+<span><span class="co">## [139] memoise_2.0.1        bslib_0.9.0          bit_4.6.0           </span></span>
+<span><span class="co">## [142] polynom_1.4-1</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-Bodenmiller2012-re" class="csl-entry">
-Bodenmiller, Bernd, Eli R Zunder, Rachel Finck, Tiffany J Chen, Erica S
-Savig, Robert V Bruggner, Erin F Simonds, et al. 2012.
+Bodenmiller, Bernd, Eli R Zunder, Rachel Finck, et al. 2012.
 <span>“Multiplexed Mass Cytometry Profiling of Cellular States Perturbed
 by Small-Molecule Regulators.”</span> <em>Nat. Biotechnol.</em> 30 (9):
 858–67.
 </div>
 <div id="ref-flowCore" class="csl-entry">
-Ellis, B, Perry Haaland, Florian Hahne, Nolwenn Le Meur, Nishant
-Gopalakrishnan, Josef Spidlen, Mike Jiang, and Greg Finak. 2023.
-<em>flowCore: flowCore: Basic Structures for Flow Cytometry Data</em>.
-<a href="https://doi.org/10.18129/B9.bioc.flowCore" class="external-link">https://doi.org/10.18129/B9.bioc.flowCore</a>.
+Ellis, B, Perry Haaland, Florian Hahne, et al. 2023. <em>flowCore:
+flowCore: Basic Structures for Flow Cytometry Data</em>. <a href="https://doi.org/10.18129/B9.bioc.flowCore" class="external-link">https://doi.org/10.18129/B9.bioc.flowCore</a>.
 </div>
 <div id="ref-De_Leeuw2009-aw" class="csl-entry">
 Leeuw, Jan de, and Patrick Mair. 2009. <span>“Multidimensional Scaling
@@ -940,18 +938,16 @@ Using Majorization: <span>SMACOF</span> in <span>R</span>.”</span>
 <em>J. Stat. Softw.</em> 31 (August): 1–30.
 </div>
 <div id="ref-Nowicka2017-dh" class="csl-entry">
-Nowicka, Malgorzata, Carsten Krieg, Helena L Crowell, Lukas M Weber,
-Felix J Hartmann, Silvia Guglietta, Burkhard Becher, Mitchell P
-Levesque, and Mark D Robinson. 2017. <span>“<span>CyTOF</span> Workflow:
-Differential Discovery in High-Throughput High-Dimensional Cytometry
-Datasets.”</span> <em>F1000Res.</em> 6 (May): 748.
+Nowicka, Malgorzata, Carsten Krieg, Helena L Crowell, et al. 2017.
+<span>“<span>CyTOF</span> Workflow: Differential Discovery in
+High-Throughput High-Dimensional Cytometry Datasets.”</span>
+<em>F1000Res.</em> 6 (May): 748.
 </div>
 <div id="ref-Orlova2016-jm" class="csl-entry">
-Orlova, Darya Y, Noah Zimmerman, Stephen Meehan, Connor Meehan, Jeffrey
-Waters, Eliver E B Ghosn, Alexander Filatenkov, et al. 2016.
+Orlova, Darya Y, Noah Zimmerman, Stephen Meehan, et al. 2016.
 <span>“Earth Mover’s Distance (<span>EMD)</span>: A True Metric for
-Comparing Biomarker Expression Levels in Cell Populations.”</span>
-<em>PLOS ONE</em>.
+Comparing Biomarker Expression Levels in Cell Populations.”</span> In
+<em>PLOS ONE</em>, No. 3, vol. 11.
 </div>
 <div id="ref-Weber2019-pz" class="csl-entry">
 Weber, Lukas M, Malgorzata Nowicka, Charlotte Soneson, and Mark D
@@ -978,7 +974,7 @@ Benchmark Datasets in Bioconductor Object Formats.”</span>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.9000.</p>
 </div>
 
     </footer>

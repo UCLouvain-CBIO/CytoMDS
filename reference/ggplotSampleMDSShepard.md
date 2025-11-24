@@ -1,0 +1,135 @@
+# Plot of Metric MDS object - Shepard diagram
+
+`ggplotSampleMDSShepard` uses ggplot2 to provide plot of Metric MDS
+results. Shepard diagram provides a scatter plot of :
+
+- on the x axis, the high dimensional pairwise distances between each
+  sample pairs
+
+- on the y axis, the corresponding pairwise distances in the obtained
+  low dimensional projection
+
+## Usage
+
+``` r
+ggplotSampleMDSShepard(
+  mdsObj,
+  nDim,
+  title = "Multi Dimensional Scaling - Shepard's diagram",
+  pointSize = 0.5,
+  lineWidth = 0.5,
+  displayPseudoRSq = TRUE
+)
+```
+
+## Arguments
+
+- mdsObj:
+
+  a MDS object, output of the
+  [`computeMetricMDS()`](https://uclouvain-cbio.github.io/CytoMDS/reference/computeMetricMDS.md)
+  method.
+
+- nDim:
+
+  (optional) number of dimensions to use when calculating Shepard's
+  diagram and pseudoRSquare. If missing, it will be set equal to the
+  number of projection dimensions as calculated in `mdsObj`
+
+- title:
+
+  title to give to the plot
+
+- pointSize:
+
+  point size in plot
+
+- lineWidth:
+
+  line width in plot
+
+- displayPseudoRSq:
+
+  if TRUE, display pseudo RSquare in subtitle, on top of nb of
+  dimensions
+
+## Value
+
+a ggplot object
+
+## See also
+
+[ggplotSampleMDS](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotSampleMDS.md),
+[computeMetricMDS](https://uclouvain-cbio.github.io/CytoMDS/reference/computeMetricMDS.md)
+
+## Examples
+
+``` r
+
+
+library(CytoPipeline)
+
+data(OMIP021Samples)
+
+# estimate scale transformations 
+# and transform the whole OMIP021Samples
+
+transList <- estimateScaleTransforms(
+    ff = OMIP021Samples[[1]],
+    fluoMethod = "estimateLogicle",
+    scatterMethod = "linearQuantile",
+    scatterRefMarker = "BV785 - CD3")
+
+OMIP021Trans <- CytoPipeline::applyScaleTransforms(
+    OMIP021Samples, 
+    transList)
+    
+ffList <- c(
+    flowCore::flowSet_to_list(OMIP021Trans),
+    lapply(3:5,
+           FUN = function(i) {
+               aggregateAndSample(
+                   OMIP021Trans,
+                   seed = 10*i,
+                   nTotalEvents = 5000)[,1:22]
+           }))
+
+fsNames <- c("Donor1", "Donor2", paste0("Agg",1:3))
+names(ffList) <- fsNames
+
+fsAll <- as(ffList,"flowSet")
+
+flowCore::pData(fsAll)$type <- factor(c("real", "real", rep("synthetic", 3)))
+flowCore::pData(fsAll)$grpId <- factor(c("D1", "D2", rep("Agg", 3)))
+
+# calculate all pairwise distances
+
+pwDist <- pairwiseEMDDist(fsAll, 
+                             channels = c("FSC-A", "SSC-A"),
+                             verbose = FALSE)
+
+# compute Metric MDS object with explicit number of dimensions
+mdsObj <- computeMetricMDS(pwDist, nDim = 4, seed = 0)
+
+dim <- nDim(mdsObj) # should be 4
+
+#' # compute Metric MDS object by reaching a target pseudo RSquare
+mdsObj2 <- computeMetricMDS(pwDist, seed = 0, targetPseudoRSq = 0.999)
+
+# Shepard diagrams 
+
+p2D <- ggplotSampleMDSShepard(
+    mdsObj,
+    nDim = 2,
+    pointSize = 1,
+    title = "Shepard with 2 dimensions")
+
+p3D <- ggplotSampleMDSShepard(
+    mdsObj,
+    nDim = 3,
+    title = "Shepard with 3 dimensions") 
+    #' 
+pDefD <- ggplotSampleMDSShepard(
+    mdsObj,
+    title = "Shepard with default nb of dimensions") 
+```
