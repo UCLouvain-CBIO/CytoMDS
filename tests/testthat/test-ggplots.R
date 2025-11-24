@@ -476,8 +476,10 @@ test_that("ggplotSampleMDS works", {
                          pDataForAdditionalLabelling = c("grpId", "type"),
                          repelPointLabels = FALSE)
 
-    expect_equal(p$labels$text2, "grpId")
-    expect_equal(p$labels$text3, "type")
+    expect_equal(as.character(rlang::quo_get_expr(p@mapping$text2)),
+                 "grpId")
+    expect_equal(as.character(rlang::quo_get_expr(p@mapping$text3)), 
+                 "type")
 
     # test that pData for additional labelling has been well ignored
     # with biplot activated

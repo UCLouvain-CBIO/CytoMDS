@@ -249,7 +249,6 @@ ggplotMarginalDensities <- function(
     
     p <- ggplot(
         DFLong, 
-        fill = NULL,
         aes(x = .data[["value"]],
             col = .data[[pDataForColour]],
             group = .data[[pDataForGroup]],
