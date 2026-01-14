@@ -941,7 +941,7 @@ p
 
 ## Session information
 
-    ## R Under development (unstable) (2025-11-22 r89050)
+    ## R Under development (unstable) (2026-01-10 r89298)
     ## Platform: x86_64-pc-linux-gnu
     ## Running under: Ubuntu 24.04.3 LTS
     ## 
@@ -967,8 +967,8 @@ p
     ## other attached packages:
     ##  [1] patchwork_1.3.2             ggplot2_4.0.1              
     ##  [3] CytoMDS_1.7.1               HDCytoData_1.31.0          
-    ##  [5] flowCore_2.23.0             SummarizedExperiment_1.41.0
-    ##  [7] Biobase_2.71.0              GenomicRanges_1.63.0       
+    ##  [5] flowCore_2.23.1             SummarizedExperiment_1.41.0
+    ##  [7] Biobase_2.71.0              GenomicRanges_1.63.1       
     ##  [9] Seqinfo_1.1.0               IRanges_2.45.0             
     ## [11] S4Vectors_0.49.0            MatrixGenerics_1.23.0      
     ## [13] matrixStats_1.5.0           ExperimentHub_3.1.0        
@@ -977,54 +977,54 @@ p
     ## [19] generics_0.1.4              BiocStyle_2.39.0           
     ## 
     ## loaded via a namespace (and not attached):
-    ##   [1] splines_4.6.0        filelock_1.0.3       tibble_3.3.0        
-    ##   [4] polyclip_1.10-7      graph_1.89.0         XML_3.99-0.20       
-    ##   [7] rpart_4.1.24         lifecycle_1.0.4      httr2_1.2.1         
-    ##  [10] Rdpack_2.6.4         doParallel_1.0.17    flowWorkspace_4.23.0
+    ##   [1] splines_4.6.0        filelock_1.0.3       tibble_3.3.1        
+    ##   [4] polyclip_1.10-7      graph_1.89.1         XML_3.99-0.20       
+    ##   [7] rpart_4.1.24         lifecycle_1.0.5      httr2_1.2.2         
+    ##  [10] Rdpack_2.6.4         doParallel_1.0.17    flowWorkspace_4.23.1
     ##  [13] lattice_0.22-7       MASS_7.3-65          backports_1.5.0     
-    ##  [16] magrittr_2.0.4       Hmisc_5.2-4          sass_0.4.10         
-    ##  [19] rmarkdown_2.30       jquerylib_0.1.4      yaml_2.3.10         
-    ##  [22] plotrix_3.8-13       DBI_1.2.3            minqa_1.2.8         
-    ##  [25] RColorBrewer_1.1-3   abind_1.4-8          ggcyto_1.39.0       
-    ##  [28] purrr_1.2.0          nnet_7.3-20          pracma_2.4.6        
-    ##  [31] tweenr_2.0.3         rappdirs_0.3.3       transport_0.15-4    
-    ##  [34] ggrepel_0.9.6        gdata_3.0.1          ellipse_0.5.0       
-    ##  [37] pkgdown_2.2.0.9000   codetools_0.2-20     DelayedArray_0.37.0 
-    ##  [40] ggforce_0.5.0        tidyselect_1.2.1     shape_1.4.6.1       
-    ##  [43] farver_2.1.2         lme4_1.1-37          base64enc_0.1-3     
-    ##  [46] jsonlite_2.0.0       e1071_1.7-16         mitml_0.4-5         
-    ##  [49] Formula_1.2-5        survival_3.8-3       iterators_1.0.14    
-    ##  [52] systemfonts_1.3.1    foreach_1.5.2        tools_4.6.0         
-    ##  [55] ragg_1.5.0           snow_0.4-4           Rcpp_1.1.0          
-    ##  [58] glue_1.8.0           gridExtra_2.3        pan_1.9             
-    ##  [61] SparseArray_1.11.4   xfun_0.54            dplyr_1.1.4         
-    ##  [64] withr_3.0.2          BiocManager_1.30.27  fastmap_1.2.0       
-    ##  [67] boot_1.3-32          digest_0.6.39        R6_2.6.1            
-    ##  [70] mice_3.18.0          textshaping_1.0.4    colorspace_2.1-2    
-    ##  [73] gtools_3.9.5         RSQLite_2.4.4        weights_1.1.2       
-    ##  [76] tidyr_1.3.1          hexbin_1.28.5        data.table_1.17.8   
-    ##  [79] class_7.3-23         httr_1.4.7           htmlwidgets_1.6.4   
-    ##  [82] S4Arrays_1.11.0      pkgconfig_2.0.3      gtable_0.3.6        
-    ##  [85] blob_1.2.4           RProtoBufLib_2.23.0  S7_0.2.1            
-    ##  [88] XVector_0.51.0       htmltools_0.5.8.1    bookdown_0.45       
-    ##  [91] scales_1.4.0         png_0.1-8            wordcloud_2.6       
-    ##  [94] reformulas_0.4.2     knitr_1.50           rstudioapi_0.17.1   
-    ##  [97] reshape2_1.4.5       checkmate_2.3.3      nlme_3.1-168        
-    ## [100] curl_7.0.0           nloptr_2.2.1         proxy_0.4-27        
-    ## [103] cachem_1.1.0         stringr_1.6.0        BiocVersion_3.23.1  
-    ## [106] parallel_4.6.0       foreign_0.8-90       AnnotationDbi_1.73.0
-    ## [109] desc_1.4.3           pillar_1.11.1        grid_4.6.0          
-    ## [112] vctrs_0.6.5          cytolib_2.23.0       jomo_2.7-6          
-    ## [115] cluster_2.1.8.1      htmlTable_2.4.3      Rgraphviz_2.55.0    
-    ## [118] evaluate_1.0.5       cli_3.6.5            compiler_4.6.0      
-    ## [121] rlang_1.1.6          crayon_1.5.3         smacof_2.1-7        
-    ## [124] ncdfFlow_2.57.0      labeling_0.4.3       plyr_1.8.9          
-    ## [127] fs_1.6.6             stringi_1.8.7        BiocParallel_1.45.0 
-    ## [130] nnls_1.6             Biostrings_2.79.2    glmnet_4.1-10       
-    ## [133] Matrix_1.7-4         bit64_4.6.0-1        CytoPipeline_1.11.0 
-    ## [136] KEGGREST_1.51.1      rbibutils_2.4        broom_1.0.10        
-    ## [139] memoise_2.0.1        bslib_0.9.0          bit_4.6.0           
-    ## [142] polynom_1.4-1
+    ##  [16] magrittr_2.0.4       Hmisc_5.2-5          sass_0.4.10         
+    ##  [19] rmarkdown_2.30       jquerylib_0.1.4      yaml_2.3.12         
+    ##  [22] plotrix_3.8-13       otel_0.2.0           DBI_1.2.3           
+    ##  [25] minqa_1.2.8          RColorBrewer_1.1-3   abind_1.4-8         
+    ##  [28] ggcyto_1.39.1        purrr_1.2.1          nnet_7.3-20         
+    ##  [31] pracma_2.4.6         tweenr_2.0.3         rappdirs_0.3.3      
+    ##  [34] transport_0.15-4     ggrepel_0.9.6        gdata_3.0.1         
+    ##  [37] ellipse_0.5.0        pkgdown_2.2.0.9000   codetools_0.2-20    
+    ##  [40] DelayedArray_0.37.0  ggforce_0.5.0        tidyselect_1.2.1    
+    ##  [43] shape_1.4.6.1        farver_2.1.2         lme4_1.1-38         
+    ##  [46] base64enc_0.1-3      jsonlite_2.0.0       e1071_1.7-17        
+    ##  [49] mitml_0.4-5          Formula_1.2-5        survival_3.8-3      
+    ##  [52] iterators_1.0.14     systemfonts_1.3.1    foreach_1.5.2       
+    ##  [55] tools_4.6.0          ragg_1.5.0           snow_0.4-4          
+    ##  [58] Rcpp_1.1.1           glue_1.8.0           gridExtra_2.3       
+    ##  [61] pan_1.9              SparseArray_1.11.10  xfun_0.55           
+    ##  [64] dplyr_1.1.4          withr_3.0.2          BiocManager_1.30.27 
+    ##  [67] fastmap_1.2.0        boot_1.3-32          digest_0.6.39       
+    ##  [70] R6_2.6.1             mice_3.19.0          textshaping_1.0.4   
+    ##  [73] colorspace_2.1-2     gtools_3.9.5         RSQLite_2.4.5       
+    ##  [76] weights_1.1.2        tidyr_1.3.2          hexbin_1.28.5       
+    ##  [79] data.table_1.18.0    class_7.3-23         httr_1.4.7          
+    ##  [82] htmlwidgets_1.6.4    S4Arrays_1.11.1      pkgconfig_2.0.3     
+    ##  [85] gtable_0.3.6         blob_1.3.0           RProtoBufLib_2.23.0 
+    ##  [88] S7_0.2.1             XVector_0.51.0       htmltools_0.5.9     
+    ##  [91] bookdown_0.46        scales_1.4.0         png_0.1-8           
+    ##  [94] wordcloud_2.6        reformulas_0.4.3.1   knitr_1.51          
+    ##  [97] rstudioapi_0.17.1    reshape2_1.4.5       checkmate_2.3.3     
+    ## [100] nlme_3.1-168         curl_7.0.0           nloptr_2.2.1        
+    ## [103] proxy_0.4-29         cachem_1.1.0         stringr_1.6.0       
+    ## [106] BiocVersion_3.23.1   parallel_4.6.0       foreign_0.8-90      
+    ## [109] AnnotationDbi_1.73.0 desc_1.4.3           pillar_1.11.1       
+    ## [112] grid_4.6.0           vctrs_0.6.5          cytolib_2.23.0      
+    ## [115] jomo_2.7-6           cluster_2.1.8.1      htmlTable_2.4.3     
+    ## [118] Rgraphviz_2.55.0     evaluate_1.0.5       cli_3.6.5           
+    ## [121] compiler_4.6.0       rlang_1.1.7          crayon_1.5.3        
+    ## [124] smacof_2.1-7         ncdfFlow_2.57.0      labeling_0.4.3      
+    ## [127] plyr_1.8.9           fs_1.6.6             stringi_1.8.7       
+    ## [130] BiocParallel_1.45.0  nnls_1.6             Biostrings_2.79.4   
+    ## [133] glmnet_4.1-10        Matrix_1.7-4         bit64_4.6.0-1       
+    ## [136] CytoPipeline_1.11.0  KEGGREST_1.51.1      rbibutils_2.4       
+    ## [139] broom_1.0.11         memoise_2.0.1        bslib_0.9.0         
+    ## [142] bit_4.6.0            polynom_1.4-1
 
 ## References
 
