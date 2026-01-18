@@ -2,6 +2,11 @@
 
 ## CytoMDS 1.7
 
+### CytoMDS 1.7.2
+
+- added
+  [`ggplotVolcano()`](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotVolcano.md)
+
 ### CytoMDS 1.7.1
 
 - fixed unti tests with new version of ggplot2

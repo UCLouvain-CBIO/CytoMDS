@@ -941,7 +941,7 @@ p
 
 ## Session information
 
-    ## R Under development (unstable) (2026-01-10 r89298)
+    ## R Under development (unstable) (2026-01-15 r89304)
     ## Platform: x86_64-pc-linux-gnu
     ## Running under: Ubuntu 24.04.3 LTS
     ## 
@@ -966,7 +966,7 @@ p
     ## 
     ## other attached packages:
     ##  [1] patchwork_1.3.2             ggplot2_4.0.1              
-    ##  [3] CytoMDS_1.7.1               HDCytoData_1.31.0          
+    ##  [3] CytoMDS_1.7.2               HDCytoData_1.31.0          
     ##  [5] flowCore_2.23.1             SummarizedExperiment_1.41.0
     ##  [7] Biobase_2.71.0              GenomicRanges_1.63.1       
     ##  [9] Seqinfo_1.1.0               IRanges_2.45.0             
@@ -987,17 +987,17 @@ p
     ##  [22] plotrix_3.8-13       otel_0.2.0           DBI_1.2.3           
     ##  [25] minqa_1.2.8          RColorBrewer_1.1-3   abind_1.4-8         
     ##  [28] ggcyto_1.39.1        purrr_1.2.1          nnet_7.3-20         
-    ##  [31] pracma_2.4.6         tweenr_2.0.3         rappdirs_0.3.3      
+    ##  [31] pracma_2.4.6         tweenr_2.0.3         rappdirs_0.3.4      
     ##  [34] transport_0.15-4     ggrepel_0.9.6        gdata_3.0.1         
     ##  [37] ellipse_0.5.0        pkgdown_2.2.0.9000   codetools_0.2-20    
     ##  [40] DelayedArray_0.37.0  ggforce_0.5.0        tidyselect_1.2.1    
     ##  [43] shape_1.4.6.1        farver_2.1.2         lme4_1.1-38         
     ##  [46] base64enc_0.1-3      jsonlite_2.0.0       e1071_1.7-17        
-    ##  [49] mitml_0.4-5          Formula_1.2-5        survival_3.8-3      
+    ##  [49] mitml_0.4-5          Formula_1.2-5        survival_3.8-6      
     ##  [52] iterators_1.0.14     systemfonts_1.3.1    foreach_1.5.2       
     ##  [55] tools_4.6.0          ragg_1.5.0           snow_0.4-4          
     ##  [58] Rcpp_1.1.1           glue_1.8.0           gridExtra_2.3       
-    ##  [61] pan_1.9              SparseArray_1.11.10  xfun_0.55           
+    ##  [61] pan_1.9              SparseArray_1.11.10  xfun_0.56           
     ##  [64] dplyr_1.1.4          withr_3.0.2          BiocManager_1.30.27 
     ##  [67] fastmap_1.2.0        boot_1.3-32          digest_0.6.39       
     ##  [70] R6_2.6.1             mice_3.19.0          textshaping_1.0.4   
@@ -1009,12 +1009,12 @@ p
     ##  [88] S7_0.2.1             XVector_0.51.0       htmltools_0.5.9     
     ##  [91] bookdown_0.46        scales_1.4.0         png_0.1-8           
     ##  [94] wordcloud_2.6        reformulas_0.4.3.1   knitr_1.51          
-    ##  [97] rstudioapi_0.17.1    reshape2_1.4.5       checkmate_2.3.3     
+    ##  [97] rstudioapi_0.18.0    reshape2_1.4.5       checkmate_2.3.3     
     ## [100] nlme_3.1-168         curl_7.0.0           nloptr_2.2.1        
     ## [103] proxy_0.4-29         cachem_1.1.0         stringr_1.6.0       
     ## [106] BiocVersion_3.23.1   parallel_4.6.0       foreign_0.8-90      
     ## [109] AnnotationDbi_1.73.0 desc_1.4.3           pillar_1.11.1       
-    ## [112] grid_4.6.0           vctrs_0.6.5          cytolib_2.23.0      
+    ## [112] grid_4.6.0           vctrs_0.7.0          cytolib_2.23.0      
     ## [115] jomo_2.7-6           cluster_2.1.8.1      htmlTable_2.4.3     
     ## [118] Rgraphviz_2.55.0     evaluate_1.0.5       cli_3.6.5           
     ## [121] compiler_4.6.0       rlang_1.1.7          crayon_1.5.3        
@@ -1022,7 +1022,7 @@ p
     ## [127] plyr_1.8.9           fs_1.6.6             stringi_1.8.7       
     ## [130] BiocParallel_1.45.0  nnls_1.6             Biostrings_2.79.4   
     ## [133] glmnet_4.1-10        Matrix_1.7-4         bit64_4.6.0-1       
-    ## [136] CytoPipeline_1.11.0  KEGGREST_1.51.1      rbibutils_2.4       
+    ## [136] CytoPipeline_1.11.1  KEGGREST_1.51.1      rbibutils_2.4       
     ## [139] broom_1.0.11         memoise_2.0.1        bslib_0.9.0         
     ## [142] bit_4.6.0            polynom_1.4-1
 

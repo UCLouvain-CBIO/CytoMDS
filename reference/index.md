@@ -56,5 +56,7 @@
   : Plot of Metric MDS object - Shepard diagram
 - [`ggplotSampleMDSWrapBiplots()`](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotSampleMDSWrapBiplots.md)
   : SampleMDS biplot wrapping
+- [`ggplotVolcano()`](https://uclouvain-cbio.github.io/CytoMDS/reference/ggplotVolcano.md)
+  : standard volcano plot
 - [`pairwiseEMDDist()`](https://uclouvain-cbio.github.io/CytoMDS/reference/pairwiseEMDDist.md)
   : Pairwise Earth Mover's Distance calculation
