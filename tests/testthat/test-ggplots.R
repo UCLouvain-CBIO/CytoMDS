@@ -675,3 +675,44 @@ test_that("ggplotSampleMDSShepard works", {
     
 
 })
+
+test_that("ggplotVolcano works", {
+    set.seed(1)
+    LFC <- c(-3,-2.7,-2.6,-1.5,-0.3,0.1,0.7,1.4,1.9,2.6)
+    pval <- c(0.004, 0.03, 0.022, 0.06, 0.4, 0.7, 0.3, 0.055, 0.045, 0.02)
+    labels <- paste0("p", (1:10)[sample(1:10, 10)])
+    
+    p <- ggplotVolcano(LFC, pval, labels)
+    vdiffr::expect_doppelganger("ggplotVolcano with default params",
+                                fig = p)
+    
+    p <- ggplotVolcano(LFC, pval, labels, pvalThresh = NULL)
+    vdiffr::expect_doppelganger("ggplotVolcano with no thresh",
+                                fig = p)
+    
+    p <- ggplotVolcano(LFC, pval, labels, pvalThresh = 0.01)
+    vdiffr::expect_doppelganger("ggplotVolcano with other thresh",
+                                fig = p)
+    
+    p <- ggplotVolcano(LFC, pval, labels,
+                       ggplotLabsArgs = list(x = "my log2 fold",
+                                             y = "my log10 pval",
+                                             title = "My wonderful volcano!"))
+    vdiffr::expect_doppelganger("ggplotVolcano with other ggplot_labs",
+                                fig = p)
+    
+    p <- ggplotVolcano(LFC, pval, labels,
+                       pointColor = "green", threshColor = "purple")
+    vdiffr::expect_doppelganger("ggplotVolcano with colors",
+                                fig = p)
+    
+    logNCells <- c(0.5, 1, 0.8, 2, 1.6, 1.2, 2, 1.2, 0.4, 0.2)
+    ggplotLabsArgs <- list(size = "nb cells (log10)")
+    p <- ggplotVolcano(LFC, pval, labels, 
+                       pointSizes = logNCells,
+                       ggplotLabsArgs = ggplotLabsArgs)
+    
+    vdiffr::expect_doppelganger("ggplotVolcano with point sizes",
+                                fig = p)
+    
+})

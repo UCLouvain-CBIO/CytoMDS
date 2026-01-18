@@ -1329,3 +1329,141 @@ ggplotSampleMDSWrapBiplots <- function(
     p
 }
 
+#' @title standard volcano plot
+#' @description uses ggplot to draw a volcano plot
+#' @param logFoldChanges x axis values
+#' @param pValues y axis values (will be -log10(pValues))
+#' @param pointLabels labels to be attached to points
+#' @param pointSizes point sizes
+#' @param ggplotLabsArgs additional ggplot::labs() arguments (list)
+#' @param pvalThresh p value threshold, if not NULL, a corresponding horizontal
+#' line will be plotted
+#' @param pointColor color to use for points
+#' @param threshColor color to use for the threshold line
+#' @param repelLabels if TRUE uses `ggrepel::geom_text_repel()` 
+#' 
+#' @return a ggplot object
+#' @importFrom rlang .data
+#' @export
+#' 
+#' @examples
+#' 
+#' LFC <- c(-3,-2.7,-2.6,-1.5,-0.3,0.1,0.7,1.4,1.9,2.6)
+#' pval <- c(0.004, 0.03, 0.022, 0.06, 0.4, 0.7, 0.3, 0.055, 0.045, 0.02)
+#' labels <- paste0("p", (1:10)[sample(1:10, 10)])
+#' 
+#' set.seed(1)
+#' 
+#' # ggplotVolcano with default params
+#' p <- ggplotVolcano(LFC, pval, labels)
+#' 
+#' # ggplotVolcano with no thresh
+#' p <- ggplotVolcano(LFC, pval, labels, pvalThresh = NULL)
+#' 
+#' # ggplotVolcano with other thresh
+#' p <- ggplotVolcano(LFC, pval, labels, pvalThresh = 0.01)
+#' 
+#' # ggplotVolcano with other ggplot_labs
+#' p <- ggplotVolcano(LFC, pval, labels,
+#'     ggplotLabsArgs = list(x = "my log2 fold",
+#'                           y = "my log10 pval",
+#'                           title = "My wonderful volcano!"))
+#'                           
+#' # ggplotVolcano with colors
+#' p <- ggplotVolcano(LFC, pval, labels,
+#'                    pointColor = "green", threshColor = "purple")
+#'                    
+#' # ggplotVolcano with point sizes
+#' logNCells <- c(0.5, 1, 0.8, 2, 1.6, 1.2, 2, 1.2, 0.4, 0.2)
+#' ggplotLabsArgs <- list(size = "nb cells (log10)")
+#' p <- ggplotVolcano(LFC, pval, labels,
+#'                    pointSizes = logNCells,
+#'                    ggplotLabsArgs = ggplotLabsArgs)
+
+ggplotVolcano <- function(logFoldChanges,
+                          pValues,
+                          pointLabels = NULL,
+                          pointSizes = NULL,
+                          ggplotLabsArgs = NULL,
+                          pvalThresh = 0.05,
+                          pointColor = "blue",
+                          threshColor = "red",
+                          repelLabels = TRUE){
+    
+    df <- data.frame(lFC = logFoldChanges,
+                     pval = pValues,
+                     minusLogPval = -log10(pValues))
+    
+    if (!is.null(pointLabels)) {
+        df <- cbind(
+            df,
+            data.frame(label = pointLabels)
+        )
+    }
+    
+    if (!is.null(pointSizes)) {
+        df <- cbind(
+            df,
+            data.frame(pointSize = pointSizes)
+        )
+    }
+    
+    lfcColName <- "lFC"
+    minusLogPvalColName <- "minusLogPval"
+    labelColName <- "label"
+    pointSizeColName <- "pointSize"
+    
+    p <- ggplot(data = df,
+                mapping = aes(x = .data[[lfcColName]],
+                              y = .data[[minusLogPvalColName]]))
+    
+    
+    
+    if (!is.null(pointSizes)) {
+        p <- p + aes(size = .data[[pointSizeColName]])
+    }
+    
+    if (!is.null(pointLabels)) {
+        p <- p + aes(label = .data[[labelColName]])
+        if (repelLabels) {
+            p <- p + 
+                ggrepel::geom_text_repel(max.overlaps = 100, size = 3)
+        } else {
+            p <- p +
+                geom_text(position = position_nudge(y = -0.1), size = 3) 
+        }
+    }
+    
+    minLFC <- min(df$lFC)
+    maxLFC <- max(df$lFC)
+    
+    maxAbsLFC <- max(abs(minLFC), abs(maxLFC))
+    
+    p <- p +
+        geom_point(colour = pointColor) 
+    
+    p <- p +
+        scale_x_continuous(limits = c(-maxAbsLFC, maxAbsLFC))    
+    
+    if (is.null(ggplotLabsArgs)) {
+        ggplotLabsArgs <- list(x = "log2(fold change)",
+                               y = "-log10(pval)")
+    }
+    
+    p <- p +
+        do.call(what = ggplot2::labs, args = ggplotLabsArgs)
+    
+    p <- p +
+        geom_vline(xintercept = 0., colour = "black", linetype = 2)
+    
+    if (!is.null(pvalThresh)) {
+        if (!is.numeric(pvalThresh) || (pvalThresh <= 0.) || (pvalThresh > 1.0)) {
+            stop("invalid pvalThresh")
+        }
+        lthresh <- -log10(pvalThresh)
+        p <- p +
+            geom_hline(yintercept = lthresh, colour = threshColor, linetype = 2)
+    }
+    p
+}
+
