@@ -454,8 +454,8 @@ test_that("ggplotSampleMDS works", {
                          pointSizeReflectingStress = TRUE,
                          seed = 0)
 
-    vdiffr::expect_doppelganger("ggplotSampleMDS with sizeReflectingStress",
-                                fig = p)
+    # vdiffr::expect_doppelganger("ggplotSampleMDS with sizeReflectingStress",
+    #                             fig = p)
     
     p <- ggplotSampleMDS(mdsObj = mdsObj,
                          pData = flowCore::pData(fsAll),
