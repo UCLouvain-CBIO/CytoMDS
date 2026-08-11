@@ -1,5 +1,8 @@
 ## CytoMDS 1.9
 
+### CytoMDS 1.9.2
+(no change - required update of unit tests)
+
 ### CytoMDS 1.9.1
 (no change)
 
