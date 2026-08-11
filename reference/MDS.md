@@ -140,8 +140,8 @@ show(mdsObj)
 #> MDS object containing MDS projection (using Smacof algorithm)  data:
 #> Nb of dimensions:  7 
 #> Nb of points:  20 
-#> Stress:  0.036138 
-#> Pseudo RSquare:  0.958664 
-#> Goodness of fit:  0.998694 
+#> Stress:  0.028101 
+#> Pseudo RSquare:  0.97695 
+#> Goodness of fit:  0.99921 
 
 ```

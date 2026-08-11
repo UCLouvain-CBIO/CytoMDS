@@ -168,12 +168,12 @@ show(distObj1)
 #> Nb of features:  1 
 #> Feature names:  
 #> Full distance matrix: 
-#>          point1    point2    point3    point4    point5
-#> point1 0.000000  8.827115  7.094430  4.580522  8.285466
-#> point2 8.827115  0.000000 10.959452 10.329413 10.876936
-#> point3 7.094430 10.959452  0.000000  7.613967  6.125266
-#> point4 4.580522 10.329413  7.613967  0.000000  9.235268
-#> point5 8.285466 10.876936  6.125266  9.235268  0.000000
+#>          point1   point2    point3    point4    point5
+#> point1 0.000000 8.851750  9.407961  7.957533  9.126406
+#> point2 8.851750 0.000000  8.827115  7.094430  4.580522
+#> point3 9.407961 8.827115  0.000000 10.959452 10.329413
+#> point4 7.957533 7.094430 10.959452  0.000000  7.613967
+#> point5 9.126406 4.580522 10.329413  7.613967  0.000000
 
 # Example of creation of a DistSum object based on a list of matrices
 # representing the additive contribution of each feature
@@ -186,12 +186,12 @@ show(distObj2)
 #> Nb of features:  7 
 #> Feature names:  feat1 feat2 feat3 feat4 feat5 feat6 feat7 
 #> Full distance matrix: 
-#>          point1    point2    point3    point4    point5
-#> point1 0.000000  8.827115  7.094430  4.580522  8.285466
-#> point2 8.827115  0.000000 10.959452 10.329413 10.876936
-#> point3 7.094430 10.959452  0.000000  7.613967  6.125266
-#> point4 4.580522 10.329413  7.613967  0.000000  9.235268
-#> point5 8.285466 10.876936  6.125266  9.235268  0.000000
+#>          point1   point2    point3    point4    point5
+#> point1 0.000000 8.851750  9.407961  7.957533  9.126406
+#> point2 8.851750 0.000000  8.827115  7.094430  4.580522
+#> point3 9.407961 8.827115  0.000000 10.959452 10.329413
+#> point4 7.957533 7.094430 10.959452  0.000000  7.613967
+#> point5 9.126406 4.580522 10.329413  7.613967  0.000000
 
 # getting dimensions
 myDim <- dim(distObj2) # c(nPoints, nPoints)
