@@ -17,7 +17,7 @@
 library(CytoPipeline)
 
 # work-around for temporary fail on GHA of some graphical tests
-activate_ggplotWrapPlots <- FALSE
+activate_ggplotWrapPlots <- TRUE
 
 data(OMIP021Samples)
 
