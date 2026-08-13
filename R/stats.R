@@ -1525,6 +1525,11 @@ channelSummaryStats <- function(
 #' (only used when `nDim` is set to NULL)
 #' @param maxDim in case `nDim` is found iteratively, 
 #' maximum number of dimensions the search procedure is allowed to explore
+#' @param eps in case `nDim` is found iteratively, the 'epsilon', 
+#' i.e. the minimum increase of pseudo rsquare required to allow looking at 
+#' further higher number of dimensions. The default value is 1e-6, meaning 
+#' 1e-4 percent. 
+#' @param verbose if TRUE displays (as message) details about calculation steps
 #' @param ... additional parameters passed to SMACOF algorithm
 #' @return an object of S4 class `MDS` 
 #' 
@@ -1593,6 +1598,8 @@ computeMetricMDS <- function(
         seed = NULL,
         targetPseudoRSq = 0.95,
         maxDim = 128,
+        eps = 1e-6,
+        verbose = FALSE,
         ...){
     if (inherits(pwDist, "DistSum")) {
         pwDist <- as.matrix(pwDist, whichFeatures = whichChannels)
@@ -1616,64 +1623,231 @@ computeMetricMDS <- function(
     if (!is.numeric(pwDist)) {
         stop("pwDist should be numeric")
     }
+    if (!is.numeric(maxDim)){
+        stop("maxDim should be numeric")
+    }
+    if (maxDim < 2){
+        stop("maxDim should be at least 2")
+    }
+    if (!is.null(seed) && !is.numeric(seed)){
+        stop("not null provided seed should be numeric")
+    }
+    if (!is.numeric(targetPseudoRSq)) {
+        stop("targetPseudoRSq should be numeric")
+    }
+    if (targetPseudoRSq < 0. || targetPseudoRSq >= 1.) {
+        stop("we should have 0 <= targetPseudoRSq < 1")
+    }
     
-    # handle case when nDim not provided
+    # handle case when nDim is not provided
     # in that case iteratively find it by aiming at target pseudoRSquare
     
     if (is.null(nDim)) {
-        nDimHigh <- 1
-        currentRSq <- 0.
-        while(currentRSq < targetPseudoRSq) {
-            nDimHigh <- nDimHigh * 2
-            if (nDimHigh > maxDim) {
-                warning("maxDim (=", maxDim, ") reached without ",
-                        "reaching target pseudo rsquare")
-            }
-            obj <- computeMetricMDS(pwDist,
-                                    nDim = nDimHigh,
-                                    seed = seed,
-                                    ...)
-            currentRSq <- RSq(obj)
+        if (verbose) {
+            message(
+                "nDim not provided => trying to find the minimum nb of dims ",
+                "in order to reach targetPseudoRSq: ", targetPseudoRSq)
+            message("maximum number of dims to be tried (maxDim): ", maxDim)
         }
         
-        nDimLow <- 1
+        bestRSq <- -Inf 
+        nDimHigh <- 1 # will be immediately multiplied by 2
+        nDimHighPrev <- 1
+        highObj <- NULL
+        prevHighObj <- NULL
+        decreasingRSq <- FALSE
         
-        # now [nDimLow, nDimUp] is such that RSq(nDimLow) < target 
-        # and RSq(nDimHigh) is such that RSq(nDimHigh) >= target
+        # FIRST STEP: find an upper bound for target nDim: nDimHigh
+        # by increasing nDimHigh by power of 2
+        # criteria: 1. nDimHigh should stay <= maxDim
+        #           2. RSq(nDimHigh) > targetPseudoRSquare OR 
+        #              Rsq(nDimHigh) < Rsq(previous tested nDim)
+        # lower bound for nDim is then the previously tested nDim
+        # exception: if Rsq(nDimHigh) < Rsq(previous tested nDim),
+        #            lower bound is actually (previous tested nDim - 1) 
         
-        nDimMid <- nDimHigh # proper initialization ;-)
+        while(nDimHigh < maxDim) {
+            nDimHighPrev <- nDimHigh
+            prevHighObj <- highObj
+            nDimHigh <- min(nDimHigh*2, maxDim)
+            
+            highObj <- computeMetricMDS(
+                pwDist,
+                nDim = nDimHigh,
+                seed = seed,
+                verbose = verbose,
+                ...)
+            if (RSq(highObj) < bestRSq + eps) {
+                decreasingRSq <- TRUE
+                break()
+            }
+            
+            if (RSq(highObj) >= targetPseudoRSq) {
+                bestRSq <- RSq(highObj)
+                break()
+            }
+            
+            bestRSq <- RSq(highObj)
+        }
+        
+        if (decreasingRSq){
+            nDimLow <- nDimHighPrev - 1  
+            lowObj <- NULL
+        } else {
+            nDimLow <- nDimHighPrev
+            lowObj <- prevHighObj
+        }
+        
+        
+        
+        # SECOND STEP: perform dichotomic search for target nDim 
+        #              objective: find min nDim such as target RSq is reached
+        #                         or find nDim such that Rsq is maximum
+        #              nDimLow is always such that nDimLow < target nDim
+        #              nDimHigh is always such that nDimHigh >= target nDim
+        if (verbose){
+            message("=> target number of dims is in interval: [",
+                    nDimLow, "-", nDimHigh, "]")
+            if ((nDimHigh - nDimLow) > 1) {
+                message("now applying dichotomic search...")
+            }
+        }
+        
+        if (is.null(lowObj)) {
+            if (verbose) {
+                message("MDS was not computed before for selected ",
+                        "nDim lower bound => do it!")
+            }
+            lowObj <- computeMetricMDS(
+                pwDist,
+                nDim = nDimLow,
+                seed = seed,
+                verbose = verbose,
+                ...)
+        }
+        
+        # browser()
+        
         while ((nDimHigh - nDimLow) > 1) {
             nDimMid <- floor((nDimLow + nDimHigh) / 2)
             obj <- computeMetricMDS(pwDist,
                                     nDim = nDimMid,
                                     seed = seed,
+                                    verbose = verbose,
                                     ...)
             currentRSq <- RSq(obj)
+            
             if (currentRSq >= targetPseudoRSq) {
                 nDimHigh <- nDimMid
+                highObj <- obj
+            } else if (currentRSq >= RSq(highObj)) {
+                nDimHigh <- nDimMid
+                highObj <- obj
             } else {
                 nDimLow <- nDimMid
+                lowObj <- obj
             }
         }
-        # final recalculation of the last MDS was not done with the right nDim
-        if (nDimMid != nDimHigh) {
-            obj <- computeMetricMDS(pwDist,
-                                    nDim = nDimHigh,
-                                    seed = seed,
-                                    ...)
+        
+        # THIRD STEP: check obtained solution and issue potential warnings
+        if (bestRSq < targetPseudoRSq) {
+            warning("maxDim (=", maxDim,") reached without reaching target ",
+                    "pseudo rsquare")
+        }
+        if (decreasingRSq) {
+            warning("pseudo rsquare has not increased by at least ", eps, 
+                    " in 2 consecutive steps of nDim upper bound search")
         }
         
-        return(obj)
+        # OLD CODE VERSION BELOW
+        # nDimHigh <- 1
+        # nDimLow <- 1
+        # currentRSq <- -1.
+        # currentObj <- NULL
+        # while(currentRSq < targetPseudoRSq) {
+        #     if (nDimHigh * 2 > maxDim) {
+        #         warning("maxDim (=", maxDim,") reached without ",
+        #                 "reaching target pseudo rsquare")
+        #         break
+        #     }
+        #     nDimLow <- nDimHigh
+        #     nDimHigh <- nDimHigh * 2
+        #     obj <- computeMetricMDS(pwDist,
+        #                             nDim = nDimHigh,
+        #                             seed = seed,
+        #                             verbose = verbose,
+        #                             ...)
+        #     if (RSq(obj) < currentRSq + 0.000001) {
+        #       warning("pseudoRSquare has not increased by at least 0.000001 ",
+        #                "in 2 consecutive steps of nDim upper bound search ",
+        #                 "=> resetting target pseudo rsquare to maximum obtained: ",
+        #                 round(currentRSq,6))
+        #         targetPseudoRSq <- currentRSq
+        #     } else {
+        #         currentRSq <- RSq(obj)
+        #         currentObj <- obj    
+        #     }
+        # }
+        # 
+        # # now [nDimLow, nDimUp] is such that RSq(nDimLow) < target
+        # # and RSq(nDimHigh) is such that RSq(nDimHigh) >= target
+        # 
+        # if (verbose){
+        #     message("=> target number of dims is in interval: [",
+        #             nDimLow, "-", nDimHigh, "]")
+        #     if ((nDimHigh - nDimLow) > 1) {
+        #         message("now applying dichotomic search...")
+        #     }
+        # 
+        # }
+        # 
+        # nDimMid <- nDimHigh # proper initialization ;-)
+        # while ((nDimHigh - nDimLow) > 1) {
+        #     nDimMid <- floor((nDimLow + nDimHigh) / 2)
+        #     obj <- computeMetricMDS(pwDist,
+        #                             nDim = nDimMid,
+        #                             seed = seed,
+        #                             verbose = verbose,
+        #                             ...)
+        #     currentRSq <- RSq(obj)
+        #     if (currentRSq >= targetPseudoRSq) {
+        #         nDimHigh <- nDimMid
+        #         currentObj <- obj
+        #     } else {
+        #         nDimLow <- nDimMid
+        #     }
+        # }
+        
+        if (verbose){
+            message("=> final nDim selected: ", nDimHigh)
+            message("=> final pseudo rsquare obtained: ", 
+                    round(RSq(highObj), 6))
+        }
+        
+        return(highObj)
+    }
+    
+    if (!is.numeric(nDim)){#here we know that nDim is not null
+        stop("not null provided nDim should be numeric")
+    }
+    if (nDim < 1){
+        stop("nDim should be at least 1")
     }
     
     # one-off case: nDim is provided by the user
     
     nSamples <- dimensions[1]
     if (nDim > nSamples-1) {
-        stop("nDim should be at most (nSamples-1)")
+        stop("nDim should be at most (nSamples-1) while nDim=", nDim,
+             " and nSamples=", nSamples)
     }
     
     if (!is.null(seed)) {
+        if (verbose){
+            message("applying SMACOF algorithm for nDim=", nDim,
+                    " (seed=", seed, ")")
+        }
+      
         withr::with_seed(
             seed,
             smacofRes <- smacof::smacofSym(
@@ -1683,6 +1857,10 @@ computeMetricMDS <- function(
                 ...)
         )
     } else {
+        if (verbose){
+            message("applying SMACOF algorithm for nDim=", nDim,
+                    " (no seed provided)")
+        }
         smacofRes <- smacof::smacofSym(
             delta = pwDist,
             ndim = nDim,
@@ -1690,6 +1868,7 @@ computeMetricMDS <- function(
             ...)
     }
     proj <- smacofRes$conf
+    
     
     # apply svd decomposition (principal component analysis) 
     # on the obtained projections
@@ -1706,41 +1885,12 @@ computeMetricMDS <- function(
     scaleFactor <- sqrt(sum(delta^2, na.rm = TRUE)) / sqrt(N)
     proj <- proj * scaleFactor
     
-    computeRSquares <- function(
-        distances, 
-        projections,
-        asInLinearRegression = TRUE) {
-        delta <- as.dist(distances)
-        nDim <- ncol(projections)
-        
-        RSq <- rep(0., nDim)
-        
-        RSS <- vapply(
-            seq_len(nDim), 
-            FUN = function(d){
-                projDist <- dist(projections[,seq_len(d)])
-                sum((delta - projDist)^2)
-            },
-            FUN.VALUE = 0.)
-        
-        if (asInLinearRegression) {
-            TSS <- sum((delta - mean(delta, na.rm = TRUE))^2)    
-        } else {
-            TSS <- sum(delta^2)    
-        }
-        
-        
-        
-        RSq <- 1-RSS/TSS
-        
-        RSq
-    }
     
-    RSq <- computeRSquares(
+    RSq <- .computeRSquares(
         distances = pwDist,
         projections = proj, 
         asInLinearRegression = TRUE)
-    GoF <- computeRSquares(
+    GoF <- .computeRSquares(
         distances = pwDist,
         projections = proj, 
         asInLinearRegression = FALSE)
@@ -1759,6 +1909,9 @@ computeMetricMDS <- function(
         GoF = GoF,
         smacofRes = smacofRes
     )
+    if (verbose){
+        message("obtained pseudoRsquare: ", round(RSq(res), 6))
+    }
     res
 }
 
@@ -1875,6 +2028,40 @@ computeMetricMDSBiplot <- function(
     )
     
     return(mdsBiplot)
+}
+
+# internal function to compute pseudo r square and goodness of fit
+.computeRSquares <- function(
+        distances, 
+        projections,
+        asInLinearRegression = TRUE) {
+    delta <- as.dist(distances)
+    nDim <- ncol(projections)
+    
+    RSq <- rep(0., nDim)
+
+    RSS <- vapply(
+        seq_len(nDim),
+        FUN = function(d){
+            projDist <- dist(projections[,seq_len(d)])
+            sum((delta - projDist)^2)
+        },
+        FUN.VALUE = 0.)
+    # browser()
+    # projDist <- dist(projections)
+    # RSS <- sum((delta - projDist)^2)
+    
+    if (asInLinearRegression) {
+        TSS <- sum((delta - mean(delta, na.rm = TRUE))^2)    
+    } else {
+        TSS <- sum(delta^2)    
+    }
+    
+    
+    
+    RSq <- 1-RSS/TSS
+    
+    RSq
 }
 
 

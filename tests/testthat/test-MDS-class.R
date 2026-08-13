@@ -27,7 +27,7 @@ points <- matrix(
 pwDist  <- as.matrix(dist(points))
 
 # compute Metric MDS object by reaching a target pseudo RSquare
-mdsObj <- computeMetricMDS(pwDist, targetPseudoRSq = 0.95, seed = 0)
+mdsObj <- computeMetricMDS(pwDist, targetPseudoRSq = 0.95, seed = 0, verbose = TRUE)
 
 test_that("basic MDS class works", {
     ret <- validObject(mdsObj)

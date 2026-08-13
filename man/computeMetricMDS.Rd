@@ -11,6 +11,8 @@ computeMetricMDS(
   seed = NULL,
   targetPseudoRSq = 0.95,
   maxDim = 128,
+  eps = 1e-06,
+  verbose = FALSE,
   ...
 )
 }
@@ -41,6 +43,13 @@ if not provided, will be found iteratively using \code{targetPseudoRSq}}
 
 \item{maxDim}{in case \code{nDim} is found iteratively,
 maximum number of dimensions the search procedure is allowed to explore}
+
+\item{eps}{in case \code{nDim} is found iteratively, the 'epsilon',
+i.e. the minimum increase of pseudo rsquare required to allow looking at
+further higher number of dimensions. The default value is 1e-6, meaning
+1e-4 percent.}
+
+\item{verbose}{if TRUE displays (as message) details about calculation steps}
 
 \item{...}{additional parameters passed to SMACOF algorithm}
 }

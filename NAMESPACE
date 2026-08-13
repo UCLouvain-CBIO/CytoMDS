@@ -43,14 +43,20 @@ exportMethods(nrow)
 exportMethods(rownames)
 import(ggplot2)
 importFrom(CytoPipeline,areSignalCols)
-importFrom(methods,as)
-importFrom(methods,is)
-importFrom(methods,validObject)
-importFrom(rlang,.data)
-importFrom(rlang,sym)
-importFrom(stats,as.dist)
-importFrom(stats,dist)
-importFrom(stats,lm)
+importFrom(methods,
+  as,
+  is,
+  validObject
+)
+importFrom(rlang,
+  .data,
+  sym
+)
+importFrom(stats,
+  as.dist,
+  dist,
+  lm
+)
 importMethodsFrom(Biobase,"featureNames<-")
 importMethodsFrom(Biobase,featureNames)
 importMethodsFrom(methods,show)

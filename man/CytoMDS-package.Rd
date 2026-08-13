@@ -21,6 +21,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Philippe Hauchamps \email{philippe.hauchamps@uclouvain.be} (\href{https://orcid.org/0000-0003-2865-1852}{ORCID})
   \item Laurent Gatto \email{laurent.gatto@uclouvain.be} (\href{https://orcid.org/0000-0002-1520-2268}{ORCID})
 }
 

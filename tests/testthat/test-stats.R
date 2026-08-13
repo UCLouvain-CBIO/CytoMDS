@@ -1319,7 +1319,7 @@ test_that("computeMetricMDS works", {
     # and select channels in computeMetricMDS
     pwDistFull <- pairwiseEMDDist(fsAll, 
                                   channels = NULL,
-                                  verbose = TRUE)
+                                  verbose = FALSE)
     
     mdsObjFull <- computeMetricMDS(pwDistFull, nDim = 2, seed = 0,
                                    whichChannels = c("FSC-A", "SSC-A"))
@@ -1344,5 +1344,17 @@ test_that("computeMetricMDS works", {
     
     expect_equal(nDim(mdsObj4), 3)
     expect_equal(RSqVec(mdsObj4)[3], 0.99988906)
+    
+    expect_warning(
+        mdsObj5 <- computeMetricMDS(
+            pwDist, 
+            seed = 0, 
+            targetPseudoRSq = 0.999,
+            maxDim = 2),
+        regexp = "reached without reaching target pseudo rsquare")
+    
+    
+    expect_equal(nDim(mdsObj5), 2)
+    expect_equal(RSq(mdsObj5), 0.99843722)
     
 })
