@@ -27,6 +27,9 @@ Useful links:
 
 Authors:
 
+- Philippe Hauchamps <philippe.hauchamps@uclouvain.be>
+  ([ORCID](https://orcid.org/0000-0003-2865-1852))
+
 - Laurent Gatto <laurent.gatto@uclouvain.be>
   ([ORCID](https://orcid.org/0000-0002-1520-2268))
 

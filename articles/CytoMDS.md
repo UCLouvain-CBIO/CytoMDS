@@ -966,14 +966,14 @@ p
     ## 
     ## other attached packages:
     ##  [1] patchwork_1.3.2             ggplot2_4.0.3              
-    ##  [3] CytoMDS_1.9.2               HDCytoData_1.33.1          
+    ##  [3] CytoMDS_1.9.3               HDCytoData_1.33.1          
     ##  [5] flowCore_2.25.1             SummarizedExperiment_1.43.0
     ##  [7] Biobase_2.73.2              GenomicRanges_1.65.1       
     ##  [9] Seqinfo_1.3.0               IRanges_2.47.2             
     ## [11] S4Vectors_0.51.6            MatrixGenerics_1.25.0      
     ## [13] matrixStats_1.5.0           ExperimentHub_3.3.0        
     ## [15] AnnotationHub_4.3.2         BiocFileCache_3.3.0        
-    ## [17] dbplyr_2.6.0                BiocGenerics_0.59.11       
+    ## [17] dbplyr_2.6.0                BiocGenerics_0.59.12       
     ## [19] generics_0.1.4              BiocStyle_2.41.0           
     ## 
     ## loaded via a namespace (and not attached):
@@ -981,7 +981,7 @@ p
     ##   [4] polyclip_1.10-7      graph_1.91.0         XML_3.99-0.23       
     ##   [7] rpart_4.1.27         lifecycle_1.0.5      httr2_1.3.0         
     ##  [10] Rdpack_2.6.6         doParallel_1.0.17    flowWorkspace_4.25.1
-    ##  [13] lattice_0.22-9       MASS_7.3-66          backports_1.5.1     
+    ##  [13] lattice_0.23-1       MASS_7.3-66          backports_1.5.1     
     ##  [16] magrittr_2.0.5       Hmisc_5.2-6          sass_0.4.10         
     ##  [19] rmarkdown_2.31       jquerylib_0.1.4      yaml_2.3.12         
     ##  [22] plotrix_3.8-14       otel_0.2.0           DBI_1.3.0           
@@ -990,7 +990,7 @@ p
     ##  [31] pracma_2.4.6         tweenr_2.0.3         rappdirs_0.3.4      
     ##  [34] transport_0.15-4     ggrepel_0.9.8        gdata_3.0.1         
     ##  [37] ellipse_0.5.0        pkgdown_2.2.1.9000   codetools_0.2-20    
-    ##  [40] DelayedArray_0.39.4  ggforce_0.5.0        tidyselect_1.2.1    
+    ##  [40] DelayedArray_0.39.5  ggforce_0.5.0        tidyselect_1.2.1    
     ##  [43] shape_1.4.6.1        farver_2.1.2         lme4_2.0-6          
     ##  [46] base64enc_0.1-6      jsonlite_2.0.0       e1071_1.7-17        
     ##  [49] mitml_0.4-5          Formula_1.2-6        survival_3.8-9      
@@ -1022,7 +1022,7 @@ p
     ## [127] labeling_0.4.3       plyr_1.8.9           fs_2.1.0            
     ## [130] stringi_1.8.9        BiocParallel_1.47.0  nnls_1.6            
     ## [133] Biostrings_2.81.6    glmnet_5.0           Matrix_1.7-6        
-    ## [136] bit64_4.8.2          CytoPipeline_1.13.0  KEGGREST_1.53.6     
+    ## [136] bit64_4.8.2          CytoPipeline_1.13.1  KEGGREST_1.53.6     
     ## [139] rbibutils_2.4.1      broom_1.0.13         memoise_2.0.1       
     ## [142] bslib_0.12.0         bit_4.6.0            polynom_1.4-1
 

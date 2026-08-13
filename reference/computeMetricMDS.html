@@ -33,7 +33,7 @@ looking for too big projection spaces."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">CytoMDS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.9.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.9.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,6 +86,8 @@ looking for too big projection spaces.</p>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  targetPseudoRSq <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  maxDim <span class="op">=</span> <span class="fl">128</span>,</span>
+<span>  eps <span class="op">=</span> <span class="fl">1e-06</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -129,6 +131,17 @@ if not provided, will be found iteratively using <code>targetPseudoRSq</code></p
 <dt id="arg-maxdim">maxDim<a class="anchor" aria-label="anchor" href="#arg-maxdim"></a></dt>
 <dd><p>in case <code>nDim</code> is found iteratively,
 maximum number of dimensions the search procedure is allowed to explore</p></dd>
+
+
+<dt id="arg-eps">eps<a class="anchor" aria-label="anchor" href="#arg-eps"></a></dt>
+<dd><p>in case <code>nDim</code> is found iteratively, the 'epsilon',
+i.e. the minimum increase of pseudo rsquare required to allow looking at
+further higher number of dimensions. The default value is 1e-6, meaning
+1e-4 percent.</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>if TRUE displays (as message) details about calculation steps</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

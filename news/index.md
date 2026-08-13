@@ -2,6 +2,12 @@
 
 ## CytoMDS 1.9
 
+### CytoMDS 1.9.3
+
+- refactored computeMetricMDS to make the automatic selection of number
+  of dimensions more efficient, while also handling non increasing
+  pseudo rsquares, and implementing verbose messages
+
 ### CytoMDS 1.9.2
 
 (no change - required update of unit tests)
